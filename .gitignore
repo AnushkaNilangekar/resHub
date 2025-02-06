@@ -34,3 +34,6 @@ build/
 
 ## frontend ###
 frontend/node_modules
+frontend/package-lock.json
+frontend/package.json
+.expo/devices.json

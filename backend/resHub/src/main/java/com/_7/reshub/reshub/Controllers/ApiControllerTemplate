@@ -1,0 +1,16 @@
+package com.yourpackage.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@CrossOrigin(origins = "http://localhost:19006")
+@RestController
+@RequestMapping("/api")
+pubilc class ApiControllerTemplate
+{
+    @GetMapping("/sum")
+    public ResponseEntity<Integer> getSum(@RequestParam int a, @RequestParam int b)
+    {
+        return ResponseEntity.ok(a + b);
+    }
+}

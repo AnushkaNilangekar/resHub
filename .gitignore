@@ -34,4 +34,4 @@ build/
 
 ## frontend ###
 frontend/node_modules
-.expo
+frontend/.expo

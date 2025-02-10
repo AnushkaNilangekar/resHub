@@ -20,7 +20,7 @@ import java.util.Map;
 public class ReshubApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(ReshubApplication.class, args);
 	}
 
 	@GetMapping("/hello")

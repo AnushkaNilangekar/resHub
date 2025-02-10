@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -19,9 +20,13 @@ public class S3Controller {
     private static final Logger logger = LoggerFactory.getLogger(S3Controller.class);
 
     private final String BUCKET_NAME = "reshub-profile-pics";
-    private final S3Client s3Client = S3Client.builder()
-            .credentialsProvider(ProfileCredentialsProvider.create())
-            .build();
+    private final S3Client s3Client;
+    public S3Controller() {
+        this.s3Client = S3Client.builder()
+                .httpClientBuilder(UrlConnectionHttpClient.builder()) 
+                .credentialsProvider(ProfileCredentialsProvider.create())
+                .build();
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {

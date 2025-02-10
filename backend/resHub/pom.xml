@@ -52,16 +52,15 @@
 		<dependency>
    			 <groupId>software.amazon.awssdk</groupId>
     		 <artifactId>s3</artifactId>
-   			 <version>2.20.67</version>
+   			 <version>2.20.40</version>
 		</dependency>
 
-		<!-- URL connection client (simpler alternative to Netty) -->
+		<!--  URL connection client (simpler alternative to Netty) -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>url-connection-client</artifactId>
 			<version>2.20.40</version>
 		</dependency>
-
 
 		<!-- Logging -->
 		<dependency>

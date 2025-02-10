@@ -21,8 +21,10 @@
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
     "expo": "^52.0.31",
+    "expo-constants": "~17.0.5",
     "react-dom": "18.3.1",
     "react-native": "^0.76.7",
+    "react-native-dotenv": "^3.4.11",
     "react-native-web": "~0.19.13"
   },
   "devDependencies": {

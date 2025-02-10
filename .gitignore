@@ -34,4 +34,4 @@ build/
 
 ## frontend ###
 frontend/node_modules
-.expo/devices.json
+frontend/.expo

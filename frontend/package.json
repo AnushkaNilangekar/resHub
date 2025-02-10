@@ -2,7 +2,7 @@
   "name": "reshub",
   "version": "1.0.0",
   "description": "#Spring Boot How To Run - Make sure maven is downloaded - Go into backend/resHub - Run mvn spring-boot:run",
-  "main": "index.js",
+  "main": "App.js",
   "scripts": {
     "start": "expo start",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,6 +19,27 @@
   },
   "homepage": "https://github.com/AnushkaNilangekar/resHub#readme",
   "dependencies": {
-    "expo": "^52.0.31"
+    "@expo/metro-runtime": "~4.0.1",
+    "expo": "^52.0.31",
+    "react-dom": "18.3.1",
+    "react-native": "^0.76.7",
+    "react-native-web": "~0.19.13"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "latest"
+  },
+  "expo": {
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "web": {
+      "bundler": "metro",
+      "jsEngine": "jsc"
+    },
+    "ios": {
+      "jsEngine": "hermes"
+    }
   }
 }

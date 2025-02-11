@@ -46,7 +46,7 @@ const UploadProfilePic = () => {
 
       //not sure what url should be in this case ?
       try {
-        const response = await fetch(`${API_BASE_URL}/api/s3/upload`, {
+        const response = await fetch(`${config.API_BASE_URL}/api/s3/upload`, {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',

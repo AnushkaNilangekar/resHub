@@ -22,3 +22,4 @@
     - Change the API_BASE_URL value in frontend/config.js file to the ngrok url
         - e.g. API_BASE_URL: "https://<code>.ngrok-free.app"
         - If the config.js file does not exist then create one in frontend
+        - Do not push the config.js

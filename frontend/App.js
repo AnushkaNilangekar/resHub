@@ -1,17 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, AppRegistry } from 'react-native';
+import { AppRegistry } from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import StackNavigator from "./navigation/StackNavigator";
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Hello, World!</Text>
-    </View>
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
   );
 }
 
 AppRegistry.registerComponent('main', () => App);
 
-const styles = StyleSheet.create({
+/*export default function App() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>Hello, World!</Text>
+    </View>
+  );
+}*/
+
+/*const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -22,7 +32,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-});
+});*/
 
 // export default function App()
 // {

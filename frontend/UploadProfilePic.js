@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Button, Text, StyleSheet, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import config from './config';
+import API_BASE_URL from './config';
 
 const UploadProfilePic = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -46,7 +46,7 @@ const UploadProfilePic = () => {
 
       //not sure what url should be in this case ?
       try {
-        const response = await fetch("https://93d5-128-210-106-84.ngrok-free.app/api/s3/upload", {
+        const response = await fetch(`${API_BASE_URL}/api/s3/upload`, {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',

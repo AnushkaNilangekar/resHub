@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, AppRegistry } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Keyboard, TouchableWithoutFeedback, AppRegistry } from 'react-native';
 import config from './config';
 import UploadProfilePic from './UploadProfilePic';
 
@@ -19,28 +19,31 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Sum Calculator</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter first number"
-        keyboardType="numeric"
-        value={num1}
-        onChangeText={setNum1}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter second number"
-        keyboardType="numeric"
-        value={num2}
-        onChangeText={setNum2}
-      />
-      <Button title="Get Sum" onPress={calculateSum} />
-      {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+    
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <Text style={styles.text}>Sum Calculator</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter first number"
+          keyboardType="numeric"
+          value={num1}
+          onChangeText={setNum1}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter second number"
+          keyboardType="numeric"
+          value={num2}
+          onChangeText={setNum2}
+        />
+        <Button title="Get Sum" onPress={calculateSum} />
+        {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
 
-      {/* Image Upload Component */}
-      <UploadProfilePic />
-    </View>
+        {/* Image Upload Component */}
+        <UploadProfilePic />
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

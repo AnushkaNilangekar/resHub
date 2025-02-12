@@ -21,7 +21,7 @@ Spring Boot
     - e.g. API_BASE_URL: `https://123a-123.ngrok-free.app`
     - If the config.js file does not exist then create one in frontend
     - Do not push the config.js
-========================================================================
+---
 # Manually testing backend endpoints
 - Make a curl request using `http://localhost:<port-number>/<endpoint-name>?<parameters>`  
 OR

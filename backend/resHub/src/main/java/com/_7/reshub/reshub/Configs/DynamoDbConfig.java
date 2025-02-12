@@ -10,7 +10,15 @@ public class DynamoDbConfig {
     @Value("${dynamodb.swipe.log.table.name}")
     private String swipeLogTableName;
 
+    // dynamodb.user.table.name in application.properties
+    @Value("${dynamodb.user.table.name}")
+    private String usersTableName;
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
+    }
+
+    public String getUsersTableName() {
+        return usersTableName;
     }
 }

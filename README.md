@@ -18,7 +18,7 @@ Spring Boot
 - Do ngrok http 8080
     - Or whatever port Spring Boot is running on
 - Change the API_BASE_URL value in frontend/config.js file to the ngrok url
-    - e.g. API_BASE_URL: "https://123a-123.ngrok-free.app"
+    - e.g. API_BASE_URL: `https://123a-123.ngrok-free.app`
     - If the config.js file does not exist then create one in frontend
     - Do not push the config.js
 ========================================================================
@@ -26,6 +26,6 @@ Spring Boot
 - Make a curl request using `http://localhost:<port-number>/<endpoint-name>?<parameters>`  
 OR
 - Download postman
-- Make a GET or POST request to http://localhost:&lt;port-number&gt;/&lt;endpoint-name&gt;
+- Make a GET or POST request to `http://localhost:<port-number>/<endpoint-name>`
 - Insert parameters under the 'params' tab
 - Click 'Send'

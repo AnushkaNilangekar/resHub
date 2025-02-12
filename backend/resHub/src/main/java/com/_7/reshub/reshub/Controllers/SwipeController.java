@@ -10,7 +10,7 @@ import com._7.reshub.reshub.Services.DynamoDbService;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/swipes")
 public class SwipeController {
 
     @Autowired

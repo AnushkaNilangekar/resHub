@@ -1,7 +1,7 @@
 # resHub
 
-#How to run application
-    #React Native
+# How to run application
+    React Native
     - Download Expo Go from the App Store
     - Go into frontend/
     - Do npm install
@@ -9,7 +9,7 @@
         - If the app does not work add the --tunnel flag to the end of the command above
     - Scan QR code and open in Expo Go
 
-    #Spring Boot
+    Spring Boot
     - Download and install maven if not done already
     - Download and install AWS CLI if not done already
     - Run aws configure in your terminal
@@ -23,6 +23,14 @@
         - e.g. API_BASE_URL: "https://<code>.ngrok-free.app"
         - If the config.js file does not exist then create one in frontend
         - Do not push the config.js
+# Manually testing backend endpoints
+    - Make a curl request using http://localhost:<port-number>/<endpoint-name>?<parameters>
+    OR
+    - Download postman
+    - Make a GET or POST request to http://localhost:<port-number>
+    - Insert parameters under the 'params' tab
+    - Click 'Send'
+
 =======
 # Starting resHub
 Spring Boot

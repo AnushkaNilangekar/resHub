@@ -23,7 +23,7 @@ Spring Boot
     - Do not push the config.js
 ========================================================================
 # Manually testing backend endpoints
-- Make a curl request using <code>http://localhost:&lt;port-number&gt;/&lt;endpoint-name&gt;?&lt;parameters&gt;</code>  
+- Make a curl request using `http://localhost:<port-number>/<endpoint-name>?<parameters>`  
 OR
 - Download postman
 - Make a GET or POST request to http://localhost:&lt;port-number&gt;/&lt;endpoint-name&gt;

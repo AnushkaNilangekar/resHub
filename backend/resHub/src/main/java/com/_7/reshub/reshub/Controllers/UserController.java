@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com._7.reshub.reshub.Services.DynamoDbService;
+import com._7.reshub.reshub.Services.UserService;
 import java.util.List;
 
 @RestController
@@ -14,7 +14,7 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    private DynamoDbService dynamoDbService;
+    private UserService userService;
 
     /*
      * Endpoint to get a list of user ids of matches for a given user.
@@ -25,7 +25,7 @@ public class UserController {
     @GetMapping("/getMatches")
     public List<String> getUserMatches(@RequestParam String userId) {
         try {
-            List<String> matches = dynamoDbService.getUserMatches(userId);
+            List<String> matches = userService.getUserMatches(userId);
             return matches;
         } catch (Exception e) {
             e.printStackTrace();

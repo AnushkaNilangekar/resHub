@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com._7.reshub.reshub.Services.DynamoDbService;
+import com._7.reshub.reshub.Services.SwipeService;
+
 import java.time.Instant;
 
 @RestController
@@ -14,7 +15,7 @@ import java.time.Instant;
 public class SwipeController {
 
     @Autowired
-    private DynamoDbService dynamoDbService;
+    private SwipeService swipeService;
 
     /*
      * Should be called when a user swipes on another uesrs card.
@@ -35,7 +36,7 @@ public class SwipeController {
         long timestamp = Instant.now().getEpochSecond();
 
         try {
-            dynamoDbService.recordSwipe(userId, swipedOnUserId, direction, timestamp);
+            swipeService.recordSwipe(userId, swipedOnUserId, direction, timestamp);
 
             return "Swipe recorded successfully!";
         } catch (Exception e) {

@@ -19,6 +19,7 @@ import java.util.UUID;
 public class S3Controller {
     private static final Logger logger = LoggerFactory.getLogger(S3Controller.class);
 
+    
     private final String BUCKET_NAME = "reshub-profile-pics";
     private final S3Client s3Client;
     public S3Controller() {

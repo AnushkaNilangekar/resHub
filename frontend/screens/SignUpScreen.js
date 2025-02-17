@@ -5,7 +5,9 @@ import {
     StyleSheet,
     TextInput,
     Button,
-    Alert
+    Alert,
+    Keyboard,
+    TouchableWithoutFeedback
 } from "react-native";
 import config from "../config";
 
@@ -64,54 +66,62 @@ const SignUpScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Sign Up</Text>
+        // Wrap the container with TouchableWithoutFeedback to dismiss the keyboard when tapping outside
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
+                <Text style={styles.title}>Sign Up</Text>
 
-            <TextInput
-                style={styles.input}
-                placeholder="First Name"
-                value={firstName}
-                onChangeText={setFirstName}
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="First Name"
+                    placeholderTextColor="#333"  // Darker placeholder text
+                    value={firstName}
+                    onChangeText={setFirstName}
+                />
 
-            <TextInput
-                style={styles.input}
-                placeholder="Last Name"
-                value={lastName}
-                onChangeText={setLastName}
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Last Name"
+                    placeholderTextColor="#333"
+                    value={lastName}
+                    onChangeText={setLastName}
+                />
 
-            <TextInput
-                style={styles.input}
-                placeholder="Email (must end in @purdue.edu)"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email (must end in @purdue.edu)"
+                    placeholderTextColor="#333"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                />
 
-            <TextInput
-                style={styles.input}
-                placeholder="Phone Number"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Phone Number"
+                    placeholderTextColor="#333"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    keyboardType="phone-pad"
+                />
 
-            <TextInput
-                style={styles.input}
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="#333"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                />
 
-            <Button title="Sign Up" onPress={handleSignUp} />
+                <Button title="Sign Up" onPress={handleSignUp} />
 
-            <View style={{ marginTop: 10 }}>
-                <Button title="Go Back" onPress={() => navigation.goBack()} />
+                <View style={{ marginTop: 10 }}>
+                    <Button title="Go Back" onPress={() => navigation.goBack()} />
+                </View>
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     );
 };
 

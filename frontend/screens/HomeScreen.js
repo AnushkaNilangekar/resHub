@@ -20,36 +20,40 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-    <View style={styles.container}>
-      <Text style={styles.text}>Sum Calculator</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Enter first number"
-        keyboardType="numeric"
-        value={num1}
-        onChangeText={setNum1}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter second number"
-        keyboardType="numeric"
-        value={num2}
-        onChangeText={setNum2}
-      />
-      <Button title="Get Sum" onPress={calculateSum} />
-      
-      {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+      <View style={styles.container}>
+        <Text style={styles.text}>Sum Calculator</Text>
 
       {/* Image Upload Component */}
       <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter first number"
+          keyboardType="numeric"
+          value={num1}
+          onChangeText={setNum1}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter second number"
+          keyboardType="numeric"
+          value={num2}
+          onChangeText={setNum2}
+        />
+        <Button title="Get Sum" onPress={calculateSum} />
 
-      <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
-    </View>
+        {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+
+        {/* Image Upload Component */}
+        <UploadProfilePic />
+
+        <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
+
+        <Button title="Go to Sign Up" onPress={() => navigation.navigate("SignUp")} />
+      </View>
     </TouchableWithoutFeedback>
   );
 
-}; 
+};
 
 export default HomeScreen;
 

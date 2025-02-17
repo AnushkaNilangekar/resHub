@@ -78,9 +78,18 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>2.0.9</version>
 		</dependency>
+
+		<!-- Add Spring Security for BCrypt password hashing -->
+    	<dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-security</artifactId>
+    	</dependency>
+
+		<!-- Add Jwt tokens for logging in -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt</artifactId>
+   			 <version>0.12.6</version>
 		</dependency>
 	</dependencies>
 

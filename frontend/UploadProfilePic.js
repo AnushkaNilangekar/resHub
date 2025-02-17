@@ -63,27 +63,27 @@ const UploadProfilePic = () => {
       });
   
       const responseText = await response.text(); // Get raw text response
-      console.log('Raw response:', responseText); // Debug logging
-      console.log('response code:', response.status);
+      //console.log('Raw response:', responseText); // Debug logging
+      //console.log('response code:', response.status);
   
       if (response.ok) {
-        const data = JSON.parse(responseText); // Parse response if valid JSON
-        setUploadStatus(`Upload successful: ${data.url}`);
-        Alert.alert("Success", "Image uploaded successfully!");
+        //const data = JSON.parse(responseText); // Parse response if valid JSON
+        //setUploadStatus(`Upload successful: ${data.url}`);
+        //Alert.alert("Success", "Image uploaded successfully!");
       } else {
         try {
           console.log(responseText);
           const errorData = JSON.parse(responseText); // Assuming the error response is JSON
-          setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
-          Alert.alert("Upload Failed", errorData.message || "Unknown error");
+          //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
+          //Alert.alert("Upload Failed", errorData.message || "Unknown error");
         } catch (error) {
-          setUploadStatus(`Upload failed: Unable to parse error response.`);
-          Alert.alert("Upload Failed", "Unable to parse error response.");
+          //setUploadStatus(`Upload failed: Unable to parse error response.`);
+          //Alert.alert("Upload Failed", "Unable to parse error response.");
         }
       }
     } catch (error) {
-      setUploadStatus(`Upload failed: ${error.message}`);
-      Alert.alert("Upload Failed", "Something went wrong!");
+      //setUploadStatus(`Upload failed: ${error.message}`);
+      //Alert.alert("Upload Failed", "Something went wrong!");
       console.error(error);
     }
   };  

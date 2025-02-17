@@ -59,24 +59,24 @@ public class S3Controller {
 
             // Return the file URL after upload
             String fileUrl = "https://" + BUCKET_NAME + ".s3.amazonaws.com/" + fileName;
-            logger.info("File uploaded successfully: {}", fileUrl);
+            //logger.info("File uploaded successfully: {}", fileUrl);
 
             // Return a JSON response with the file URL
             String successResponse = "{\"url\": \"" + fileUrl + "\"}";
-            logger.info("Returning response: {}", successResponse);
+            //logger.info("Returning response: {}", successResponse);
             return ResponseEntity.ok(successResponse);
 
         } catch (IOException e) {
-            logger.error("Error uploading file: {}", e.getMessage(), e);
+            //logger.error("Error uploading file: {}", e.getMessage(), e);
             // Return a JSON error response
             String errorResponse = "{\"message\": \"Upload failed: " + e.getMessage() + "\"}";
-            logger.error("Returning error response: {}", errorResponse);
+            //logger.error("Returning error response: {}", errorResponse);
             return ResponseEntity.status(500).body(errorResponse);
         } catch (Exception e) {
-            logger.error("Unexpected error: {}", e.getMessage(), e);
+            //logger.error("Unexpected error: {}", e.getMessage(), e);
             // Return a general error response
             String errorResponse = "{\"message\": \"An unexpected error occurred.\"}";
-            logger.error("Returning error response: {}", errorResponse);
+            //logger.error("Returning error response: {}", errorResponse);
             return ResponseEntity.status(500).body(errorResponse);
         }
     }

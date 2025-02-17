@@ -23,6 +23,8 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.container}>
         <Text style={styles.text}>Sum Calculator</Text>
 
+      {/* Image Upload Component */}
+      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
         <TextInput
           style={styles.input}
           placeholder="Enter first number"
@@ -40,9 +42,6 @@ const HomeScreen = ({ navigation }) => {
         <Button title="Get Sum" onPress={calculateSum} />
 
         {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
-
-        {/* Image Upload Component */}
-        <UploadProfilePic />
 
         <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
 

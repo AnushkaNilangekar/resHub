@@ -42,7 +42,7 @@ const HomeScreen = ({ navigation }) => {
       {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
 
       {/* Image Upload Component */}
-      <UploadProfilePic />
+      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
 
       <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
     </View>

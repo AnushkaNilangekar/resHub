@@ -23,6 +23,7 @@
     "@expo/ngrok": "^4.1.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
+    "expo-cli": "^6.3.12",
     "expo": "~52.0.35",
     "expo-constants": "~17.0.6",
     "expo-image-picker": "~16.0.6",
@@ -36,9 +37,11 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
     "@react-native-picker/picker": "2.9.0"
+    "expo-file-system": "~18.0.10"
   },
   "devDependencies": {
-    "@react-native-community/cli": "latest"
+    "@react-native-community/cli": "latest",
+    "expo": "^52.0.35"
   },
   "expo": {
     "platforms": [

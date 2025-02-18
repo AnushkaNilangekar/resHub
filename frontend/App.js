@@ -1,3 +1,4 @@
+import 'react-native-url-polyfill/auto';
 import React from 'react';
 import {StyleSheet, AppRegistry } from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';

@@ -45,6 +45,7 @@ const HomeScreen = ({ navigation }) => {
       <UploadProfilePic />
 
       <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
+      <Button title="Go to Matches" onPress={() => navigation.navigate("MatchesAndConversations")} />
     </View>
     </TouchableWithoutFeedback>
   );

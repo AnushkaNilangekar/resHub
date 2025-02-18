@@ -1,0 +1,212 @@
+package com._7.reshub.reshub.Controllers;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api")
+public class ProfileController {
+
+    private final DynamoDbClient dynamoDbClient;
+
+    // Initialize the DynamoDB client using the AWS SDK builder.
+    public ProfileController() {
+        this.dynamoDbClient = DynamoDbClient.builder()
+                .httpClientBuilder(UrlConnectionHttpClient.builder())
+                .credentialsProvider(ProfileCredentialsProvider.create())
+                .build();
+    }
+
+    // Class representing the JSON body for a profile creation request.
+    public static class ProfileRequest {
+        private String email; // User email (unique key)
+        private String fullName; // Full name of the user
+        private String gender; // Gender (dropdown)
+        private String major; // Major field of study
+        private String minor; // Minor field (optional)
+        private Integer age; // Age (numeric input)
+        private String residence; // Residence name (e.g., res hall, apt, house, etc.)
+        private List<String> hobbies; // Hobbies as an array (multi-select ui)
+        private String graduationYear; // Graduation year (dropdown: "2025", … ,"2030", or "n/a")
+        private String bio; // Bio (paragraph about themselves for their profile)
+
+        // Getters and setters for JSON mapping
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getGender() {
+            return gender;
+        }
+
+        public void setGender(String gender) {
+            this.gender = gender;
+        }
+
+        public String getMajor() {
+            return major;
+        }
+
+        public void setMajor(String major) {
+            this.major = major;
+        }
+
+        public String getMinor() {
+            return minor;
+        }
+
+        public void setMinor(String minor) {
+            this.minor = minor;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+
+        public String getResidence() {
+            return residence;
+        }
+
+        public void setResidence(String residence) {
+            this.residence = residence;
+        }
+
+        public List<String> getHobbies() {
+            return hobbies;
+        }
+
+        public void setHobbies(List<String> hobbies) {
+            this.hobbies = hobbies;
+        }
+
+        public String getGraduationYear() {
+            return graduationYear;
+        }
+
+        public void setGraduationYear(String graduationYear) {
+            this.graduationYear = graduationYear;
+        }
+
+        public String getBio() {
+            return bio;
+        }
+
+        public void setBio(String bio) {
+            this.bio = bio;
+        }
+    }
+
+    /**
+     * POST endpoint to create a new user profile.
+     * Validates that all required fields are provided and that the email ends with
+     * ".edu".
+     * Also checks if a profile already exists for the given email.
+     *
+     * @param request The profile data from the frontend.
+     * @return 200 OK if the profile is created successfully; 400 Bad Request if
+     *         validation fails.
+     */
+    @PostMapping("/profile")
+    public ResponseEntity<?> createProfile(@RequestBody ProfileRequest request) {
+        // Validate that all required fields are provided.
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty() ||
+                request.getFullName() == null || request.getFullName().trim().isEmpty() ||
+                request.getGender() == null || request.getGender().trim().isEmpty() ||
+                request.getMajor() == null || request.getMajor().trim().isEmpty() ||
+                request.getAge() == null ||
+                request.getResidence() == null || request.getResidence().trim().isEmpty() ||
+                request.getHobbies() == null || request.getHobbies().isEmpty() ||
+                request.getGraduationYear() == null || request.getGraduationYear().trim().isEmpty() ||
+                request.getBio() == null || request.getBio().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("All fields are required.");
+        }
+
+        // Validate that the email ends with ".edu"
+        if (!request.getEmail().endsWith(".edu")) {
+            return ResponseEntity.badRequest().body("Email must end with .edu");
+        }
+
+        // Build the DynamoDB item.
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("email", AttributeValue.builder().s(request.getEmail()).build());
+        item.put("fullName", AttributeValue.builder().s(request.getFullName()).build());
+        item.put("gender", AttributeValue.builder().s(request.getGender()).build());
+        item.put("major", AttributeValue.builder().s(request.getMajor()).build());
+        // For optional minor field: store an empty string if null.
+        item.put("minor", AttributeValue.builder().s(request.getMinor() != null ? request.getMinor() : "").build());
+        item.put("age", AttributeValue.builder().n(String.valueOf(request.getAge())).build());
+        item.put("residence", AttributeValue.builder().s(request.getResidence()).build());
+        // Convert the hobbies list into a DynamoDB List.
+        item.put("hobbies", AttributeValue.builder().l(
+                request.getHobbies().stream()
+                        .map(hobby -> AttributeValue.builder().s(hobby).build())
+                        .collect(Collectors.toList()))
+                .build());
+        item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
+        item.put("bio", AttributeValue.builder().s(request.getBio()).build());
+
+        // Save the item to the DynamoDB table.
+        PutItemRequest putItemRequest = PutItemRequest.builder()
+                .tableName("userProfiles")
+                .item(item)
+                .build();
+        dynamoDbClient.putItem(putItemRequest);
+
+        // Return success message.
+        return ResponseEntity.ok("Profile created successfully");
+    }
+
+    /**
+     * GET endpoint that checks whether a profile exists for the specified email.
+     * 
+     * @param email The email address to check for an existing profile.
+     * @return A ResponseEntity containing "exists" if the profile is found, or "not
+     *         exists" with HTTP 404 if not.
+     */
+
+    @GetMapping("/profile/exists")
+    public ResponseEntity<String> profileExists(@RequestParam String email) {
+        // Build the key using the provided email
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("email", AttributeValue.builder().s(email).build());
+
+        // Create a GET request to DynamoDB
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName("userProfiles") // Make sure this matches your table name
+                .key(key)
+                .build();
+        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+        // Return a simple string if found, else 404
+        if (getItemResponse.hasItem()) {
+            return ResponseEntity.ok("exists");
+        } else {
+            return ResponseEntity.status(404).body("not exists");
+        }
+    }
+}

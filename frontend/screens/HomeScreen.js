@@ -20,37 +20,38 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-    <View style={styles.container}>
-      <Text style={styles.text}>Sum Calculator</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Enter first number"
-        keyboardType="numeric"
-        value={num1}
-        onChangeText={setNum1}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter second number"
-        keyboardType="numeric"
-        value={num2}
-        onChangeText={setNum2}
-      />
-      <Button title="Get Sum" onPress={calculateSum} />
-      
-      {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+      <View style={styles.container}>
+        <Text style={styles.text}>Sum Calculator</Text>
 
       {/* Image Upload Component */}
-      <UploadProfilePic />
+      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter first number"
+          keyboardType="numeric"
+          value={num1}
+          onChangeText={setNum1}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter second number"
+          keyboardType="numeric"
+          value={num2}
+          onChangeText={setNum2}
+        />
+        <Button title="Get Sum" onPress={calculateSum} />
 
-      <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
-      <Button title="Go to Swipe Screen" onPress={() => navigation.navigate("SwipeScreen")} />
-    </View>
+        {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+
+        <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
+        <Button title="Go to Swipe Screen" onPress={() => navigation.navigate("SwipeScreen")} />
+        <Button title="Go to Sign Up" onPress={() => navigation.navigate("SignUp")} />
+        <Button title="Go to Profile set up" onPress={() => navigation.navigate("Profile")} />
+      </View>
     </TouchableWithoutFeedback>
   );
 
-}; 
+};
 
 export default HomeScreen;
 

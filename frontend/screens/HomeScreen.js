@@ -46,6 +46,7 @@ const HomeScreen = ({ navigation }) => {
         <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
 
         <Button title="Go to Sign Up" onPress={() => navigation.navigate("SignUp")} />
+        <Button title="Go to Profile set up" onPress={() => navigation.navigate("Profile")} />
       </View>
     </TouchableWithoutFeedback>
   );

@@ -13,8 +13,10 @@ import com._7.reshub.reshub.Utils.JwtUtil; // Your JwtUtil class that handles JW
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.stereotype.Component;
 
 
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil; // Utility for token validation
@@ -28,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = getJwtFromRequest(request);
 
         if (token != null && jwtUtil.validateToken(token)) {
+            
             String username = jwtUtil.getUsernameFromToken(token);
 
             // Create an authentication object

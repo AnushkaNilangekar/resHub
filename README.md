@@ -29,3 +29,10 @@ OR
 - Make a GET or POST request to `http://localhost:<port-number>/<endpoint-name>`
 - Insert parameters under the 'params' tab
 - Click 'Send'
+
+# Setting up authentication tokens
+- For any endpoints other than api/login and api/sign up you must send the authentication token to the server
+- In order to do so, import AsyncStorage in the frontend
+- Retrieve token with this: const token = await AsyncStorage.getItem("token");
+- Send token by setting the reponse header: {'Authorization': `Bearer ${token}`}
+- Set the environmental variable in your local computer JWT_SECRET 

@@ -30,8 +30,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
         try {
+            String email = loginRequest.get("email");
+            String password = loginRequest.get("password");
             // Retrieve the user by email
             Map<String, AttributeValue> key = new HashMap<>();
             key.put("email", AttributeValue.builder().s(email).build());

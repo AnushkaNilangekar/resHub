@@ -1,56 +1,65 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Keyboard, TouchableWithoutFeedback, StyleSheet, Button } from "react-native";
-import UploadProfilePic from '../UploadProfilePic';
-import config from '../config';
+import React, { useState, useContext } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Keyboard } from "react-native";
+import config from '../config'; // Assuming you have a config file for API
+import { AuthContext } from '../context/AuthContext'; // Import AuthContext
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import axios from 'axios';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
   const [num1, setNum1] = useState("");
   const [num2, setNum2] = useState("");
   const [result, setResult] = useState(null);
+  const navigation = useNavigation();
+  const { logout } = useContext(AuthContext);
 
   const calculateSum = async () => {
+    Keyboard.dismiss();
     try {
-      const response = await fetch(`${config.API_BASE_URL}/api/sum?a=${num1}&b=${num2}`);
-      const data = await response.json();
-      setResult(data.sum);
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.get(`${config.API_BASE_URL}/api/sum`, {
+        params: {
+          a: num1,
+          b: num2,
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`, // if using JWT
+        }
+      });
+      const data = await response;
+      setResult(data.data.sum);
     } catch (error) {
       console.error("Error fetching sum: " + error);
     }
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        <Text style={styles.text}>Sum Calculator</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>Sum Calculator</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter first number"
-          keyboardType="numeric"
-          value={num1}
-          onChangeText={setNum1}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter second number"
-          keyboardType="numeric"
-          value={num2}
-          onChangeText={setNum2}
-        />
-        <Button title="Get Sum" onPress={calculateSum} />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter first number"
+        keyboardType="numeric"
+        value={num1}
+        onChangeText={setNum1}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter second number"
+        keyboardType="numeric"
+        value={num2}
+        onChangeText={setNum2}
+      />
+      <Button title="Get Sum" onPress={calculateSum} />
 
-        {result !== null && <Text style={styles.result}>Sum: {result}</Text>}
+      {result !== null ? <Text style={styles.result}>Sum: {result}</Text> : null}
 
-        {/* Image Upload Component */}
-        <UploadProfilePic />
-
-        <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
-
-        <Button title="Go to Sign Up" onPress={() => navigation.navigate("SignUp")} />
-      </View>
-    </TouchableWithoutFeedback>
+      <Button title="Logout" onPress={() => logout()}  />
+      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
+        
+    </View>
   );
-
 };
 
 export default HomeScreen;

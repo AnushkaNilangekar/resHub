@@ -2,13 +2,15 @@ import React from 'react';
 import { StyleSheet, AppRegistry } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
+import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
-
   return (
-    <NavigationContainer>
-      <StackNavigator />
-    </NavigationContainer>
+    <AuthProvider> {/* Wrap with AuthProvider */}
+      <NavigationContainer>
+        <StackNavigator />
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
 

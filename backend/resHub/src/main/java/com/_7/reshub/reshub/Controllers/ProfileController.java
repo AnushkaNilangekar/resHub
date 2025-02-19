@@ -1,5 +1,6 @@
 package com._7.reshub.reshub.Controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -7,6 +8,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -208,5 +210,33 @@ public class ProfileController {
         } else {
             return ResponseEntity.status(404).body("not exists");
         }
+    }
+
+    /**
+     * GET endpoint that returns the list of all profiles filtered based on gender.
+     * 
+     * @param genderFilter The gender filter to filter profiles by.
+     * @return A ResponseEntity containing the list of filtered profiles with HTTP 200, 
+     *         or an empty list if no profiles match the filter.
+     */
+
+    @GetMapping("/getProfiles")
+    public ResponseEntity<List<Map<String, AttributeValue>>> getProfiles(@RequestParam String genderFilter) {
+        // Scan request to retrieve all items from the table
+        ScanRequest scanRequest = ScanRequest.builder()
+                .tableName("userProfiles")
+                .build();
+        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+        
+        // Filter profiles based on gender
+        List<Map<String, AttributeValue>> filteredProfiles = scanResponse.items().stream()
+                .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
+                        (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
+                .collect(Collectors.toList());
+        
+        if (filteredProfiles.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Collections.emptyList());
+        }
+        return ResponseEntity.ok(filteredProfiles);
     }
 }

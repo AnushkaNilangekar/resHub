@@ -1,0 +1,192 @@
+import React, { useState } from 'react';
+import { ScrollView, Alert, StyleSheet } from 'react-native';
+import Step1BasicInfo from './Step1BasicInfo';
+import Step2Demographics from './Step2Demographics';
+import Step3AcademicInfo from './Step3AcademicInfo';
+import Step4ResHobbiesBio from './Step4ResHobbiesBio';
+import config from '../config';
+
+const ProfileSetupScreen = ({ navigation, route }) => {
+    // Get initial email from route params (if any)
+    const initialEmail = route.params?.email || '';
+
+    // Step state (1-4)
+    const [step, setStep] = useState(1);
+
+    // State for Step 1: Basic Information
+    const [email, setEmail] = useState(initialEmail);
+    const [fullName, setFullName] = useState('');
+
+    // State for Step 2: Demographics
+    const [gender, setGender] = useState('');
+    const [age, setAge] = useState('');
+
+    // State for Step 3: Academic Information
+    const [major, setMajor] = useState('');
+    const [minor, setMinor] = useState('');
+    const [graduationYear, setGraduationYear] = useState('');
+
+    // State for Step 4: Residence, Hobbies, and Bio
+    const [residence, setResidence] = useState('');
+    const [hobbies, setHobbies] = useState([]);
+    const [bio, setBio] = useState('');
+
+    // Common hobbies list for multi-select
+    const commonHobbies = ["Reading", "Hiking", "Gaming", "Cooking", "Traveling", "Sports", "Music", "Art", "Working Out"];
+
+    // Toggle hobby selection
+    const toggleHobby = (hobby) => {
+        if (hobbies.includes(hobby)) {
+            // remove current hobby if already selected
+            setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
+        } else {
+            // add hobby if not already selected
+            setHobbies([...hobbies, hobby]);
+        }
+    };
+
+    // handleNext: Validate fields on current step.
+    // For step 1, also check if the email is already in use.
+    const handleNext = async () => {
+        if (step === 1) {
+            if (!email.trim() || !fullName.trim()) {
+                Alert.alert('Error', 'Please enter both email and full name.');
+                return;
+            }
+            if (!email.endsWith('.edu')) {
+                Alert.alert('Error', 'Email must end with .edu');
+                return;
+            }
+            try {
+                const response = await fetch(`${config.API_BASE_URL}/api/profile/exists?email=${encodeURIComponent(email)}`);
+                if (response.ok) {
+                    // If the email already exists, alert the user and do not proceed.
+                    Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
+                    return;
+                }
+                // If response status is 404, email doesn't exist; continue.
+            } catch (error) {
+                Alert.alert('Error', 'Unable to check email availability.');
+                return;
+            }
+        }
+        if (step === 2) {
+            if (!gender || !age.trim()) {
+                Alert.alert('Error', 'Please select your gender and enter your age.');
+                return;
+            }
+        }
+        if (step === 3) {
+            if (!major.trim() || !graduationYear) {
+                Alert.alert('Error', 'Please enter your major and select your graduation year.');
+                return;
+            }
+        }
+        setStep(step + 1);
+    };
+
+
+    // handleBack: Go back one step or exit if on the first step.
+    const handleBack = () => {
+        if (step > 1) {
+            setStep(step - 1);
+        } else {
+            navigation.goBack();
+        }
+    };
+
+    // handleSubmit: Final submission of profile data.
+    const handleSubmit = async () => {
+        if (!residence.trim() || hobbies.length === 0 || !bio.trim()) {
+            Alert.alert('Error', 'Please complete all fields.');
+            return;
+        }
+        const profileData = {
+            email,
+            fullName,
+            gender,
+            age: parseInt(age),
+            major,
+            minor,
+            graduationYear,
+            residence,
+            hobbies,
+            bio,
+        };
+        try {
+            const response = await fetch(`${config.API_BASE_URL}/api/profile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profileData),
+            });
+            if (!response.ok) {
+                const errorMsg = await response.text();
+                Alert.alert('Error', errorMsg);
+            } else {
+                Alert.alert('Success', 'Profile created successfully');
+                navigation.navigate('Home');
+            }
+        } catch (error) {
+            Alert.alert('Error', error.message);
+        }
+    };
+
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            {step === 1 && (
+                <Step1BasicInfo
+                    email={email}
+                    setEmail={setEmail}
+                    fullName={fullName}
+                    setFullName={setFullName}
+                    handleNext={handleNext}
+                />
+            )}
+            {step === 2 && (
+                <Step2Demographics
+                    gender={gender}
+                    setGender={setGender}
+                    age={age}
+                    setAge={setAge}
+                    handleNext={handleNext}
+                    handleBack={handleBack}
+                />
+            )}
+            {step === 3 && (
+                <Step3AcademicInfo
+                    major={major}
+                    setMajor={setMajor}
+                    minor={minor}
+                    setMinor={setMinor}
+                    graduationYear={graduationYear}
+                    setGraduationYear={setGraduationYear}
+                    handleNext={handleNext}
+                    handleBack={handleBack}
+                />
+            )}
+            {step === 4 && (
+                <Step4ResHobbiesBio
+                    residence={residence}
+                    setResidence={setResidence}
+                    hobbies={hobbies}
+                    toggleHobby={toggleHobby}
+                    bio={bio}
+                    setBio={setBio}
+                    handleSubmit={handleSubmit}
+                    handleBack={handleBack}
+                    commonHobbies={commonHobbies}
+                />
+            )}
+        </ScrollView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flexGrow: 1,
+        padding: 20,
+        backgroundColor: '#fff',
+    },
+});
+
+export default ProfileSetupScreen;

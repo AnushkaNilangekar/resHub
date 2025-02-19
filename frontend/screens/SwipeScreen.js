@@ -213,55 +213,81 @@ const pickerSelectStyles = {
 
 
 const SwipeScreen = () => {
-  const [profiles, setProfiles] = useState([]);
-  const [selectedGender, setSelectedGender] = useState("All");
-
-  useEffect(() => {
-    fetchProfiles();
-  }, [selectedGender]);
-
-  const fetchProfiles = async () => {
-    try {
-      const response = await fetch(`${config.API_BASE_URL}/api/profiles/getProfiles?genderFilter=${selectedGender}`);
-      const data = await response.json();
-      setProfiles(data);
-    } catch (error) {
-      console.error("Error fetching profiles:", error);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profiles for You</Text>
-
-      {/* Gender Filter Buttons */}
-      <View style={styles.filterContainer}>
-        {["All", "Male", "Female", "Non-binary"].map((gender) => (
-          <TouchableOpacity
-            key={gender}
-            style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
-            onPress={() => setSelectedGender(gender)}
-          >
-            <Text style={styles.filterText}>{gender}</Text>
-          </TouchableOpacity>
-        ))}
+    const [profiles, setProfiles] = useState([]);
+    const [selectedGender, setSelectedGender] = useState("All");
+  
+    useEffect(() => {
+      fetchProfiles();
+    }, [selectedGender]);
+  
+    const fetchProfiles = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token");
+          if (!token) {
+            console.error("No authentication token found");
+            return;
+          }
+      
+          const response = await fetch(`${config.API_BASE_URL}/api/getProfiles?genderFilter=${selectedGender}`, {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+      
+          if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+          }
+      
+          const text = await response.text(); // Read response as text
+          console.log("Raw API Response:", text); // Log raw response for debugging
+      
+          if (!text.trim()) {
+            console.warn("Empty API response, setting empty profiles list.");
+            setProfiles([]); // Handle empty response safely
+            return;
+          }
+      
+          const data = JSON.parse(text); // Attempt to parse JSON
+          setProfiles(data);
+        } catch (error) {
+          console.error("Error fetching profiles:", error);
+        }
+    };
+  
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Profiles for You</Text>
+  
+        {/* Gender Filter Buttons */}
+        <View style={styles.filterContainer}>
+          {["All", "Male", "Female", "Non-binary"].map((gender) => (
+            <TouchableOpacity
+              key={gender}
+              style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
+              onPress={() => setSelectedGender(gender)}
+            >
+              <Text style={styles.filterText}>{gender}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+  
+        {/* Profile Cards */}
+        <FlatList
+          data={profiles}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.profileCard}>
+              <Text style={styles.profileName}>{item.name}</Text>
+              <Text style={styles.profileGender}>{item.gender}</Text>
+              <Text style={styles.profileBio}>{item.bio}</Text>
+            </View>
+          )}
+        />
       </View>
-
-      {/* Profile Cards */}
-      <FlatList
-        data={profiles}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.profileCard}>
-            <Text style={styles.profileName}>{item.name}</Text>
-            <Text style={styles.profileGender}>{item.gender}</Text>
-            <Text style={styles.profileBio}>{item.bio}</Text>
-          </View>
-        )}
-      />
-    </View>
-  );
-};
+    );
+  };  
 
 const styles = StyleSheet.create({
   container: {

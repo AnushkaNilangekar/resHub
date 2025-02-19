@@ -12,20 +12,19 @@ const Stack = createNativeStackNavigator();
 
 const StackNavigator = () => {
   const { isAuthenticated } = useContext(AuthContext); // Get authentication status
-
   return (
     <Stack.Navigator>
       {!isAuthenticated ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
-          <Stack.Screen name="Profile" component={ProfileSetupScreen} />
         </>
       ) : (
         <>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
         <Stack.Screen name="UploadProfilePic" component={UploadProfilePic} />
+        <Stack.Screen name="Profile" component={ProfileSetupScreen} />
         </>
       )}
     </Stack.Navigator>

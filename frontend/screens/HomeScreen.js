@@ -58,7 +58,7 @@ const HomeScreen = () => {
       <Button title="Logout" onPress={() => logout()}  />
       <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
       <Button title="Go to Profile set up" onPress={() => navigation.navigate("Profile")} />
-      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
+      <Button title="Upload Profile Picture" onPress={() => navigate("UploadProfilePic")} />
         
     </View>
   );

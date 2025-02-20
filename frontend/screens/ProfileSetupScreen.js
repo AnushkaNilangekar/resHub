@@ -5,6 +5,8 @@ import Step2Demographics from './Step2Demographics';
 import Step3AcademicInfo from './Step3AcademicInfo';
 import Step4ResHobbiesBio from './Step4ResHobbiesBio';
 import config from '../config';
+import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetupScreen = ({ navigation, route }) => {
     // Get initial email from route params (if any)
@@ -58,7 +60,16 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 return;
             }
             try {
-                const response = await fetch(`${config.API_BASE_URL}/api/profile/exists?email=${encodeURIComponent(email)}`);
+                const token = await AsyncStorage.getItem("token");
+                const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
+                    params: {
+                        email: encodeURIComponent(email)
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // if using JWT
+                    }  
+                });
+                console.log(response);
                 if (response.ok) {
                     // If the email already exists, alert the user and do not proceed.
                     Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
@@ -124,7 +135,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 Alert.alert('Error', errorMsg);
             } else {
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Home');
+                navigation.navigate('HomeScreen');
             }
         } catch (error) {
             Alert.alert('Error', error.message);
@@ -176,6 +187,9 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                     handleBack={handleBack}
                     commonHobbies={commonHobbies}
                 />
+            )}
+            {step === 5 && (
+                <UploadProfilePic/>
             )}
         </ScrollView>
     );

@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import BottomTabNavigator from "./BottomTabNavigator"; 
 // import HomeScreen from "../screens/HomeScreen";
-import UploadProfilePic from '../UploadProfilePic';
+import UploadProfilePic from '../screens/UploadProfilePic';
 import DetailsScreen from "../screens/DetailsScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import LoginScreen from "../screens/LoginScreen"; // Assuming you have a LoginScreen

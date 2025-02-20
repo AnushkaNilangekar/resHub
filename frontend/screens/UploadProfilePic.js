@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Button, Text, StyleSheet, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from 'expo-file-system';
-import config from "./config";
+import config from "../config";
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

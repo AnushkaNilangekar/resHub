@@ -70,7 +70,7 @@ const Login = () => {
       <View style={{ marginTop: 10 }}>
         <Button 
           title="Don't have an account? Sign Up"
-          onPress={() => navigation.navigate("SignUp")}  // Change "SignUp" to the correct name of your sign-up screen
+          onPress={() => navigation.navigate("SignUpScreen")}  // Change "SignUp" to the correct name of your sign-up screen
         />
       </View>
       

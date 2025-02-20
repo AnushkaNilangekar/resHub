@@ -70,15 +70,15 @@ const UploadProfilePic = () => {
       console.log('Response status:', response.status); // Check the status code
       if (response.status >= 200 && response.status < 300) {
         const data = response.data; // Axios automatically parses JSON response
-        setUploadStatus(`Upload successful: ${data.url}`);
+        //setUploadStatus(`Upload successful: ${data.url}`);
         Alert.alert("Success", "Image uploaded successfully!");
       } else {
         const errorData = response.data; // Assuming the error response is JSON
-        setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
+        //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
         Alert.alert("Upload Failed", errorData.message || "Unknown error");
       }
     } catch (error) {
-      setUploadStatus(`Upload failed: ${error.message}`);
+      //setUploadStatus(`Upload failed: ${error.message}`);
       Alert.alert("Upload Failed", "Something went wrong!");
       console.error(error);
     }

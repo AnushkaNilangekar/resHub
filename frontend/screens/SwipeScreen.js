@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from "react-native";
 //import GestureRecognizer from "react-native-swipe-gestures";
 import config from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 //import RNPickerSelect from "react-native-picker-select";
 
 /*const API_BASE_URL = "http://localhost:8080/api"; // Update with backend URL
@@ -221,40 +223,36 @@ const SwipeScreen = () => {
     }, [selectedGender]);
   
     const fetchProfiles = async () => {
-        try {
-          const token = await AsyncStorage.getItem("token");
-          if (!token) {
-            console.error("No authentication token found");
-            return;
-          }
-      
-          const response = await fetch(`${config.API_BASE_URL}/api/getProfiles?genderFilter=${selectedGender}`, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json"
-            }
+      try {
+          // No need to fetch the token for /getProfiles since it's public
+          const response = await axios.get(`${config.API_BASE_URL}/api/getProfiles`, {
+              params: { genderFilter: selectedGender },
+              headers: {
+                  "Content-Type": "application/json"
+              }
           });
-      
+  
           if (!response.ok) {
-            throw new Error(`HTTP Error! Status: ${response.status}`);
+              throw new Error(`HTTP Error! Status: ${response.status}`);
           }
-      
+  
           const text = await response.text(); // Read response as text
           console.log("Raw API Response:", text); // Log raw response for debugging
-      
+  
           if (!text.trim()) {
-            console.warn("Empty API response, setting empty profiles list.");
-            setProfiles([]); // Handle empty response safely
-            return;
+              console.warn("Empty API response, setting empty profiles list.");
+              setProfiles([]); // Handle empty response safely
+              return;
           }
-      
+  
           const data = JSON.parse(text); // Attempt to parse JSON
           setProfiles(data);
-        } catch (error) {
+      } catch (error) {
           console.error("Error fetching profiles:", error);
-        }
-    };
+      }
+  };
+  
+  
   
     return (
       <View style={styles.container}>

@@ -100,8 +100,10 @@ const UploadProfilePic = () => {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    marginTop: 20,
+    flex: 1,               // Allow the container to expand fully
+    justifyContent: "center", // Center the content vertically
+    alignItems: "center",     // Center the content horizontally
+    padding: 20,  
   },
   image: {
     width: 200,

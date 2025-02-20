@@ -3,6 +3,7 @@ package com._7.reshub.reshub.Controllers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -16,15 +17,12 @@ import java.util.Map;
 public class UserAccountController {
 
     private final DynamoDbClient dynamoDbClient;
-    // Create a BCryptPasswordEncoder instance for password hashing
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    public UserAccountController() {
-        // Initialize the DynamoDB client
-        this.dynamoDbClient = DynamoDbClient.builder()
-                .httpClientBuilder(UrlConnectionHttpClient.builder())
-                .credentialsProvider(ProfileCredentialsProvider.create())
-                .build();
+    // Constructor injection
+    public UserAccountController(DynamoDbClient dynamoDbClient, PasswordEncoder passwordEncoder) {
+        this.dynamoDbClient = dynamoDbClient;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Map the JSON body of the signup request

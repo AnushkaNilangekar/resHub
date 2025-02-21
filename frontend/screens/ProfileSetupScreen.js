@@ -183,7 +183,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
+        flexGrow: 1,  // This ensures that the ScrollView takes up the full height
+        justifyContent: 'center',  // Centers content vertically
         padding: 20,
         backgroundColor: '#fff',
     },

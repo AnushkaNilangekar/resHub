@@ -3,6 +3,8 @@ import { View, Button, Text, StyleSheet, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from 'expo-file-system';
 import config from "./config";
+import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const UploadProfilePic = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -57,36 +59,31 @@ const UploadProfilePic = () => {
     formData.append("file", fileObject);
   
     try {
-      const response = await fetch(`${config.API_BASE_URL}/api/s3/upload`, {
-        method: "POST",
-        body: formData,
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.post(`${config.API_BASE_URL}/api/s3/upload`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // Ensure the proper content type
+        },
       });
   
-      const responseText = await response.text(); // Get raw text response
-      //console.log('Raw response:', responseText); // Debug logging
-      //console.log('response code:', response.status);
-  
-      if (response.ok) {
-        //const data = JSON.parse(responseText); // Parse response if valid JSON
+      console.log('Response status:', response.status); // Check the status code
+      if (response.status >= 200 && response.status < 300) {
+        const data = response.data; // Axios automatically parses JSON response
         //setUploadStatus(`Upload successful: ${data.url}`);
-        //Alert.alert("Success", "Image uploaded successfully!");
+        Alert.alert("Success", "Image uploaded successfully!");
       } else {
-        try {
-          console.log(responseText);
-          const errorData = JSON.parse(responseText); // Assuming the error response is JSON
-          //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
-          //Alert.alert("Upload Failed", errorData.message || "Unknown error");
-        } catch (error) {
-          //setUploadStatus(`Upload failed: Unable to parse error response.`);
-          //Alert.alert("Upload Failed", "Unable to parse error response.");
-        }
+        const errorData = response.data; // Assuming the error response is JSON
+        //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
+        Alert.alert("Upload Failed", errorData.message || "Unknown error");
       }
     } catch (error) {
       //setUploadStatus(`Upload failed: ${error.message}`);
-      //Alert.alert("Upload Failed", "Something went wrong!");
+      Alert.alert("Upload Failed", "Something went wrong!");
       console.error(error);
     }
-  };  
+  };
+  
   
 
   return (
@@ -103,8 +100,10 @@ const UploadProfilePic = () => {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    marginTop: 20,
+    flex: 1,               // Allow the container to expand fully
+    justifyContent: "center", // Center the content vertically
+    alignItems: "center",     // Center the content horizontally
+    padding: 20,  
   },
   image: {
     width: 200,

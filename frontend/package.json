@@ -2,7 +2,7 @@
   "name": "reshub",
   "version": "1.0.0",
   "description": "#Spring Boot How To Run - Make sure maven is downloaded - Go into backend/resHub - Run mvn spring-boot:run",
-  "main": "App.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,12 +21,13 @@
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
     "@expo/ngrok": "^4.1.0",
-    "@expo/vector-icons": "^14.0.2",
+    "@expo/vector-icons": "^14.0.4",
+    "@react-native-async-storage/async-storage": "^2.1.1",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
-    "@react-navigation/material-top-tabs": "^7.1.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
+    "@react-navigation/stack": "^7.1.1",
     "axios": "^1.7.9",
     "expo": "~52.0.35",
     "expo-cli": "^6.3.12",
@@ -40,8 +41,8 @@
     "react-native-ionicons": "^4.6.5",
     "react-native-pager-view": "6.5.1",
     "react-native-paper": "^5.13.1",
-    "react-native-reanimated": "~3.16.1",
-    "react-native-safe-area-context": "4.12.0",
+    "react-native-reanimated": "^3.16.7",
+    "react-native-safe-area-context": "^4.14.1",
     "react-native-screens": "~4.4.0",
     "react-native-tab-view": "^4.0.5",
     "react-native-url-polyfill": "^2.0.0",
@@ -51,7 +52,7 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
-    "expo": "^52.0.35"
+    "expo": "^52.0.36"
   },
   "expo": {
     "platforms": [

@@ -29,12 +29,12 @@ public class ProfileController {
     /*
      * GET endpoint to retrieve information for a given user.
      * @params
-     * userId: The id of the user whose matches are to be retrieved
+     * userId: The id of the user whose profile should be retrieved
      * @return
      * Profile object
      */
     @GetMapping("/getProfile")
-    public ResponseEntity<?> getUserMatches(@RequestParam String userId) {
+    public ResponseEntity<?> getUserProfile(@RequestParam String userId) {
         try {
             Profile profile = profileService.retrieveProfile(userId);
             return ResponseEntity.ok(profile);

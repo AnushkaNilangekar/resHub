@@ -27,7 +27,6 @@ public class ProfileService {
      * Handles retrieving information for the given user id and returns a Profile object
      */
     public Profile retrieveProfile(String userId) {
-        System.out.println("Userid: " + userId);
         Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()

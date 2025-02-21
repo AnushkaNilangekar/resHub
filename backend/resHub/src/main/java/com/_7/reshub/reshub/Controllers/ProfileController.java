@@ -1,14 +1,18 @@
 package com._7.reshub.reshub.Controllers;
 
+import com._7.reshub.reshub.Models.Requests.ProfileRequest;
+import com._7.reshub.reshub.Services.ProfileService;
+import com._7.reshub.reshub.Models.Profile;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -16,108 +20,28 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class ProfileController {
 
-    private final DynamoDbClient dynamoDbClient;
+    @Autowired
+    private DynamoDbClient dynamoDbClient;
 
-    // Initialize the DynamoDB client using the AWS SDK builder.
-    public ProfileController() {
-        this.dynamoDbClient = DynamoDbClient.builder()
-                .httpClientBuilder(UrlConnectionHttpClient.builder())
-                .credentialsProvider(ProfileCredentialsProvider.create())
-                .build();
-    }
+    @Autowired
+    private ProfileService profileService;
 
-    // Class representing the JSON body for a profile creation request.
-    public static class ProfileRequest {
-        private String email; // User email (unique key)
-        private String fullName; // Full name of the user
-        private String gender; // Gender (dropdown)
-        private String major; // Major field of study
-        private String minor; // Minor field (optional)
-        private Integer age; // Age (numeric input)
-        private String residence; // Residence name (e.g., res hall, apt, house, etc.)
-        private List<String> hobbies; // Hobbies as an array (multi-select ui)
-        private String graduationYear; // Graduation year (dropdown: "2025", … ,"2030", or "n/a")
-        private String bio; // Bio (paragraph about themselves for their profile)
-
-        // Getters and setters for JSON mapping
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getFullName() {
-            return fullName;
-        }
-
-        public void setFullName(String fullName) {
-            this.fullName = fullName;
-        }
-
-        public String getGender() {
-            return gender;
-        }
-
-        public void setGender(String gender) {
-            this.gender = gender;
-        }
-
-        public String getMajor() {
-            return major;
-        }
-
-        public void setMajor(String major) {
-            this.major = major;
-        }
-
-        public String getMinor() {
-            return minor;
-        }
-
-        public void setMinor(String minor) {
-            this.minor = minor;
-        }
-
-        public Integer getAge() {
-            return age;
-        }
-
-        public void setAge(Integer age) {
-            this.age = age;
-        }
-
-        public String getResidence() {
-            return residence;
-        }
-
-        public void setResidence(String residence) {
-            this.residence = residence;
-        }
-
-        public List<String> getHobbies() {
-            return hobbies;
-        }
-
-        public void setHobbies(List<String> hobbies) {
-            this.hobbies = hobbies;
-        }
-
-        public String getGraduationYear() {
-            return graduationYear;
-        }
-
-        public void setGraduationYear(String graduationYear) {
-            this.graduationYear = graduationYear;
-        }
-
-        public String getBio() {
-            return bio;
-        }
-
-        public void setBio(String bio) {
-            this.bio = bio;
+    /*
+     * GET endpoint to retrieve information for a given user.
+     * @params
+     * userId: The id of the user whose matches are to be retrieved
+     * @return
+     * Profile object
+     */
+    @GetMapping("/getProfile")
+    public ResponseEntity<?> getUserMatches(@RequestParam String userId) {
+        try {
+            Profile profile = profileService.retrieveProfile(userId);
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
         }
     }
 

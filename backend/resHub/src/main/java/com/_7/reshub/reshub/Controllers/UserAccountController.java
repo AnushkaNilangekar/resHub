@@ -1,10 +1,12 @@
 package com._7.reshub.reshub.Controllers;
 
+import com._7.reshub.reshub.Models.Requests.SignUpRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -15,41 +17,14 @@ import java.util.Map;
 @RequestMapping("/api")
 public class UserAccountController {
 
+    @Autowired
     private final DynamoDbClient dynamoDbClient;
     // Create a BCryptPasswordEncoder instance for password hashing
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    public UserAccountController() {
-        // Initialize the DynamoDB client
-        this.dynamoDbClient = DynamoDbClient.builder()
-                .httpClientBuilder(UrlConnectionHttpClient.builder())
-                .credentialsProvider(ProfileCredentialsProvider.create())
-                .build();
-    }
-
-    // Map the JSON body of the signup request
-    public static class SignUpRequest {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phoneNumber;
-        private String password;
-
-        // Getters and setters (for Spring to map JSON to this class)
-        public String getFirstName() { return firstName; }
-        public void setFirstName(String firstName) { this.firstName = firstName; }
-
-        public String getLastName() { return lastName; }
-        public void setLastName(String lastName) { this.lastName = lastName; }
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-
-        public String getPhoneNumber() { return phoneNumber; }
-        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
+    public UserAccountController(DynamoDbClient dynamoDbClient, PasswordEncoder passwordEncoder) {
+        this.dynamoDbClient = dynamoDbClient;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // The POST endpoint for sign up

@@ -5,6 +5,8 @@ import Step2Demographics from './Step2Demographics';
 import Step3AcademicInfo from './Step3AcademicInfo';
 import Step4ResHobbiesBio from './Step4ResHobbiesBio';
 import config from '../config';
+import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetupScreen = ({ navigation, route }) => {
     // Get initial email from route params (if any)
@@ -58,7 +60,20 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 return;
             }
             try {
-                const response = await fetch(`${config.API_BASE_URL}/api/profile/exists?email=${encodeURIComponent(email)}`);
+                const allKeys = await AsyncStorage.getAllKeys();
+                console.log("Stored keys:", allKeys);
+
+                const token = await AsyncStorage.getItem("token");
+                console.log(email)
+        
+                const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
+                    params: {
+                        email: email
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // if using JWT
+                    }  
+                });
                 if (response.ok) {
                     // If the email already exists, alert the user and do not proceed.
                     Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
@@ -66,8 +81,14 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 }
                 // If response status is 404, email doesn't exist; continue.
             } catch (error) {
-                Alert.alert('Error', 'Unable to check email availability.');
-                return;
+                if (error.response && error.response.status === 404) {
+                    // 404 means email doesn't exist; allow the user to proceed.
+                    console.log("Email does not exist, proceeding...");
+                } else {
+                    console.error("Error checking email availability:", error);
+                    Alert.alert('Error', 'Unable to check email availability.');
+                    return;
+                }
             }
         }
         if (step === 2) {
@@ -114,12 +135,16 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             bio,
         };
         try {
-            const response = await fetch(`${config.API_BASE_URL}/api/profile`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profileData),
+            const token = await AsyncStorage.getItem("token");
+
+            const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // if using JWT
+                }
             });
-            if (!response.ok) {
+            console.log(response)
+            if (response.status !== 200) {
                 const errorMsg = await response.text();
                 Alert.alert('Error', errorMsg);
             } else {
@@ -176,6 +201,9 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                     handleBack={handleBack}
                     commonHobbies={commonHobbies}
                 />
+            )}
+            {step === 5 && (
+                <UploadProfilePic/>
             )}
         </ScrollView>
     );

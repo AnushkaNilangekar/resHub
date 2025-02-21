@@ -1,5 +1,8 @@
 package com._7.reshub.reshub.Controllers;
 
+import com._7.reshub.reshub.Models.Requests.SignUpRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,38 +19,15 @@ import java.util.Map;
 @RequestMapping("/api")
 public class UserAccountController {
 
+    @Autowired
     private final DynamoDbClient dynamoDbClient;
+    // Create a BCryptPasswordEncoder instance for password hashing
     private final PasswordEncoder passwordEncoder;
 
     // Constructor injection
     public UserAccountController(DynamoDbClient dynamoDbClient, PasswordEncoder passwordEncoder) {
         this.dynamoDbClient = dynamoDbClient;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    // Map the JSON body of the signup request
-    public static class SignUpRequest {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phoneNumber;
-        private String password;
-
-        // Getters and setters (for Spring to map JSON to this class)
-        public String getFirstName() { return firstName; }
-        public void setFirstName(String firstName) { this.firstName = firstName; }
-
-        public String getLastName() { return lastName; }
-        public void setLastName(String lastName) { this.lastName = lastName; }
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-
-        public String getPhoneNumber() { return phoneNumber; }
-        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
     }
 
     // The POST endpoint for sign up

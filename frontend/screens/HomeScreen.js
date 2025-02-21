@@ -59,7 +59,7 @@ const HomeScreen = () => {
       <Button title="Go to Details" onPress={() => navigation.navigate("DetailsScreen")} />
       <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
       <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
-        
+      <Button title="Go to Matches" onPress={() => navigation.navigate("MatchesAndConversations")} />
     </View>
   );
 };

@@ -17,15 +17,16 @@ public class UserController {
     private UserService userService;
 
     /*
-     * Endpoint to get a list of user ids of matches for a given user.
+     * GET endpoint to get a list of user ids of matches for a given user.
      * @params
      * userId: The id of the user whose matches are to be retrieved
      * @return List of match IDs
      */
     @GetMapping("/getMatches")
     public List<String> getUserMatches(@RequestParam String userId) {
+
         try {
-            List<String> matches = userService.getUserMatches(userId);
+            List<String> matches = userService.retrieveUserMatches(userId);
             return matches;
         } catch (Exception e) {
             e.printStackTrace();

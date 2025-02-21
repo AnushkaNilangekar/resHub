@@ -8,6 +8,7 @@ import DetailsScreen from "../screens/DetailsScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import LoginScreen from "../screens/LoginScreen"; // Assuming you have a LoginScreen
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
+import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,11 @@ const StackNavigator = () => {
         <Stack.Screen name="DetailsScreen" component={DetailsScreen} />
         <Stack.Screen name="UploadProfilePic" component={UploadProfilePic} />
         <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
+        <Stack.Screen name="MatchesAndConversations" component={MatchesChatTabNavigator}
+          options={{
+            headerTitle: "ResHub",
+          }}
+        />
         </>
       )}
     </Stack.Navigator>

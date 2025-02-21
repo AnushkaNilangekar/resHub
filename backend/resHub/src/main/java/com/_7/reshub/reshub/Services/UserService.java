@@ -25,7 +25,7 @@ public class UserService {
     /*
      * Handles retrieving the user ids of the given user's matches.
      */
-    public List<String> getUserMatches(String userId) {
+    public List<String> retrieveUserMatches(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()

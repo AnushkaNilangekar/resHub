@@ -94,6 +94,10 @@ public class ProfileController {
         item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
         item.put("bio", AttributeValue.builder().s(request.getBio()).build());
 
+        if (request.getProfilePicUrl() != null && !request.getProfilePicUrl().isEmpty()) {
+            item.put("profilePicUrl", AttributeValue.builder().s(request.getProfilePicUrl()).build());
+        }
+
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
                 .tableName("userProfiles")

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Button, Text, StyleSheet, Image, Alert } from "react-native";
+import { View, Button, Text, StyleSheet, Image, Alert, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from 'expo-file-system';
-import config from "./config";
+import config from "../config";
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const UploadProfilePic = () => {
+const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -72,6 +72,8 @@ const UploadProfilePic = () => {
         const data = response.data; // Axios automatically parses JSON response
         //setUploadStatus(`Upload successful: ${data.url}`);
         Alert.alert("Success", "Image uploaded successfully!");
+        setUploadSuccess(true); // Update upload status
+        onPictureUploaded(data.url);
       } else {
         const errorData = response.data; // Assuming the error response is JSON
         //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
@@ -88,28 +90,67 @@ const UploadProfilePic = () => {
 
   return (
     <View style={styles.container}>
-      <Button title="Pick an image from gallery" onPress={pickImage} />
+      <Text style={styles.title}>Upload Profile Picture</Text>
+      
+      <TouchableOpacity style={styles.button} onPress={pickImage}>
+        <Text style={styles.buttonText}>Pick an image from gallery</Text>
+      </TouchableOpacity>
+
       {selectedImage && (
         <Image source={{ uri: selectedImage }} style={styles.image} />
       )}
-      <Button title="Upload Image" onPress={uploadImage} />
-      {uploadStatus ? <Text>{uploadStatus}</Text> : null}
+
+      <View style={styles.buttonContainer}>
+          <Button title="Back" onPress={handleBack} />
+        <View style={styles.buttonSpacer} />
+        <Button 
+        title="Submit" 
+        onPress={handleSubmit} 
+        disabled={!uploadSuccess}  // Disable until upload is successful
+      />
+        </View>
+      
+      <TouchableOpacity style={styles.button} onPress={uploadImage}>
+        <Text style={styles.buttonText}>Upload Image</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,               // Allow the container to expand fully
-    justifyContent: "center", // Center the content vertically
-    alignItems: "center",     // Center the content horizontally
-    padding: 20,  
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: '#f4f4f4',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   image: {
     width: 200,
     height: 200,
     marginVertical: 20,
+    borderRadius: 10,
   },
 });
+
 
 export default UploadProfilePic;

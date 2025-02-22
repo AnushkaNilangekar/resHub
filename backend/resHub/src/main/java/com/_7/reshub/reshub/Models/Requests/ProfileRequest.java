@@ -60,8 +60,4 @@ public class ProfileRequest {
     public String getProfilePicUrl() {
         return profilePicUrl;
     }
-
-    public void setProfilePicUrl(String profilePicUrl) {
-        this.profilePicUrl = profilePicUrl;
-    }
 }

@@ -4,6 +4,7 @@ import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
 import Step3AcademicInfo from './Step3AcademicInfo';
 import Step4ResHobbiesBio from './Step4ResHobbiesBio';
+import UploadProfilePic from './UploadProfilePic';  
 import config from '../config';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,6 +33,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [residence, setResidence] = useState('');
     const [hobbies, setHobbies] = useState([]);
     const [bio, setBio] = useState('');
+
+    const [imageUri, setImageUri] = useState('');
 
     // Common hobbies list for multi-select
     const commonHobbies = ["Reading", "Hiking", "Gaming", "Cooking", "Traveling", "Sports", "Music", "Art", "Working Out"];
@@ -133,6 +136,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             residence,
             hobbies,
             bio,
+            profilePicUrl: imageUri
         };
         try {
             const token = await AsyncStorage.getItem("token");
@@ -149,7 +153,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 Alert.alert('Error', errorMsg);
             } else {
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Home');
+                navigation.navigate('Main', { screen: 'Home' }); 
             }
         } catch (error) {
             Alert.alert('Error', error.message);
@@ -197,13 +201,16 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                     toggleHobby={toggleHobby}
                     bio={bio}
                     setBio={setBio}
-                    handleSubmit={handleSubmit}
+                    handleNext={handleNext}
                     handleBack={handleBack}
                     commonHobbies={commonHobbies}
                 />
             )}
-            {step === 5 && (
-                <UploadProfilePic/>
+           {step === 5 && (
+                <UploadProfilePic onPictureUploaded={(uri) => setImageUri(uri)} 
+                 handleSubmit={handleSubmit}
+                 handleBack={handleBack}
+                />
             )}
         </ScrollView>
     );

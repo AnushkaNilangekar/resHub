@@ -14,6 +14,7 @@ public class ProfileRequest {
     private List<String> hobbies; // Hobbies as an array (multi-select ui)
     private String graduationYear; // Graduation year (dropdown: "2025", … ,"2030", or "n/a")
     private String bio; // Bio (paragraph about themselves for their profile)
+    private String profilePicUrl; //Profile Picture (upload)
 
     // Getters and setters for JSON mapping
     public String getEmail() {
@@ -54,5 +55,9 @@ public class ProfileRequest {
 
     public String getBio() {
         return bio;
+    }
+
+    public String getProfilePicUrl() {
+        return profilePicUrl;
     }
 }

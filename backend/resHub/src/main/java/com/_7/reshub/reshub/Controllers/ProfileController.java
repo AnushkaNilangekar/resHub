@@ -94,6 +94,10 @@ public class ProfileController {
         item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
         item.put("bio", AttributeValue.builder().s(request.getBio()).build());
 
+        if (request.getProfilePicUrl() != null && !request.getProfilePicUrl().trim().isEmpty()) {
+            item.put("profilePicUrl", AttributeValue.builder().s(request.getProfilePicUrl()).build());
+        }
+
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
                 .tableName("userProfiles")
@@ -101,7 +105,6 @@ public class ProfileController {
                 .build();
         dynamoDbClient.putItem(putItemRequest);
 
-        // Return success message.
         return ResponseEntity.ok("Profile created successfully");
     }
 
@@ -121,7 +124,7 @@ public class ProfileController {
 
         // Create a GET request to DynamoDB
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("userProfiles") // Make sure this matches your table name
+                .tableName("userProfiles") 
                 .key(key)
                 .build();
         GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);

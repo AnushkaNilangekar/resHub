@@ -90,29 +90,39 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Upload Profile Picture</Text>
-      
-      <TouchableOpacity style={styles.button} onPress={pickImage}>
-        <Text style={styles.buttonText}>Pick an image from gallery</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Upload Profile Picture</Text>
+        
+        <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Text style={styles.buttonText}>Pick an image from gallery</Text>
+        </TouchableOpacity>
 
-      {selectedImage && (
-        <Image source={{ uri: selectedImage }} style={styles.image} />
-      )}
+        {uploadSuccess && (
+        <Text style={styles.uploadStatus}>
+            ✓ Image uploaded successfully - Ready to submit
+          </Text>
+)}
 
-      <View style={styles.buttonContainer}>
-          <Button title="Back" onPress={handleBack} />
-        <View style={styles.buttonSpacer} />
-        <Button 
-        title="Submit" 
-        onPress={handleSubmit} 
-        disabled={!uploadSuccess}  // Disable until upload is successful
-      />
+        {selectedImage && (
+            <>
+                <Image source={{ uri: selectedImage }} style={styles.image} />
+                <TouchableOpacity 
+                    style={styles.button} 
+                    onPress={uploadImage}
+                >
+                    <Text style={styles.buttonText}>Upload Image</Text>
+                </TouchableOpacity>
+            </>
+        )}
+
+        <View style={styles.buttonContainer}>
+            <Button title="Back" onPress={handleBack} />
+            <View style={styles.buttonSpacer} />
+            <Button 
+                title="Submit" 
+                onPress={handleSubmit} 
+                disabled={!uploadSuccess}
+            />
         </View>
-      
-      <TouchableOpacity style={styles.button} onPress={uploadImage}>
-        <Text style={styles.buttonText}>Upload Image</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -149,6 +159,20 @@ const styles = StyleSheet.create({
     height: 200,
     marginVertical: 20,
     borderRadius: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  buttonSpacer: {
+      width: 20,
+  },
+  uploadStatus: {
+      marginTop: 10,
+      color: '#007AFF',
+      fontSize: 14,
   },
 });
 

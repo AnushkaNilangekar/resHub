@@ -121,6 +121,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
+        console.log('Submitting profile with image URI:', imageUri);
         if (!residence.trim() || hobbies.length === 0 || !bio.trim()) {
             Alert.alert('Error', 'Please complete all fields.');
             return;

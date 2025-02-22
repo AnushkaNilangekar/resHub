@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, RefreshControl } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 /*
 * Matches Screen
@@ -19,7 +20,15 @@ const MatchesScreen = ({ navigation, userId }) => {
       // TODO temporary userId for testing
       const userId = "12345";
 
-      const response = await axios.get(`${config.API_BASE_URL}/api/users/getMatches?userId=${userId}`);
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.get(`${config.API_BASE_URL}/api/users/getMatches`, {
+        params: {
+          userId: userId,
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
 
       return response.data;
     } catch (error) {
@@ -36,7 +45,16 @@ const MatchesScreen = ({ navigation, userId }) => {
 
     for (const userId of userIds) {
       try {
-        const response = await axios.get(`${config.API_BASE_URL}/api/getProfile?userId=${userId}`);
+        
+        const token = await AsyncStorage.getItem("token");
+        const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+          params: {
+            userId: userId,
+          },
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
         const { fullName, bio } = response.data;
 
         profiles.push({ fullName, bio });

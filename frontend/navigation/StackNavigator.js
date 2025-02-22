@@ -27,7 +27,9 @@ const StackNavigator = () => {
         <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
         <Stack.Screen name="MatchesAndConversations" component={MatchesChatTabNavigator}
           options={{
+            headerShown: true,
             headerTitle: "ResHub",
+            headerBackTitle: "Back"
           }}
         />
         </>

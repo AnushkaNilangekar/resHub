@@ -2,6 +2,11 @@ package com._7.reshub.reshub.Models;
 
 import java.util.List;
 
+/*
+ * This class is separate from the ProfileRequest class because it should be used for
+ * implementing any logic relating to user profiles. That way we can keep the logic
+ * and request data separate since the request can't change but this class may need to.
+ */
 public class Profile {
     private String email;
     private String fullName; //TODO should we separate this into first and last name so we can only use one or the other when needed?
@@ -13,6 +18,7 @@ public class Profile {
     private List<String> hobbies; 
     private String graduationYear;
     private String bio;
+    private String profilePicUrl;
 
     public Profile(
         String fullName,
@@ -23,7 +29,8 @@ public class Profile {
         String residence,
         List<String> hobbies,
         String graduationYear,
-        String bio)
+        String bio,
+        String profilePictureUrl)
     {
         this.fullName = fullName;
         this.gender = gender;
@@ -34,85 +41,51 @@ public class Profile {
         this.hobbies = hobbies;
         this.graduationYear = graduationYear;
         this.bio = bio;
+        this.profilePicUrl = profilePictureUrl;
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getFullName() {
         return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
     }
 
     public String getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
     public String getMajor() {
         return major;
-    }
-
-    public void setMajor(String major) {
-        this.major = major;
     }
 
     public String getMinor() {
         return minor;
     }
 
-    public void setMinor(String minor) {
-        this.minor = minor;
-    }
-
     public Integer getAge() {
         return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
     }
 
     public String getResidence() {
         return residence;
     }
 
-    public void setResidence(String residence) {
-        this.residence = residence;
-    }
-
     public List<String> getHobbies() {
         return hobbies;
-    }
-
-    public void setHobbies(List<String> hobbies) {
-        this.hobbies = hobbies;
     }
 
     public String getGraduationYear() {
         return graduationYear;
     }
 
-    public void setGraduationYear(String graduationYear) {
-        this.graduationYear = graduationYear;
-    }
-
     public String getBio() {
         return bio;
     }
 
-    public void setBio(String bio) {
-        this.bio = bio;
+    public String getProfilePicUrl()
+    {
+        return profilePicUrl;
     }
 }

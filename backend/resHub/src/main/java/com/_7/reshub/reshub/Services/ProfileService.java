@@ -49,7 +49,8 @@ public class ProfileService {
                     item.getOrDefault("hobbies", AttributeValue.builder().l(Collections.emptyList()).build()).l()
                             .stream().map(AttributeValue::s).collect(Collectors.toList()),
                     item.getOrDefault("graduationYear", AttributeValue.builder().n("0").build()).n(),
-                    item.getOrDefault("bio", AttributeValue.builder().s("").build()).s()
+                    item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s()
             );
 
             return profile;

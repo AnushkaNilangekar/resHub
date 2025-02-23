@@ -5,7 +5,7 @@ import ChatScreen from '../screens/ChatScreen';
 const MatchesChatTabNavigator = () => {
   const tabs = [
     { name: 'Matches', component: <MatchesScreen /> },
-    { name: 'Conversations', component: <ChatScreen /> },
+    { name: 'Chats', component: <ChatScreen /> },
   ];
 
   return <CustomTopTabNavigator tabs={tabs} />;

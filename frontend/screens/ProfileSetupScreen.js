@@ -34,7 +34,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [hobbies, setHobbies] = useState([]);
     const [bio, setBio] = useState('');
 
-    const [imageUri, setImageUri] = useState('');
+    const [imageUri, setImageUri] = useState('https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg');
 
     // Common hobbies list for multi-select
     const commonHobbies = ["Reading", "Hiking", "Gaming", "Cooking", "Traveling", "Sports", "Music", "Art", "Working Out"];
@@ -147,7 +147,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 'Authorization': `Bearer ${token}` // if using JWT
                 }
             });
-            console.log(response)
             if (response.status !== 200) {
                 const errorMsg = await response.text();
                 Alert.alert('Error', errorMsg);

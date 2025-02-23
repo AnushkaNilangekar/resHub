@@ -42,18 +42,17 @@ public class S3Controller {
         try {
             logger.info("Attempting to upload file: {}", file.getOriginalFilename());
 
-            // Validate file type (check both extension and MIME type)
+            // Validate file type
             String fileExtension = getFileExtension(file.getOriginalFilename());
             String contentType = file.getContentType();
             if (!isValidFileType(fileExtension, contentType)) {
                 String errorResponse = "{\"message\": \"Invalid file type. Only image files are allowed.\"}";
-                logger.error("Invalid file type: {}", errorResponse);
                 return ResponseEntity.status(400).body(errorResponse);
             }
 
             // Generate a unique file name
             String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-            logger.info("Generated unique file name: {}", fileName);
+
 
             // Upload file to S3
             s3Client.putObject(
@@ -66,34 +65,25 @@ public class S3Controller {
 
             // Return the file URL after upload
             String fileUrl = "https://" + BUCKET_NAME + ".s3.amazonaws.com/" + fileName;
-            //logger.info("File uploaded successfully: {}", fileUrl);
 
             // Return a JSON response with the file URL
             String successResponse = "{\"url\": \"" + fileUrl + "\"}";
-            //logger.info("Returning response: {}", successResponse);
             return ResponseEntity.ok(successResponse);
 
         } catch (IOException e) {
-            //logger.error("Error uploading file: {}", e.getMessage(), e);
-            // Return a JSON error response
             String errorResponse = "{\"message\": \"Upload failed: " + e.getMessage() + "\"}";
-            //logger.error("Returning error response: {}", errorResponse);
             return ResponseEntity.status(500).body(errorResponse);
         } catch (Exception e) {
-            //logger.error("Unexpected error: {}", e.getMessage(), e);
-            // Return a general error response
             String errorResponse = "{\"message\": \"An unexpected error occurred.\"}";
-            //logger.error("Returning error response: {}", errorResponse);
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-    // Helper method to get file extension
+
     private String getFileExtension(String fileName) {
         int lastDot = fileName.lastIndexOf(".");
         return lastDot == -1 ? "" : fileName.substring(lastDot + 1);
     }
 
-    // Helper method to validate file type
     private boolean isValidFileType(String fileExtension, String contentType) {
         // Check if the file extension is in the allowed list
         String[] allowedExtensions = {"jpg", "jpeg", "png", "gif", "bmp"};

@@ -33,8 +33,8 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
 
       if (!result.canceled) {
         const { uri } = result.assets[0];
-        setSelectedImage(uri); // Update the selectedImage state
-        console.log('Image URI:', uri);
+        setSelectedImage(uri); 
+        //console.log('Image URI:', uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -63,24 +63,20 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       const response = await axios.post(`${config.API_BASE_URL}/api/s3/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // Ensure the proper content type
+          'Content-Type': 'multipart/form-data', // proper content type
         },
       });
   
-      console.log('Response status:', response.status); // Check the status code
       if (response.status >= 200 && response.status < 300) {
-        const data = response.data; // Axios automatically parses JSON response
-        //setUploadStatus(`Upload successful: ${data.url}`);
+        const data = response.data; 
         Alert.alert("Success", "Image uploaded successfully!");
         setUploadSuccess(true); // Update upload status
         onPictureUploaded(data.url);
       } else {
-        const errorData = response.data; // Assuming the error response is JSON
-        //setUploadStatus(`Upload failed: ${errorData.message || "Unknown error"}`);
+        const errorData = response.data; 
         Alert.alert("Upload Failed", errorData.message || "Unknown error");
       }
     } catch (error) {
-      //setUploadStatus(`Upload failed: ${error.message}`);
       Alert.alert("Upload Failed", "Something went wrong!");
       console.error(error);
     }

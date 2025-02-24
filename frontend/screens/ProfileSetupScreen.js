@@ -141,7 +141,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         try {
             const token = await AsyncStorage.getItem("token");
             await AsyncStorage.setItem("userEmail", email);
-            console.log("Email stored in AsyncStorage"); // Debug log
 
             const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
             headers: { 
@@ -152,7 +151,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             if (response.status === 200) {
                 // Verify email storage
                 const storedEmail = await AsyncStorage.getItem("userEmail");
-                console.log("Verified stored email:", storedEmail); // Debug log
                 
                 Alert.alert('Success', 'Profile created successfully');
                 navigation.navigate('Main', { screen: 'Home' }); 

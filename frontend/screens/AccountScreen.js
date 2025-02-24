@@ -130,7 +130,7 @@ const AccountScreen = () => {
   return (
     <ScrollView
       style={{ flex: 1 }} 
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={{ paddingBottom: 30 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View style={styles.container}>
@@ -224,10 +224,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
   },
+  
   profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
     borderWidth: 3,
     borderColor: '#fff',
     shadowColor: '#000',
@@ -236,83 +237,86 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+
+  profileImageContainer: {
+    alignItems: 'center',
+    marginVertical: 10, 
+  },
+
   infoSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10, 
   },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
+
   email: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 10, 
   },
+
   infoCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    padding: 12, 
+    marginBottom: 12, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 3,
   },
+
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17, 
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  label: {
-    fontSize: 16,
-    color: '#666',
-  },
-  value: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  hobbiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  hobbyTag: {
-    backgroundColor: '#e8f0fe',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  hobbyText: {
-    color: '#1a73e8',
-    fontSize: 14,
-  },
-  bioText: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  placeholderText: {
-    color: '#999',
-    fontSize: 14,
-  },
-});
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: 16,
+      color: '#666',
+    },
+    value: {
+      fontSize: 16,
+      color: '#333',
+      fontWeight: '500',
+    },
+    hobbiesContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: 8,
+    },
+    hobbyTag: {
+      backgroundColor: '#e8f0fe',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    hobbyText: {
+      color: '#1a73e8',
+      fontSize: 14,
+    },
+    bioText: {
+      fontSize: 16,
+      color: '#333',
+      lineHeight: 24,
+    },
+    errorText: {
+      color: 'red',
+      fontSize: 16,
+      textAlign: 'center',
+    },
+    placeholderText: {
+      color: '#999',
+      fontSize: 14,
+    },
+  });
 
 export default AccountScreen;

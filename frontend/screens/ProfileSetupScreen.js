@@ -64,8 +64,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             }
             try {
                 const allKeys = await AsyncStorage.getAllKeys();
-                console.log("Stored keys:", allKeys);
-
                 const token = await AsyncStorage.getItem("token");
                 console.log(email)
         
@@ -145,11 +143,10 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // if using JWT
+                'Authorization': `Bearer ${token}` 
                 }
             });
             if (response.status === 200) {
-                // Verify email storage
                 const storedEmail = await AsyncStorage.getItem("userEmail");
                 
                 Alert.alert('Success', 'Profile created successfully');
@@ -219,8 +216,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,  // This ensures that the ScrollView takes up the full height
-        justifyContent: 'center',  // Centers content vertically
+        flexGrow: 1,  
+        justifyContent: 'center',  
         padding: 20,
         backgroundColor: '#fff',
     },

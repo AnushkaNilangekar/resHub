@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 
-const Login = () => {
+const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,7 +18,7 @@ const Login = () => {
   useEffect(() => {
     // If the user is already authenticated, navigate to the home screen
     if (isAuthenticated) {
-      navigation.replace('Home');
+      navigation.replace('Main');
     }
   }, [isAuthenticated, navigation]);
 
@@ -80,7 +80,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
     container: {

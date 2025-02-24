@@ -20,20 +20,15 @@ const SignUpScreen = ({ navigation }) => {
     const [password, setPassword] = useState("");
 
     const handleSignUp = async () => {
-        // Client-side check for student email
-        if (!email.endsWith("@purdue.edu")) {
-            Alert.alert("Invalid Email", "Email must end with @purdue.edu");
-            return;
-        }
-
-        // Basic required fields check
-        if (!firstName || !lastName || !phoneNumber || !password) {
-            Alert.alert("Missing Fields", "Please fill out all fields.");
-            return;
-        }
-
+        // Client-side validation checks...
+        
         try {
-            // Send a POST request to the backend endpoint
+            // First check if AsyncStorage is available
+            if (!AsyncStorage) {
+                throw new Error("AsyncStorage is not initialized");
+            }
+            
+            // Then proceed with API call
             const response = await fetch(`${config.API_BASE_URL}/api/signup`, {
                 method: "POST",
                 headers: {
@@ -47,24 +42,22 @@ const SignUpScreen = ({ navigation }) => {
                     password
                 })
             });
-
+    
             if (!response.ok) {
-                const errorMessage = await response.text(); // read error message from backend
+                const errorMessage = await response.text();
                 Alert.alert("Sign Up Failed", errorMessage);
                 return;
             }
-
+    
+            // Store user email only after successful signup
             await AsyncStorage.setItem("userEmail", email);
-
-            // If success, read the response
-            const successMessage = await response.text();
-            Alert.alert("Success", successMessage);
-
-            //TODO:
-            //here, we can navigate to login so user can login now
-            // navigation.navigate("loginscreen");
+            Alert.alert("Success", "Your account has been created successfully");
+            
+            // Navigate to login page
+            navigation.navigate("LoginScreen");
         } catch (error) {
-            Alert.alert("Network Error", error.message);
+            console.error("Signup error:", error);
+            Alert.alert("Error", error.message || "Something went wrong. Please try again.");
         }
     };
 

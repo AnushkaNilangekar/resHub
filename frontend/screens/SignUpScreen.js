@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
     View,
     Text,
@@ -52,6 +53,8 @@ const SignUpScreen = ({ navigation }) => {
                 Alert.alert("Sign Up Failed", errorMessage);
                 return;
             }
+
+            await AsyncStorage.setItem("userEmail", email);
 
             // If success, read the response
             const successMessage = await response.text();

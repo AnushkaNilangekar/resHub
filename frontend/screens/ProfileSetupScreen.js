@@ -140,6 +140,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         };
         try {
             const token = await AsyncStorage.getItem("token");
+            await AsyncStorage.setItem("userEmail", email);
+            console.log("Email stored in AsyncStorage"); // Debug log
 
             const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
             headers: { 
@@ -147,17 +149,19 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 'Authorization': `Bearer ${token}` // if using JWT
                 }
             });
-            if (response.status !== 200) {
-                const errorMsg = await response.text();
-                Alert.alert('Error', errorMsg);
-            } else {
+            if (response.status === 200) {
+                // Verify email storage
+                const storedEmail = await AsyncStorage.getItem("userEmail");
+                console.log("Verified stored email:", storedEmail); // Debug log
+                
                 Alert.alert('Success', 'Profile created successfully');
                 navigation.navigate('Main', { screen: 'Home' }); 
+              }
+            } catch (error) {
+              console.error('Profile creation error:', error.response || error);
+              Alert.alert('Error', error.response?.data || error.message);
             }
-        } catch (error) {
-            Alert.alert('Error', error.message);
-        }
-    };
+          };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

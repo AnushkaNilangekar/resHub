@@ -123,7 +123,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
               <Button 
                   title="Skip" 
                   onPress={handleSkip}
-                  color="#888888" 
+                  color="#FF0000" 
               />
               <Button 
                   title="Submit" 

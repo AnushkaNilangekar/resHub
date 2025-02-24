@@ -27,12 +27,14 @@ const Login = () => {
     setError("");
 
     try {
+        await AsyncStorage.multiRemove(["token", "userEmail", "profileData"]);
         const requestData = { email, password };
   
         const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);
+            await AsyncStorage.setItem("userEmail", email);
             await login(response.data.token);
             Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
           } else {

@@ -144,9 +144,14 @@ const AccountScreen = () => {
         </View>
   
         {/* Name and Email Section */}
-        <View style={styles.infoSection}>
+        <View style={[
+          styles.infoSection, 
+          !(profileData?.email && profileData.email !== 'N/A') && { marginBottom: 0 }
+        ]}>
           <Text style={styles.name}>{profileData?.fullName || 'N/A'}</Text>
-          <Text style={styles.email}>{profileData?.email || 'N/A'}</Text>
+          {profileData?.email && profileData.email !== 'N/A' && (
+            <Text style={styles.email}>{profileData.email}</Text>
+          )}
         </View>
   
         {/* Basic Info Section */}
@@ -247,6 +252,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10, 
   },
+  name: {
+    fontSize: 24,  
+    fontWeight: 'bold',  
+    color: '#333', 
+    textAlign: 'center',  
+    marginBottom: 4, 
+  },
+  
 
   email: {
     fontSize: 16,

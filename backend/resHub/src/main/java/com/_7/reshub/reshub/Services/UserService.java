@@ -178,9 +178,11 @@ public class UserService {
     public Map<String, String> getChatDetails(String userId, String chatId) throws Exception {
         // Logic to retrieve the other user's email
         String otherUserEmail = getOtherUserEmail(userId, chatId);
+        System.out.println(otherUserEmail);
         
         // Logic to retrieve the last message in the chat
         String lastMessage = getLastMessage(chatId);
+        System.out.println(lastMessage);
         
         // Returning both email and last message in a Map
         Map<String, String> chatDetails = new HashMap<>();

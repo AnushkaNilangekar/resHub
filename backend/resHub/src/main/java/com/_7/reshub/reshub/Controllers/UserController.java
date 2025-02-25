@@ -65,7 +65,7 @@ public class UserController {
     public String getOtherUserEmail(@RequestParam String userId, @RequestParam String chatId) {
 
         try {
-            String otherUserEmail = userService.getOtherUserEmail(userId, chatId);  // Assuming this method is implemented in your UserService
+            String otherUserEmail = userService.getOtherUserEmail(chatId, userId);  // Assuming this method is implemented in your UserService
             return otherUserEmail;
         } catch (Exception e) {
             e.printStackTrace();

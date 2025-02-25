@@ -41,7 +41,6 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       if (!result.canceled) {
         const { uri } = result.assets[0];
         setSelectedImage(uri); 
-        //console.log('Image URI:', uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -70,7 +69,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       const response = await axios.post(`${config.API_BASE_URL}/api/s3/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // proper content type
+          'Content-Type': 'multipart/form-data', 
         },
       });
   
@@ -123,7 +122,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
               <Button 
                   title="Skip" 
                   onPress={handleSkip}
-                  color="#888888" 
+                  color="#FF0000" 
               />
               <Button 
                   title="Submit" 

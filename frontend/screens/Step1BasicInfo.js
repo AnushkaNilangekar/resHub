@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
-export default function Step1BasicInfo({ email, setEmail, fullName, setFullName, handleNext }) {
+export default function Step1BasicInfo({ fullName, setFullName, handleNext }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Step 1: Basic Information</Text>
-
+{/* 
             <Text style={styles.label}>Email:</Text>
             <TextInput
                 style={styles.input}
@@ -15,7 +15,7 @@ export default function Step1BasicInfo({ email, setEmail, fullName, setFullName,
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholderTextColor="#888"
-            />
+            /> */}
 
             <Text style={styles.label}>Full Name:</Text>
             <TextInput

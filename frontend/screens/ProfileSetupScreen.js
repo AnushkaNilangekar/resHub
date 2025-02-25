@@ -11,13 +11,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetupScreen = ({ navigation, route }) => {
     // Get initial email from route params (if any)
-    const initialEmail = route.params?.email || '';
+    // const initialEmail = route.params?.email || '';
 
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
     // State for Step 1: Basic Information
-    const [email, setEmail] = useState(initialEmail);
+    const [email, setEmail] = useState('');
     const [fullName, setFullName] = useState('');
 
     // State for Step 2: Demographics
@@ -54,14 +54,16 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     // For step 1, also check if the email is already in use.
     const handleNext = async () => {
         if (step === 1) {
-            if (!email.trim() || !fullName.trim()) {
+            const loginEmail = await AsyncStorage.getItem('email');
+            setEmail(loginEmail);
+            if (!fullName.trim()) {
                 Alert.alert('Error', 'Please enter both email and full name.');
                 return;
             }
-            if (!email.endsWith('.edu')) {
-                Alert.alert('Error', 'Email must end with .edu');
-                return;
-            }
+            // if (!email.endsWith('.edu')) {
+            //     Alert.alert('Error', 'Email must end with .edu');
+            //     return;
+            // }
             try {
                 const allKeys = await AsyncStorage.getAllKeys();
                 console.log("Stored keys:", allKeys);
@@ -77,11 +79,11 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                         'Authorization': `Bearer ${token}`, // if using JWT
                     }  
                 });
-                if (response.ok) {
-                    // If the email already exists, alert the user and do not proceed.
-                    Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
-                    return;
-                }
+                // if (response.ok) {
+                //     // If the email already exists, alert the user and do not proceed.
+                //     Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
+                //     return;
+                // }
                 // If response status is 404, email doesn't exist; continue.
             } catch (error) {
                 if (error.response && error.response.status === 404) {
@@ -163,8 +165,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         <ScrollView contentContainerStyle={styles.container}>
             {step === 1 && (
                 <Step1BasicInfo
-                    email={email}
-                    setEmail={setEmail}
+                    // email={email}
+                    // setEmail={setEmail}
                     fullName={fullName}
                     setFullName={setFullName}
                     handleNext={handleNext}

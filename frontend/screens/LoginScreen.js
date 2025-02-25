@@ -31,6 +31,7 @@ const LoginScreen = () => {
         const requestData = { email, password };
   
         const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
+        console.log(response.data.token)
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);

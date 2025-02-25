@@ -23,6 +23,10 @@ public class DynamoDbConfig {
     @Value("${dynamodb.user.profiles.table.name}")
     private String userProfilesTableName;
 
+    // dynamodb.chats.table.name in application.properties
+    @Value("${dynamodb.chats.table.name}")
+    private String chatsTableName; 
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
     }
@@ -33,6 +37,10 @@ public class DynamoDbConfig {
 
     public String getUserProfilesTableName() {
         return userProfilesTableName;
+    }
+
+    public String getChatsTableName() {
+        return chatsTableName;  // New getter for chats table
     }
 
     /*

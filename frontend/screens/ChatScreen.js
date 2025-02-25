@@ -1,29 +1,196 @@
-import React from 'react';
-import { View, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import axios from "axios";
+import config from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import { useNavigation } from '@react-navigation/native';
 
 /*
-* Chat Screen
+* Chats Screen
 */
-const ChatScreen = () => {
-    return (
-        <View style={styles.container}>
-            <Text style={styles.text}>Placeholder for Chat Screen</Text>
-        </View>
-    );
+const ChatsScreen = () => {
+  const [chats, setChats] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  /*
+  * Gets a list of the chat ids for the current user
+  */
+  async function getChats() {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const email = await AsyncStorage.getItem("userEmail");
+      const response = await axios.get(`${config.API_BASE_URL}/api/users/getChats`, {
+        params: {
+          userId: email,
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      return [];
+    }
+  }
+
+  /*
+  * Gets the last message and other user details for each chat
+  */
+  async function getChatDetails(chatIds) {
+    const chatDetails = [];
+
+    for (const chatId of chatIds) {
+      console.log(chatId)
+      try {
+        const email = await AsyncStorage.getItem("userEmail");
+        const token = await AsyncStorage.getItem("token");
+        const response = await axios.get(`${config.API_BASE_URL}/api/users/getChatDetails`, {
+          params: {
+            userId: email,
+            chatId: chatId,
+          },
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        console.log(response)
+        const { otherUserEmail, lastMessage } = response.data;
+
+        console.log(otherUserEmail)
+
+        // Get profile info for the other user
+        const profileResponse = await axios.get(`${config.API_BASE_URL}/api/users/getProfile`, {
+          params: {
+            userId: otherUserEmail, // Assuming email is used as the userId for the profile
+          },
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        const { fullName, bio, profilePicUrl } = profileResponse.data;
+        
+        chatDetails.push({
+          chatId,
+          fullName,
+          bio,
+          profilePicUrl,
+          lastMessage,
+          otherUserEmail,
+        });
+
+        console.log(chatDetails)
+      } catch (error) {
+        console.error(`Error fetching chat details for ${chatId}:`, error);
+      }
+    }
+
+    return chatDetails;
+  }
+
+  /*
+  * Fetches the chat details and populates the UI
+  */
+  async function getChatInformation() {
+    const chatIds = await getChats();
+
+    if (chatIds.length > 0) {
+      const details = await getChatDetails(chatIds);
+      setChats(details);
+    } else {
+      console.log('No chats found.');
+    }
+  }
+
+  useEffect(() => {
+    getChatInformation();
+  });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await getChatInformation();
+    setRefreshing(false);
+  }, []);
+
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={chats}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.chatCard}>
+            {item.profilePicUrl ? (
+              <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+            ) : (
+              <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
+            )}
+
+            <View style={styles.textContainer}>
+              <Text style={styles.fullName}>{item.fullName}</Text>
+              <Text style={styles.bio}>{item.bio}</Text>
+              <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+            </View>
+
+          </View>
+        )}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      />
+    </View>
+  );
 };
 
-export default ChatScreen;
+export default ChatsScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 5,
+  },
+  chatCard: {
+    width: "100%",
+    backgroundColor: "#fff",
+    marginBottom: 10,
+    borderRadius: 20,
     padding: 10,
-    backgroundColor: "#f5f5f5",
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    height: 100,
   },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  textContainer: {
+    flex: 1,
+    marginLeft: 10,
   },
+  profilePic: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "#ddd",
+  },
+  fullName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 2,
+  },
+  bio: {
+    fontSize: 16,
+    color: "#555",
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: "#888",
+    marginTop: 4,
+  },
+  chatIcon: {
+    fontSize: 45,
+    color: "#555",
+  }
 });

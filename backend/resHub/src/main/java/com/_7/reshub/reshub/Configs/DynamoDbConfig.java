@@ -19,12 +19,20 @@ public class DynamoDbConfig {
     @Value("${dynamodb.user.table.name}")
     private String usersTableName;
 
+    // dynamodb.userA.table.name in application.properties
+    @Value("${dynamodb.userA.table.name}")
+    private String usersAccountsTableName;
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
     }
 
     public String getUsersTableName() {
         return usersTableName;
+    }
+
+    public String getUserAccountsTableName() {
+        return usersAccountsTableName;
     }
 
     /*

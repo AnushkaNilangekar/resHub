@@ -8,6 +8,8 @@ import DetailsScreen from "../screens/DetailsScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import LoginScreen from "../screens/LoginScreen"; // Assuming you have a LoginScreen
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
+import ForgotPassword from "../screens/ForgotPasswordScreen";
+import ResetPassword from "../screens/ResetPassword";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +21,8 @@ const StackNavigator = () => {
         <>
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
+          <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
+          <Stack.Screen name="ResetPassword" component={ResetPassword} />
         </>
       ) : (
         <>

@@ -33,6 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(new AntPathRequestMatcher("/api/login")).permitAll() // Allow /api/login
                 .requestMatchers(new AntPathRequestMatcher("/api/signup")).permitAll() // Allow /api/signup
+                .requestMatchers(new AntPathRequestMatcher("/api/forgot-password")).permitAll() // Allow /api/forgot-password
+                .requestMatchers(new AntPathRequestMatcher("/api/reset-password")).permitAll() // Allow /api/reset-password
                 .anyRequest().authenticated()
 
             )

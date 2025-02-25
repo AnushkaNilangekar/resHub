@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import config from "../config";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { useNavigation } from '@react-navigation/native';
-
-
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -27,22 +25,27 @@ const Login = () => {
     setError("");
 
     try {
-        const requestData = { email, password };
-  
-        const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
-  
-        if (response.status === 200) {
-            await AsyncStorage.setItem("token", response.data.token);
-            await login(response.data.token);
-            Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
-          } else {
-            setError("Login failed");
-            Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
-          }
-      } catch (error) {
-        setError("Login Failed. Please try again.")     
-        Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
+      const requestData = { email, password };
+
+      const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
+
+      if (response.status === 200) {
+          await AsyncStorage.setItem("token", response.data.token);
+          await login(response.data.token);
+          Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
+      } else {
+          setError("Login failed");
+          Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
+      }
+    } catch (error) {
+      setError("Login Failed. Please try again.");     
+      Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
     }
+  };
+
+  const handleForgotPassword = () => {
+    // Navigate to forgot password screen (or handle the forgot password flow here)
+    navigation.navigate("ForgotPasswordScreen"); // Make sure the correct route is used
   };
 
   return (
@@ -67,13 +70,16 @@ const Login = () => {
 
       <Button title="Login" onPress={handleSubmit} />
 
+      <TouchableOpacity onPress={handleForgotPassword}>
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      </TouchableOpacity>
+
       <View style={{ marginTop: 10 }}>
         <Button 
           title="Don't have an account? Sign Up"
           onPress={() => navigation.navigate("SignUpScreen")}  // Change "SignUp" to the correct name of your sign-up screen
         />
       </View>
-      
     </View>
   );
 };
@@ -81,27 +87,32 @@ const Login = () => {
 export default Login;
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#fff",
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: "bold",
-      marginBottom: 20,
-    },
-    input: {
-      height: 40,
-      borderColor: "#ccc",
-      borderWidth: 1,
-      marginBottom: 20,
-      width: "80%",
-      paddingLeft: 10,
-    },
-    error: {
-      color: "red",
-      marginBottom: 10,
-    },
-  });
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: 20,
+    width: "80%",
+    paddingLeft: 10,
+  },
+  error: {
+    color: "red",
+    marginBottom: 10,
+  },
+  forgotPasswordText: {
+    color: "#007BFF",  // Set the color to blue to resemble a link
+    marginBottom: 20,
+    textDecorationLine: 'underline',  // Underline the text to make it look like a link
+  },
+});

@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 
-const Login = () => {
+const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,7 +18,7 @@ const Login = () => {
   useEffect(() => {
     // If the user is already authenticated, navigate to the home screen
     if (isAuthenticated) {
-      navigation.replace('Home');
+      navigation.replace('Main');
     }
   }, [isAuthenticated, navigation]);
 
@@ -27,12 +27,14 @@ const Login = () => {
     setError("");
 
     try {
+        await AsyncStorage.multiRemove(["token", "userEmail", "profileData"]);
         const requestData = { email, password };
   
         const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);
+            await AsyncStorage.setItem("userEmail", email);
             await login(response.data.token);
             Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
           } else {
@@ -78,7 +80,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
     container: {

@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, Alert, StyleSheet } from 'react-native';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
 import Step3AcademicInfo from './Step3AcademicInfo';
 import Step4ResHobbiesBio from './Step4ResHobbiesBio';
+import UploadProfilePic from './UploadProfilePic';  
 import config from '../config';
+import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetupScreen = ({ navigation, route }) => {
     // Get initial email from route params (if any)
-    const initialEmail = route.params?.email || '';
+    // const initialEmail = route.params?.email || '';
 
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
     // State for Step 1: Basic Information
-    const [email, setEmail] = useState(initialEmail);
+    const [email, setEmail] = useState('');
     const [fullName, setFullName] = useState('');
 
     // State for Step 2: Demographics
@@ -31,6 +34,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [hobbies, setHobbies] = useState([]);
     const [bio, setBio] = useState('');
 
+    const [imageUri, setImageUri] = useState('https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg');
+
     // Common hobbies list for multi-select
     const commonHobbies = ["Reading", "Hiking", "Gaming", "Cooking", "Traveling", "Sports", "Music", "Art", "Working Out"];
 
@@ -45,29 +50,66 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         }
     };
 
+    useEffect(() => {
+        const fetchEmail = async () => {
+            try {
+                const storedEmail = await AsyncStorage.getItem('userEmail');
+                if (storedEmail) {
+                    setEmail(storedEmail);
+                } else {
+                    Alert.alert('Error', 'No email found. Please log in again.');
+                    navigation.navigate('Login');
+                }
+            } catch (error) {
+                console.error('Error fetching email:', error);
+                Alert.alert('Error', 'Failed to retrieve email.');
+            }
+        };
+        fetchEmail();
+    }, []);
+
     // handleNext: Validate fields on current step.
     // For step 1, also check if the email is already in use.
     const handleNext = async () => {
         if (step === 1) {
-            if (!email.trim() || !fullName.trim()) {
+            // const loginEmail = await AsyncStorage.getItem('email');
+            // setEmail(loginEmail);
+            if (!fullName.trim()) {
                 Alert.alert('Error', 'Please enter both email and full name.');
                 return;
             }
-            if (!email.endsWith('.edu')) {
-                Alert.alert('Error', 'Email must end with .edu');
-                return;
-            }
+            // if (!email.endsWith('.edu')) {
+            //     Alert.alert('Error', 'Email must end with .edu');
+            //     return;
+            // }
             try {
-                const response = await fetch(`${config.API_BASE_URL}/api/profile/exists?email=${encodeURIComponent(email)}`);
-                if (response.ok) {
-                    // If the email already exists, alert the user and do not proceed.
-                    Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
-                    return;
-                }
+                const allKeys = await AsyncStorage.getAllKeys();
+                const token = await AsyncStorage.getItem("token");
+                console.log(email)
+        
+                const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
+                    params: {
+                        email: email
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // if using JWT
+                    }  
+                });
+                // if (response.ok) {
+                //     // If the email already exists, alert the user and do not proceed.
+                //     Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
+                //     return;
+                // }
                 // If response status is 404, email doesn't exist; continue.
             } catch (error) {
-                Alert.alert('Error', 'Unable to check email availability.');
-                return;
+                if (error.response && error.response.status === 404) {
+                    // 404 means email doesn't exist; allow the user to proceed.
+                    console.log("Email does not exist, proceeding...");
+                } else {
+                    console.error("Error checking email availability:", error);
+                    Alert.alert('Error', 'Unable to check email availability.');
+                    return;
+                }
             }
         }
         if (step === 2) {
@@ -112,31 +154,36 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             residence,
             hobbies,
             bio,
+            profilePicUrl: imageUri
         };
         try {
-            const response = await fetch(`${config.API_BASE_URL}/api/profile`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profileData),
+            const token = await AsyncStorage.getItem("token");
+            await AsyncStorage.setItem("userEmail", email);
+
+            const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+                }
             });
-            if (!response.ok) {
-                const errorMsg = await response.text();
-                Alert.alert('Error', errorMsg);
-            } else {
+            if (response.status === 200) {
+                const storedEmail = await AsyncStorage.getItem("userEmail");
+                
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Home');
+                navigation.navigate('Main', { screen: 'Home' }); 
+              }
+            } catch (error) {
+              console.error('Profile creation error:', error.response || error);
+              Alert.alert('Error', error.response?.data || error.message);
             }
-        } catch (error) {
-            Alert.alert('Error', error.message);
-        }
-    };
+          };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {step === 1 && (
                 <Step1BasicInfo
-                    email={email}
-                    setEmail={setEmail}
+                    // email={email}
+                    // setEmail={setEmail}
                     fullName={fullName}
                     setFullName={setFullName}
                     handleNext={handleNext}
@@ -172,9 +219,15 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                     toggleHobby={toggleHobby}
                     bio={bio}
                     setBio={setBio}
-                    handleSubmit={handleSubmit}
+                    handleNext={handleNext}
                     handleBack={handleBack}
                     commonHobbies={commonHobbies}
+                />
+            )}
+           {step === 5 && (
+                <UploadProfilePic onPictureUploaded={(uri) => setImageUri(uri)} 
+                 handleSubmit={handleSubmit}
+                 handleBack={handleBack}
                 />
             )}
         </ScrollView>
@@ -183,7 +236,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
+        flexGrow: 1,  
+        justifyContent: 'center',  
         padding: 20,
         backgroundColor: '#fff',
     },

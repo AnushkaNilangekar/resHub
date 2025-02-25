@@ -17,7 +17,7 @@ public class UserController {
     private UserService userService;
 
     /*
-     * Endpoint to get a list of user ids of matches for a given user.
+     * GET endpoint to get a list of user ids of matches for a given user.
      * @params
      * userId: The id of the user whose matches are to be retrieved
      * @return List of match IDs
@@ -25,11 +25,24 @@ public class UserController {
     @GetMapping("/getMatches")
     public List<String> getUserMatches(@RequestParam String userId) {
         try {
-            List<String> matches = userService.getUserMatches(userId);
+            List<String> matches = userService.doGetUserMatches(userId);
             return matches;
         } catch (Exception e) {
             e.printStackTrace();
             return List.of("Error: " + e.getMessage());
+        }
+    }
+
+    public String createMatch(@RequestParam String userId, @RequestParam String matchUserId)
+    {
+        try
+        {
+            userService.doCreateMatch(userId, matchUserId);
+            return "Match between " + userId + " and " + matchUserId;
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
         }
     }
 }

@@ -1,43 +1,26 @@
+import 'react-native-url-polyfill/auto';
 import React from 'react';
-import { StyleSheet, AppRegistry } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';
+import config from "./config";
 
 export default function App() {
+  // Deep linking configuration
+  const linking = {
+    prefixes: [config.API_BASE_URL],
+    config: {
+      screens: {
+        ResetPassword: 'reset-password',
+      },
+    },
+  };
+
   return (
     <AuthProvider> {/* Wrap with AuthProvider */}
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <StackNavigator />
       </NavigationContainer>
     </AuthProvider>
   );
 }
-
-AppRegistry.registerComponent('main', () => App);
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 20,
-    width: '80%',
-    paddingLeft: 10,
-  },
-  result: {
-    fontSize: 18,
-    marginTop: 20,
-  },
-});

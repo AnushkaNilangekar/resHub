@@ -56,11 +56,10 @@ const HomeScreen = () => {
       {result !== null ? <Text style={styles.result}>Sum: {result}</Text> : null}
 
       <Button title="Logout" onPress={() => logout()}  />
-      <Button title="Go to Details" onPress={() => navigation.navigate("Details")} />
+      <Button title="Go to Details" onPress={() => navigation.navigate("DetailsScreen")} />
       <Button title="Go to Swipe Screen" onPress={() => navigation.navigate("SwipeScreen")} />
-      <Button title="Go to Profile set up" onPress={() => navigation.navigate("Profile")} />
-      <Button title="Upload Profile Picture" onPress={() => navigation.navigate("UploadProfilePic")} />
-        
+      <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
+      <Button title="Go to Matches" onPress={() => navigation.navigate("MatchesAndConversations")} />
     </View>
   );
 };

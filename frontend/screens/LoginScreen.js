@@ -34,7 +34,6 @@ const LoginScreen = () => {
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);
-            await AsyncStorage.setItem("email", email); 
             await AsyncStorage.setItem("userEmail", email);
             await login(response.data.token);
             Alert.alert("Success", "Login successful!", [{ text: "OK" }]);

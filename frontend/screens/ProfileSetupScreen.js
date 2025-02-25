@@ -53,7 +53,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     useEffect(() => {
         const fetchEmail = async () => {
             try {
-                const storedEmail = await AsyncStorage.getItem('email');
+                const storedEmail = await AsyncStorage.getItem('userEmail');
                 if (storedEmail) {
                     setEmail(storedEmail);
                 } else {

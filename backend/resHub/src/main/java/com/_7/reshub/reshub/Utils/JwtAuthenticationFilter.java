@@ -1,16 +1,16 @@
 package com._7.reshub.reshub.Utils;
 
-import org.springframework.security.core.Authentication;
+//import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+//import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
-import com._7.reshub.reshub.Utils.JwtUtil; // Your JwtUtil class that handles JWT creation/validation
-import org.springframework.beans.factory.annotation.Autowired;
+//import com._7.reshub.reshub.Utils.JwtUtil; // Your JwtUtil class that handles JWT creation/validation
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.stereotype.Component;

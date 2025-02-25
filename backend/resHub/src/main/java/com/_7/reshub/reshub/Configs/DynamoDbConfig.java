@@ -16,11 +16,27 @@ public class DynamoDbConfig {
     private String swipeLogTableName;
 
     // dynamodb.user.table.name in application.properties
+    @Value("${dynamodb.user.table.name}")
+    private String usersTableName;
+
+    // dynamodb.userA.table.name in application.properties
+    @Value("${dynamodb.userA.table.name}")
+    private String usersAccountsTableName;
+    
+    // dynamodb.user.table.name in application.properties
     @Value("${dynamodb.user.profiles.table.name}")
     private String userProfilesTableName;
 
     public String getSwipeLogTableName() {
         return swipeLogTableName;
+    }
+
+    public String getUsersTableName() {
+        return usersTableName;
+    }
+
+    public String getUserAccountsTableName() {
+        return usersAccountsTableName;
     }
 
     public String getUserProfilesTableName() {

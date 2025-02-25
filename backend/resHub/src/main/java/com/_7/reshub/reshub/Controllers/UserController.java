@@ -24,13 +24,25 @@ public class UserController {
      */
     @GetMapping("/getMatches")
     public List<String> getUserMatches(@RequestParam String userId) {
-
         try {
-            List<String> matches = userService.retrieveUserMatches(userId);
+            List<String> matches = userService.doGetUserMatches(userId);
             return matches;
         } catch (Exception e) {
             e.printStackTrace();
             return List.of("Error: " + e.getMessage());
+        }
+    }
+
+    public String createMatch(@RequestParam String userId, @RequestParam String matchUserId)
+    {
+        try
+        {
+            userService.doCreateMatch(userId, matchUserId);
+            return "Match between " + userId + " and " + matchUserId;
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
         }
     }
 }

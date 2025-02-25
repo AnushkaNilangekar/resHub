@@ -36,7 +36,7 @@ public class ProfileController {
     @GetMapping("/getProfile")
     public ResponseEntity<?> getUserProfile(@RequestParam String userId) {
         try {
-            Profile profile = profileService.retrieveProfile(userId);
+            Profile profile = profileService.doGetProfile(userId);
             return ResponseEntity.ok(profile);
         } catch (Exception e) {
             e.printStackTrace();

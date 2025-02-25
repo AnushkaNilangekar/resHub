@@ -18,8 +18,7 @@ const MatchesScreen = ({ userId }) => {
   */
   async function getMatches() {
     try {
-      // TODO temporary userId for testing
-      const userId = "12345";
+      const userId = await AsyncStorage.getItem("userEmail");
 
       const token = await AsyncStorage.getItem("token");
       const response = await axios.get(`${config.API_BASE_URL}/api/users/getMatches`, {

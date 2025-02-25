@@ -34,7 +34,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [hobbies, setHobbies] = useState([]);
     const [bio, setBio] = useState('');
 
-    const [imageUri, setImageUri] = useState('');
+    const [imageUri, setImageUri] = useState('https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg');
 
     // Common hobbies list for multi-select
     const commonHobbies = ["Reading", "Hiking", "Gaming", "Cooking", "Traveling", "Sports", "Music", "Art", "Working Out"];
@@ -64,8 +64,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             }
             try {
                 const allKeys = await AsyncStorage.getAllKeys();
-                console.log("Stored keys:", allKeys);
-
                 const token = await AsyncStorage.getItem("token");
                 console.log(email)
         
@@ -140,25 +138,25 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         };
         try {
             const token = await AsyncStorage.getItem("token");
+            await AsyncStorage.setItem("userEmail", email);
 
             const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // if using JWT
+                'Authorization': `Bearer ${token}` 
                 }
             });
-            console.log(response)
-            if (response.status !== 200) {
-                const errorMsg = await response.text();
-                Alert.alert('Error', errorMsg);
-            } else {
+            if (response.status === 200) {
+                const storedEmail = await AsyncStorage.getItem("userEmail");
+                
                 Alert.alert('Success', 'Profile created successfully');
                 navigation.navigate('Main', { screen: 'Home' }); 
+              }
+            } catch (error) {
+              console.error('Profile creation error:', error.response || error);
+              Alert.alert('Error', error.response?.data || error.message);
             }
-        } catch (error) {
-            Alert.alert('Error', error.message);
-        }
-    };
+          };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -218,8 +216,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,  // This ensures that the ScrollView takes up the full height
-        justifyContent: 'center',  // Centers content vertically
+        flexGrow: 1,  
+        justifyContent: 'center',  
         padding: 20,
         backgroundColor: '#fff',
     },

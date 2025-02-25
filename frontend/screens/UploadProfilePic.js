@@ -22,6 +22,13 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
     requestPermission();
   }, []);
 
+  const handleSkip = () => {
+    const defaultAvatarUrl = "https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg";
+    onPictureUploaded(defaultAvatarUrl);
+    handleSubmit();
+  };
+
+
   const pickImage = async () => {
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -34,7 +41,6 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       if (!result.canceled) {
         const { uri } = result.assets[0];
         setSelectedImage(uri); 
-        //console.log('Image URI:', uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -63,7 +69,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       const response = await axios.post(`${config.API_BASE_URL}/api/s3/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // proper content type
+          'Content-Type': 'multipart/form-data', 
         },
       });
   
@@ -85,43 +91,48 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   
 
   return (
-    <View style={styles.container}>
-        <Text style={styles.title}>Upload Profile Picture</Text>
-        
-        <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.buttonText}>Pick an image from gallery</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+          <Text style={styles.title}>Upload Profile Picture</Text>
+          
+          <TouchableOpacity style={styles.button} onPress={pickImage}>
+              <Text style={styles.buttonText}>Pick an image from gallery</Text>
+          </TouchableOpacity>
 
-        {uploadSuccess && (
-        <Text style={styles.uploadStatus}>
-            ✓ Image uploaded successfully - Ready to submit
-          </Text>
-)}
+          {uploadSuccess && (
+          <Text style={styles.uploadStatus}>
+              ✓ Image uploaded successfully - Ready to submit
+            </Text>
+          )}
 
-        {selectedImage && (
-            <>
-                <Image source={{ uri: selectedImage }} style={styles.image} />
-                <TouchableOpacity 
-                    style={styles.button} 
-                    onPress={uploadImage}
-                >
-                    <Text style={styles.buttonText}>Upload Image</Text>
-                </TouchableOpacity>
-            </>
-        )}
+          {selectedImage && (
+              <>
+                  <Image source={{ uri: selectedImage }} style={styles.image} />
+                  <TouchableOpacity 
+                      style={styles.button} 
+                      onPress={uploadImage}
+                  >
+                      <Text style={styles.buttonText}>Upload Image</Text>
+                  </TouchableOpacity>
+              </>
+          )}
 
-        <View style={styles.buttonContainer}>
-            <Button title="Back" onPress={handleBack} />
-            <View style={styles.buttonSpacer} />
-            <Button 
-                title="Submit" 
-                onPress={handleSubmit} 
-                disabled={!uploadSuccess}
-            />
-        </View>
-    </View>
-  );
-};
+          <View style={styles.buttonContainer}>
+              <Button title="Back" onPress={handleBack} />
+              <View style={styles.buttonSpacer} />
+              <Button 
+                  title="Skip" 
+                  onPress={handleSkip}
+                  color="#FF0000" 
+              />
+              <Button 
+                  title="Submit" 
+                  onPress={handleSubmit} 
+                  disabled={!uploadSuccess}
+              />
+          </View>
+      </View>
+    );
+  };
 
 const styles = StyleSheet.create({
   container: {

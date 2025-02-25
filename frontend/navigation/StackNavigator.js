@@ -5,7 +5,7 @@ import BottomTabNavigator from "./BottomTabNavigator";
 // import HomeScreen from "../screens/HomeScreen";
 import DetailsScreen from "../screens/DetailsScreen";
 import SignUpScreen from "../screens/SignUpScreen";
-import LoginScreen from "../screens/LoginScreen"; // Assuming you have a LoginScreen
+import LoginScreen from "../screens/LoginScreen";
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
 import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
 

@@ -94,9 +94,12 @@ public class ProfileController {
         item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
         item.put("bio", AttributeValue.builder().s(request.getBio()).build());
 
-        if (request.getProfilePicUrl() != null && !request.getProfilePicUrl().trim().isEmpty()) {
-            item.put("profilePicUrl", AttributeValue.builder().s(request.getProfilePicUrl()).build());
+        String profilePicUrl = request.getProfilePicUrl();
+        if (profilePicUrl == null || profilePicUrl.trim().isEmpty()) {
+            profilePicUrl = "https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg";
         }
+        
+        item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()

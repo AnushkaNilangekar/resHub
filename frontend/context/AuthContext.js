@@ -27,7 +27,11 @@ export const AuthProvider = ({ children }) => {
 
   // Function to handle logout (remove the token and update state)
   const logout = async () => {
-    await AsyncStorage.removeItem("token");
+  await AsyncStorage.multiRemove([
+      "token",
+      "userEmail",
+      "profileData" 
+    ]);
     setIsAuthenticated(false);
   };
 

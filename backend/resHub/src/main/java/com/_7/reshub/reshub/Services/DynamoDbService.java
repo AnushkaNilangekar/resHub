@@ -1,9 +1,6 @@
 package com._7.reshub.reshub.Services;
 
 import software.amazon.awssdk.services.dynamodb.model.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;

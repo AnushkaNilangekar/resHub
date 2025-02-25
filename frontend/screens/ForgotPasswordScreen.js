@@ -9,6 +9,11 @@ const ForgotPassword = () => {
     const navigation = useNavigation();
 
     const handlePasswordResetRequest = async () => {
+        if (!email) {
+            Alert.alert('Error', 'Please enter your email address.');
+            return; 
+        }
+
         try {
             const response = await fetch(`${config.API_BASE_URL}/api/forgot-password`, {
                 method: 'POST',

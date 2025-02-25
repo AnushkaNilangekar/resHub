@@ -2,7 +2,6 @@ package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
-import com._7.reshub.reshub.Utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.mail.SimpleMailMessage;
@@ -31,9 +30,6 @@ public class UserService {
 
     @Autowired
     private JavaMailSender mailSender;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @Autowired
     private DynamoDbService dynamoDbService;

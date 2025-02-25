@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { useNavigation } from '@react-navigation/native';
 
-const Login = () => {
+const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,7 +16,7 @@ const Login = () => {
   useEffect(() => {
     // If the user is already authenticated, navigate to the home screen
     if (isAuthenticated) {
-      navigation.replace('Home');
+      navigation.replace('Main');
     }
   }, [isAuthenticated, navigation]);
 
@@ -25,27 +25,28 @@ const Login = () => {
     setError("");
 
     try {
-      const requestData = { email, password };
-
-      const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
-
-      if (response.status === 200) {
-          await AsyncStorage.setItem("token", response.data.token);
-          await login(response.data.token);
-          Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
-      } else {
-          setError("Login failed");
-          Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
-      }
-    } catch (error) {
-      setError("Login Failed. Please try again.");     
-      Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
+        await AsyncStorage.multiRemove(["token", "userEmail", "profileData"]);
+        const requestData = { email, password };
+  
+        const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
+  
+        if (response.status === 200) {
+            await AsyncStorage.setItem("token", response.data.token);
+            await AsyncStorage.setItem("userEmail", email);
+            await login(response.data.token);
+            Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
+          } else {
+            setError("Login failed");
+            Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
+          }
+      } catch (error) {
+        setError("Login Failed. Please try again.")     
+        Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
     }
   };
 
   const handleForgotPassword = () => {
-    // Navigate to forgot password screen (or handle the forgot password flow here)
-    navigation.navigate("ForgotPasswordScreen"); // Make sure the correct route is used
+    navigation.navigate("ForgotPasswordScreen"); 
   };
 
   return (
@@ -84,7 +85,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {

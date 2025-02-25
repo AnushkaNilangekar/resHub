@@ -41,39 +41,30 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    /**
-     * Retrieves the list of user IDs that the given user has matched with.
+    /*
+     * Handles retrieving the user ids of the given user's matches.
      */
-    public List<String> getUserMatches(String userId) {
-        try {
-            if (userId == null || userId.isEmpty()) {
-                logger.warning("User ID is null or empty.");
-                return Collections.emptyList();
-            }
+    public List<String> retrieveUserMatches(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
-            Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUsersTableName())
+                .key(key)
+                .build();
 
-            GetItemRequest getItemRequest = GetItemRequest.builder()
-                    .tableName(dynamoDbConfig.getUsersTableName())
-                    .key(key)
-                    .build();
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
 
-            GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            AttributeValue matchesAttribute = item.get("matches");
 
-            if (response.hasItem()) {
-                Map<String, AttributeValue> item = response.item();
-                AttributeValue matchesAttribute = item.get("matches");
-
-                if (matchesAttribute != null && matchesAttribute.l() != null) {
-                    List<String> matches = new ArrayList<>();
-                    for (AttributeValue match : matchesAttribute.l()) {
-                        matches.add(match.s());
-                    }
-                    return matches;
+            if (matchesAttribute != null && matchesAttribute.l() != null) {
+                List<String> matches = new ArrayList<>();
+                for (AttributeValue match : matchesAttribute.l()) {
+                    matches.add(match.s());
                 }
+                return matches;
             }
-        } catch (Exception e) {
-            logger.severe("Error retrieving user matches: " + e.getMessage());
         }
         return Collections.emptyList();
     }

@@ -1,12 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from "react-native";
 
+/*
+* Chat Screen
+*/
 const ChatScreen = () => {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Placeholder for Chat Screen</Text>
-    </View>
-  );
+    return (
+        <View style={styles.container}>
+            <Text style={styles.text}>Placeholder for Chat Screen</Text>
+        </View>
+    );
 };
 
 export default ChatScreen;
@@ -16,7 +19,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
+    padding: 10,
+    backgroundColor: "#f5f5f5",
   },
   text: {
     fontSize: 20,

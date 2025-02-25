@@ -8,7 +8,7 @@ export default function Step4ResHobbiesBio({
     toggleHobby,
     bio,
     setBio,
-    handleSubmit,
+    handleNext,
     handleBack,
     commonHobbies,
 }) {
@@ -51,7 +51,7 @@ export default function Step4ResHobbiesBio({
             <View style={styles.buttonContainer}>
                 <Button title="Back" onPress={handleBack} />
                 <View style={styles.buttonSpacer} />
-                <Button title="Submit" onPress={handleSubmit} />
+                <Button title="Next" onPress={handleNext} />
             </View>
         </View>
     );

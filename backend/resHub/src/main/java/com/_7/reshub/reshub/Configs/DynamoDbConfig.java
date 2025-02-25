@@ -38,7 +38,7 @@ public class DynamoDbConfig {
     public String getUserAccountsTableName() {
         return usersAccountsTableName;
     }
-    
+
     public String getUserProfilesTableName() {
         return userProfilesTableName;
     }

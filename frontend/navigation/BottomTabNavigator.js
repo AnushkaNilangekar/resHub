@@ -2,7 +2,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import SwipeScreen from "../screens/SwipeScreen";
-import SwipeScreen from '../screens/SwipeScreen';
 import AccountScreen from '../screens/AccountScreen';
 import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
 

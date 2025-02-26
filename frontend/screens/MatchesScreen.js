@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
+import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
@@ -152,6 +153,23 @@ const MatchesScreen = ({ userId }) => {
 
   return (
     <View style={styles.container}>
+      {matches.length === 0 ? (
+        <ScrollView contentContainerStyle={styles.noMatchesContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+          <Ionicons name="sad-outline" size={50} color="#555" />
+          <Text style={styles.noMatchesText}>No matches yet</Text>
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={matches}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.matchCard}>
+              {item.profilePicUrl ? (
+                <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+              ) : (
+                <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
+              )}
       {matches.length === 0 ? (
         <ScrollView contentContainerStyle={styles.noMatchesContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

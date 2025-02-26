@@ -151,22 +151,16 @@ public class ProfileController {
      */
 
     @GetMapping("/getProfiles")
-    public ResponseEntity<List<Map<String, AttributeValue>>> getProfiles(@RequestParam String genderFilter) {
-        // Scan request to retrieve all items from the table
-        ScanRequest scanRequest = ScanRequest.builder()
-                .tableName("userProfiles")
-                .build();
-        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        
-        // Filter profiles based on gender
-        List<Map<String, AttributeValue>> filteredProfiles = scanResponse.items().stream()
-                .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
-                        (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
-                .collect(Collectors.toList());
-        
-        if (filteredProfiles.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Collections.emptyList());
+    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter) {
+        try {
+            List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+            //System.out.println("profiles" + profiles);
+            return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
-        return ResponseEntity.ok(filteredProfiles);
     }
+     
 }

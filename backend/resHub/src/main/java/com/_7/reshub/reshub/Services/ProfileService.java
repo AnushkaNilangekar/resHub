@@ -9,8 +9,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -58,4 +62,34 @@ public class ProfileService {
 
         return null;
     }
+
+    public List<Map<String, Object>> doGetProfiles(String userId, String genderFilter) {
+        ScanRequest scanRequest = ScanRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .build();
+        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+        //System.out.println("userid" + userId);
+        return scanResponse.items().stream()
+                .filter(item -> !item.get("email").s().equals(userId)) // Exclude logged-in user
+                .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
+                        (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
+                .map(this::convertDynamoItemToMap) // Convert AttributeValue Map to a normal Map
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Converts DynamoDB's AttributeValue Map to a standard Java Map
+     */
+    private Map<String, Object> convertDynamoItemToMap(Map<String, AttributeValue> item) {
+        Map<String, Object> converted = new HashMap<>();
+        item.forEach((key, value) -> {
+            if (value.s() != null) converted.put(key, value.s());
+            else if (value.n() != null) converted.put(key, Integer.parseInt(value.n()));
+            else if (value.l() != null) converted.put(key, value.l().stream().map(AttributeValue::s).collect(Collectors.toList()));
+            else converted.put(key, null); // Handle other cases as needed
+        });
+        return converted;
+    }
+
+
 }

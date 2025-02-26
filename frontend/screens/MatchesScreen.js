@@ -42,11 +42,8 @@ const MatchesScreen = ({ userId }) => {
   */
   async function getUserProfiles(userIds) {
     const profiles = [];
-    console.log("yes")
     const token = await AsyncStorage.getItem("token");
     const userId = await AsyncStorage.getItem("userEmail");
-    console.log("****")
-    console.log(userId)
     const response = await axios.get(`${config.API_BASE_URL}/api/users/getOtherUserEmails`, {
       params: {
         userId: userId,
@@ -85,9 +82,6 @@ const MatchesScreen = ({ userId }) => {
         }
 
         profiles.push({ userId, fullName, bio, profilePicUrl, chatCreated });
-
-        console.log("+++++++")
-        console.log(profiles)
       } catch (error) {
         console.error(`Error fetching profile for ${userId}:`, error);
       }
@@ -168,7 +162,7 @@ const MatchesScreen = ({ userId }) => {
       {matches.length === 0 ? (
         <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           <Ionicons name="sad-outline" size={50} color="#555" />
-          <Text style={styles.noMatchesText}>No chats yet</Text>
+          <Text style={styles.noMatchesText}>No matches yet</Text>
         </ScrollView>
       ) : (
         <FlatList

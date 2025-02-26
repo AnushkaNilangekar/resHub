@@ -32,9 +32,9 @@ const LoginScreen = () => {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
-    console.log(response.status);
+    console.log(response.data);
 
-    if (response.status === 200) {
+    if (response.data === "exists") {
       navigation.replace('Main');
     } else {
       console.log("Profile setup required");

@@ -136,7 +136,7 @@ public class ProfileController {
         if (getItemResponse.hasItem()) {
             return ResponseEntity.ok("exists");
         } else {
-            return ResponseEntity.status(404).body("not exists");
+            return ResponseEntity.ok("not exists");
         }
     }
 }

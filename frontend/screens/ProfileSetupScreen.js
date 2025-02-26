@@ -10,9 +10,6 @@ import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetupScreen = ({ navigation, route }) => {
-    // Get initial email from route params (if any)
-    // const initialEmail = route.params?.email || '';
-
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
@@ -72,43 +69,9 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     // For step 1, also check if the email is already in use.
     const handleNext = async () => {
         if (step === 1) {
-            // const loginEmail = await AsyncStorage.getItem('email');
-            // setEmail(loginEmail);
             if (!fullName.trim()) {
-                Alert.alert('Error', 'Please enter both email and full name.');
+                Alert.alert('Error', 'Please enter your full name.');
                 return;
-            }
-            // if (!email.endsWith('.edu')) {
-            //     Alert.alert('Error', 'Email must end with .edu');
-            //     return;
-            // }
-            try {
-                const token = await AsyncStorage.getItem("token");
-                console.log(email)
-        
-                const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
-                    params: {
-                        email: email
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${token}`, // if using JWT
-                    }  
-                });
-                // if (response.ok) {
-                //     // If the email already exists, alert the user and do not proceed.
-                //     Alert.alert('Error', 'Email is already in use. Please log in to edit your profile.');
-                //     return;
-                // }
-                // If response status is 404, email doesn't exist; continue.
-            } catch (error) {
-                if (error.response && error.response.status === 404) {
-                    // 404 means email doesn't exist; allow the user to proceed.
-                    console.log("Email does not exist, proceeding...");
-                } else {
-                    console.error("Error checking email availability:", error);
-                    Alert.alert('Error', 'Unable to check email availability.');
-                    return;
-                }
             }
         }
         if (step === 2) {
@@ -182,8 +145,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         <ScrollView contentContainerStyle={styles.container}>
             {step === 1 && (
                 <Step1BasicInfo
-                    // email={email}
-                    // setEmail={setEmail}
                     fullName={fullName}
                     setFullName={setFullName}
                     handleNext={handleNext}

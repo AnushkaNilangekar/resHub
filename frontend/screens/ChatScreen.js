@@ -41,10 +41,8 @@ const ChatsScreen = () => {
   */
   async function getChatDetails(chatIds) {
     const chatDetails = [];
-    console.log(chatIds)
 
     for (const chatId of chatIds) {
-      console.log(chatId)
       try {
         const email = await AsyncStorage.getItem("userEmail");
         const token = await AsyncStorage.getItem("token");
@@ -58,12 +56,7 @@ const ChatsScreen = () => {
           }
         });
 
-        console.log(response)
         const { otherUserEmail, lastMessage } = response.data;
-
-        console.log("#######")
-
-        console.log(otherUserEmail)
 
         // Get profile info for the other user
         const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
@@ -84,8 +77,6 @@ const ChatsScreen = () => {
           lastMessage,
           otherUserEmail,
         });
-
-        console.log(chatDetails)
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
       }
@@ -124,7 +115,7 @@ const ChatsScreen = () => {
       {chats.length === 0 ? (
               <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                 <Ionicons name="sad-outline" size={50} color="#555" />
-                <Text style={styles.noMatchesText}>No matches yet</Text>
+                <Text style={styles.noMatchesText}>No chats yet</Text>
               </ScrollView>
       ) : (
       <FlatList

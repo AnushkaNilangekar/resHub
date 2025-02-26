@@ -2,6 +2,7 @@ package com._7.reshub.reshub.Controllers;
 
 import com._7.reshub.reshub.Models.Requests.ProfileRequest;
 import com._7.reshub.reshub.Services.ProfileService;
+import com._7.reshub.reshub.Services.SwipeService;
 import com._7.reshub.reshub.Models.Profile;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class ProfileController {
 
     @Autowired
     private ProfileService profileService;
+
+    @Autowired
+    private SwipeService swipeService;
 
     /*
      * GET endpoint to retrieve information for a given user.
@@ -145,16 +149,29 @@ public class ProfileController {
     /**
      * GET endpoint that returns the list of all profiles filtered based on gender.
      * 
+     * @param userId The user currently looking at the page (will not be included in result)
      * @param genderFilter The gender filter to filter profiles by.
+     * @param filterOutSwipedOn If true, filters out userIds that the current user has already swiped on
      * @return A ResponseEntity containing the list of filtered profiles with HTTP 200, 
      *         or an empty list if no profiles match the filter.
      */
 
     @GetMapping("/getProfiles")
-    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter) {
+    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
         try {
             List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
-            //System.out.println("profiles" + profiles);
+
+            if (filterOutSwipedOn) {
+                List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
+                
+                profiles = profiles.stream()
+                    .filter(profile -> {
+                        Object userIdObj = profile.get("email");
+                        return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                    })
+                    .collect(Collectors.toList());
+            }
+
             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
         } catch (Exception e) {
             e.printStackTrace();

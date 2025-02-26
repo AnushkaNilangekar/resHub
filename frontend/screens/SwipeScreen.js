@@ -52,19 +52,12 @@ const SwipeScreen = () => {
         const swipedProfile = profiles[cardIndex];
         if (!swipedProfile) return;
         console.log(`Swiped ${direction} on card ${swipedProfile.id}: ${swipedProfile.name}`);
-        console.log("User email from AsyncStorage:", userId);
 
         const swipedOnUserId = swipedProfile.id;
         // Choose the correct endpoint based on swipe direction.
         const endpoint = direction === 'left'
             ? `${config.API_BASE_URL}/api/swipes/swipeLeft`
             : `${config.API_BASE_URL}/api/swipes/swipeRight`;
-
-        // Log extra info when the right swipe endpoint is being called.
-        if (direction === 'right') {
-            console.log("Right swipe endpoint is being called:", endpoint);
-        }
-        console.log("Posting swipe to URL:", endpoint);
 
         axios.post(endpoint, null, {
             params: {
@@ -75,16 +68,13 @@ const SwipeScreen = () => {
                 'Authorization': `Bearer ${token}`,
             }
         })
-            .then(response => {
-                console.log('Swipe recorded:', response.data);
-            })
-            .catch(error => {
-                if (error.response && error.response.status === 404) {
-                    console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
-                } else {
-                    console.error('Error recording swipe:', error.response?.data || error.message);
-                }
-            });
+        .catch(error => {
+            if (error.response && error.response.status === 404) {
+                console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
+            } else {
+                console.error('Error recording swipe:', error.response?.data || error.message);
+            }
+        });
     };
 
     if (profiles.length === 0) {

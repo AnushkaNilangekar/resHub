@@ -41,6 +41,7 @@ const ChatsScreen = () => {
   */
   async function getChatDetails(chatIds) {
     const chatDetails = [];
+    console.log(chatIds)
 
     for (const chatId of chatIds) {
       console.log(chatId)
@@ -60,10 +61,12 @@ const ChatsScreen = () => {
         console.log(response)
         const { otherUserEmail, lastMessage } = response.data;
 
+        console.log("#######")
+
         console.log(otherUserEmail)
 
         // Get profile info for the other user
-        const profileResponse = await axios.get(`${config.API_BASE_URL}/api/users/getProfile`, {
+        const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
             userId: otherUserEmail, // Assuming email is used as the userId for the profile
           },
@@ -108,14 +111,14 @@ const ChatsScreen = () => {
 
   useEffect(() => {
     getChatInformation();
-  });
+  },[]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await getChatInformation();
     setRefreshing(false);
   }, []);
-
+  
 
   return (
     <View style={styles.container}>

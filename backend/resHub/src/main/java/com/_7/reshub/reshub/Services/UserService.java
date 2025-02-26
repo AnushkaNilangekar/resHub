@@ -317,7 +317,7 @@ public class UserService {
     // Method to get other user's email and last message
     public Map<String, String> getChatDetails(String userId, String chatId) throws Exception {
         // Logic to retrieve the other user's email
-        String otherUserEmail = getOtherUserEmail(userId, chatId);
+        String otherUserEmail = getOtherUserEmail(chatId, userId);
         System.out.println(otherUserEmail);
         
         // Logic to retrieve the last message in the chat

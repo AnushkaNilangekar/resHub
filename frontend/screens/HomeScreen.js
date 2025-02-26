@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Keyboard } from "react-nativ
 import config from '../config'; // Assuming you have a config file for API
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const HomeScreen = () => {
@@ -55,10 +55,11 @@ const HomeScreen = () => {
 
       {result !== null ? <Text style={styles.result}>Sum: {result}</Text> : null}
 
-      <Button title="Logout" onPress={() => logout()}  />
+      <Button title="Logout" onPress={() => logout()} />
       <Button title="Go to Details" onPress={() => navigation.navigate("DetailsScreen")} />
       <Button title="Go to Swipe Screen" onPress={() => navigation.navigate("SwipeScreen")} />
       <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
+      <Button title="Go to Swipe Screen" onPress={() => navigation.navigate("SwipeScreen")} />
       <Button title="Go to Matches" onPress={() => navigation.navigate("MatchesAndConversations")} />
     </View>
   );

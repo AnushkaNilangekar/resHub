@@ -83,7 +83,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             //     return;
             // }
             try {
-                const allKeys = await AsyncStorage.getAllKeys();
                 const token = await AsyncStorage.getItem("token");
                 console.log(email)
         
@@ -167,7 +166,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 }
             });
             if (response.status === 200) {
-                const storedEmail = await AsyncStorage.getItem("userEmail");
                 
                 Alert.alert('Success', 'Profile created successfully');
                 navigation.navigate('Main', { screen: 'Home' }); 
@@ -177,6 +175,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
               Alert.alert('Error', error.response?.data || error.message);
             }
           };
+
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

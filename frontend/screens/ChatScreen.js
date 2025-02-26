@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from "react-native";
+import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
@@ -75,12 +75,11 @@ const ChatsScreen = () => {
           }
         });
 
-        const { fullName, bio, profilePicUrl } = profileResponse.data;
+        const { fullName, profilePicUrl } = profileResponse.data;
         
         chatDetails.push({
           chatId,
           fullName,
-          bio,
           profilePicUrl,
           lastMessage,
           otherUserEmail,
@@ -122,6 +121,12 @@ const ChatsScreen = () => {
 
   return (
     <View style={styles.container}>
+      {chats.length === 0 ? (
+              <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+                <Ionicons name="sad-outline" size={50} color="#555" />
+                <Text style={styles.noMatchesText}>No matches yet</Text>
+              </ScrollView>
+      ) : (
       <FlatList
         data={chats}
         keyExtractor={(item, index) => index.toString()}
@@ -135,14 +140,14 @@ const ChatsScreen = () => {
 
             <View style={styles.textContainer}>
               <Text style={styles.fullName}>{item.fullName}</Text>
-              <Text style={styles.bio}>{item.bio}</Text>
-              <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+              <Text style={styles.bio}>{item.lastMessage}</Text>
             </View>
 
           </View>
         )}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
+      )}
     </View>
   );
 };
@@ -151,7 +156,20 @@ export default ChatsScreen;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 5,
+  },
+  noMatchesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 200,
+  },
+  noMatchesText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#555",
+    marginTop: 10,
   },
   chatCard: {
     width: "100%",
@@ -186,11 +204,6 @@ const styles = StyleSheet.create({
   bio: {
     fontSize: 16,
     color: "#555",
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 4,
   },
   chatIcon: {
     fontSize: 45,

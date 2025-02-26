@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
-import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
@@ -43,7 +42,11 @@ const MatchesScreen = ({ userId }) => {
   */
   async function getUserProfiles(userIds) {
     const profiles = [];
+    console.log("yes")
     const token = await AsyncStorage.getItem("token");
+    const userId = await AsyncStorage.getItem("userEmail");
+    console.log("****")
+    console.log(userId)
     const response = await axios.get(`${config.API_BASE_URL}/api/users/getOtherUserEmails`, {
       params: {
         userId: userId,
@@ -51,14 +54,15 @@ const MatchesScreen = ({ userId }) => {
       headers: {
         'Authorization': `Bearer ${token}`,
       }
-     });
+    });
 
-     const otherUserEmails = response.data
+
+
+    const otherUserEmails = response.data;
 
     for (const userId of userIds) {
       try {
-        
-        const token = await AsyncStorage.getItem("token");
+        // const token = await AsyncStorage.getItem("token");
         const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
             userId: userId,
@@ -81,6 +85,9 @@ const MatchesScreen = ({ userId }) => {
         }
 
         profiles.push({ userId, fullName, bio, profilePicUrl, chatCreated });
+
+        console.log("+++++++")
+        console.log(profiles)
       } catch (error) {
         console.error(`Error fetching profile for ${userId}:`, error);
       }
@@ -122,59 +129,46 @@ const MatchesScreen = ({ userId }) => {
   }, []);
 
   const handlePress = useCallback(async (userId2) => {
-    console.log("in")
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const userId1 = await AsyncStorage.getItem("userEmail");
-        const response = await axios.post(
-          `${config.API_BASE_URL}/api/users/createChat`, 
-          {}, // Empty body since we are using params
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: { email1: userId1, email2: userId2 }, // Correct placement
-          }
-        );
-
-        console.log(response)
-
-    
-        if (response.status !== 200) {
-          throw new Error("Failed to create chat");
+    console.log("in");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userId1 = await AsyncStorage.getItem("userEmail");
+      const response = await axios.post(
+        `${config.API_BASE_URL}/api/users/createChat`, 
+        {}, // Empty body since we are using params
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: { email1: userId1, email2: userId2 }, // Correct placement
         }
-    
-        alert("Chat was created!");
-      } catch (error) {
-        console.error("Error creating chat:", error);
-        alert("Failed to create chat");
+      );
+
+      console.log(response);
+
+      if (response.status !== 200) {
+        throw new Error("Failed to create chat");
       }
-    }, []);
+      setMatches((prevMatches) =>
+        prevMatches.map((match) =>
+          match.userId === userId2 ? { ...match, chatCreated: true } : match
+        )
+      );
+
+      alert("Chat was created!");
+
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      alert("Failed to create chat");
+    }
+  }, []);
 
   return (
     <View style={styles.container}>
       {matches.length === 0 ? (
-        <ScrollView contentContainerStyle={styles.noMatchesContainer}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           <Ionicons name="sad-outline" size={50} color="#555" />
-          <Text style={styles.noMatchesText}>No matches yet</Text>
-        </ScrollView>
-      ) : (
-        <FlatList
-          data={matches}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.matchCard}>
-              {item.profilePicUrl ? (
-                <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-              ) : (
-                <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
-              )}
-      {matches.length === 0 ? (
-        <ScrollView contentContainerStyle={styles.noMatchesContainer}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-          <Ionicons name="sad-outline" size={50} color="#555" />
-          <Text style={styles.noMatchesText}>No matches yet</Text>
+          <Text style={styles.noMatchesText}>No chats yet</Text>
         </ScrollView>
       ) : (
         <FlatList
@@ -194,9 +188,9 @@ const MatchesScreen = ({ userId }) => {
               </View>
 
               {!item.chatCreated && (
-              <TouchableOpacity style={styles.iconButton} onPress={() => handlePress(item.userId)}>
-                 <Ionicons name="chatbubble-ellipses-outline" style={styles.chatIcon} />
-              </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={() => handlePress(item.userId)}>
+                  <Ionicons name="chatbubble-ellipses-outline" style={styles.chatIcon} />
+                </TouchableOpacity>
               )}
             </View>
           )}

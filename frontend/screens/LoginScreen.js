@@ -16,9 +16,32 @@ const LoginScreen = () => {
   useEffect(() => {
     // If the user is already authenticated, navigate to the home screen
     if (isAuthenticated) {
-      navigation.replace('Main');
+      checkFirstLogin();  // Run check first login immediately after authentication
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated]);  // Ensure 'email' is included in dependencies
+
+  const checkFirstLogin = async () => {
+
+    console.log("........")
+    const token = await AsyncStorage.getItem("token");
+    console.log("&&&&&")
+    console.log(token)
+    console.log(email)
+    const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
+      params: { email: email},
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    console.log(response.status);
+
+    if (response.status === 200) {
+      navigation.replace('Main');
+    } else {
+      console.log("Profile setup required");
+      navigation.replace('ProfileSetupScreen');
+    }
+  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +59,7 @@ const LoginScreen = () => {
             await AsyncStorage.setItem("userEmail", email);
             await login(response.data.token);
             Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
+            checkFirstLogin();
           } else {
             setError("Login failed");
             Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);

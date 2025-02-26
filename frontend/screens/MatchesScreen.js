@@ -42,11 +42,24 @@ const MatchesScreen = ({ userId }) => {
   */
   async function getUserProfiles(userIds) {
     const profiles = [];
+    const token = await AsyncStorage.getItem("token");
+    const userId = await AsyncStorage.getItem("userEmail");
+    const response = await axios.get(`${config.API_BASE_URL}/api/users/getOtherUserEmails`, {
+      params: {
+        userId: userId,
+      },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+
+
+
+    const otherUserEmails = response.data;
 
     for (const userId of userIds) {
       try {
-        
-        const token = await AsyncStorage.getItem("token");
+        // const token = await AsyncStorage.getItem("token");
         const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
             userId: userId,
@@ -62,7 +75,13 @@ const MatchesScreen = ({ userId }) => {
           profilePicUrl,
         } = response.data;
 
-        profiles.push({ userId, fullName, bio, profilePicUrl });
+        let chatCreated = false;
+
+        if (otherUserEmails.includes(userId)) {
+          chatCreated = true;
+        }
+
+        profiles.push({ userId, fullName, bio, profilePicUrl, chatCreated });
       } catch (error) {
         console.error(`Error fetching profile for ${userId}:`, error);
       }
@@ -81,6 +100,7 @@ const MatchesScreen = ({ userId }) => {
       const profiles = await getUserProfiles(userIds);
 
       setMatches(profiles);
+      console.log(profiles)
     } else {
       console.log('No matches found.');
     }
@@ -102,15 +122,45 @@ const MatchesScreen = ({ userId }) => {
     setRefreshing(false);
   }, []);
 
-  const handlePress = useCallback((userId) => {
-    console.log(`Chat icon pressed for user: ${userId}!`);
-  }, [])
+  const handlePress = useCallback(async (userId2) => {
+    console.log("in");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userId1 = await AsyncStorage.getItem("userEmail");
+      const response = await axios.post(
+        `${config.API_BASE_URL}/api/users/createChat`, 
+        {}, // Empty body since we are using params
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: { email1: userId1, email2: userId2 }, // Correct placement
+        }
+      );
+
+      console.log(response);
+
+      if (response.status !== 200) {
+        throw new Error("Failed to create chat");
+      }
+      setMatches((prevMatches) =>
+        prevMatches.map((match) =>
+          match.userId === userId2 ? { ...match, chatCreated: true } : match
+        )
+      );
+
+      alert("Chat was created!");
+
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      alert("Failed to create chat");
+    }
+  }, []);
 
   return (
     <View style={styles.container}>
       {matches.length === 0 ? (
-        <ScrollView contentContainerStyle={styles.noMatchesContainer}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           <Ionicons name="sad-outline" size={50} color="#555" />
           <Text style={styles.noMatchesText}>No matches yet</Text>
         </ScrollView>
@@ -131,9 +181,11 @@ const MatchesScreen = ({ userId }) => {
                 <Text style={styles.bio}>{item.bio}</Text>
               </View>
 
-              <TouchableOpacity style={styles.iconButton} onPress={() => handlePress(item.userId)}>
-                <Ionicons name="chatbubble-ellipses-outline" style={styles.chatIcon}/>
-              </TouchableOpacity>
+              {!item.chatCreated && (
+                <TouchableOpacity style={styles.iconButton} onPress={() => handlePress(item.userId)}>
+                  <Ionicons name="chatbubble-ellipses-outline" style={styles.chatIcon} />
+                </TouchableOpacity>
+              )}
             </View>
           )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

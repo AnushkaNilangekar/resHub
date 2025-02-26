@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Alert, RefreshControl, Button } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import config from '../config';
@@ -11,6 +12,7 @@ const AccountScreen = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -212,6 +214,7 @@ const AccountScreen = () => {
           <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
         </View>
       </View>
+      <Button title="Logout" onPress={() => logout()} />
     </ScrollView>
   );   
 };

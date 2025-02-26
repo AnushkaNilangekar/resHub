@@ -28,9 +28,13 @@ public class SwipeController {
     @Autowired
     private SwipeService swipeService;
 
-    /* Should be called when a user swipes left on another user's card
+    /*
+     * Should be called when a user swipes left on another user's card
+     * 
      * @params userId: the id of the user who swiped left on others
+     * 
      * @params swipedOnUserId: the id of the user who is being swiped left on
+     * 
      * @returns Success string if successful, error string otherwise
      */
     @PostMapping("/swipeLeft")
@@ -42,10 +46,13 @@ public class SwipeController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
-    /* Should be called when a user swipes right on another user's card
+    /*
+     * Should be called when a user swipes right on another user's card
+     * 
      * @params userId: the id of the user who swiped left on others
+     * 
      * @params swipedOnUserId: the id of the user who is being swiped right on
+     * 
      * @returns Success string if successful, error string otherwise
      */
     @PostMapping("/swipeRight")
@@ -60,8 +67,7 @@ public class SwipeController {
             response += "\n" + userController.createMatch(userId, swipedOnUserId);
         }
 
-        if (response.contains("Error:"))
-        {
+        if (response.contains("Error:")) {
             try {
                 swipeService.doRollbackSwipe(userId, swipedOnUserId, "r");
             } catch (Exception rollbackException) {
@@ -76,12 +82,15 @@ public class SwipeController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    /* This endpoint should be used to filter out cards in the frontned, so
+    /*
+     * This endpoint should be used to filter out cards in the frontned, so
      * users they have already swiped on do not reappear.
      * 
      * Gets a list of user ids that the given user has swiped left or right on
      * (in the past 2 months because swipe logs expire after that time)
+     * 
      * @params userId: the id of the user who swiped left or right on others
+     * 
      * @returns list of userIds they swiped left or right on
      */
     @GetMapping("/getAllSwipedOn")
@@ -99,10 +108,14 @@ public class SwipeController {
     }
 
     /*
-     * Helper method to create an entry in the swipe log table. 
+     * Helper method to create an entry in the swipe log table.
+     * 
      * @params userId: the id of the user swiping
+     * 
      * @params swipedOnUserId: the id of the user they swiped on
+     * 
      * @params direction: either "l" for left swipe or "r" for right swipe
+     * 
      * @returns
      */
     private String createSwipe(String userId, String swipedOnUserId, String direction) {
@@ -111,7 +124,8 @@ public class SwipeController {
         }
 
         long timestamp = Instant.now().getEpochSecond();
-        long expirationTimestamp = LocalDate.now().plusMonths(2).atStartOfDay(ZoneOffset.UTC).toInstant().getEpochSecond();
+        long expirationTimestamp = LocalDate.now().plusMonths(2).atStartOfDay(ZoneOffset.UTC).toInstant()
+                .getEpochSecond();
 
         try {
             swipeService.doCreateSwipe(userId, swipedOnUserId, direction, timestamp, expirationTimestamp);
@@ -125,11 +139,14 @@ public class SwipeController {
     /*
      * Helper method to determine if user1 has swiped right on user2
      * (in the past 2 months because swipe logs expire after that time)
+     * 
      * @params userId1: first user id
+     * 
      * @params userId2: second user id
+     * 
      * @returns true if first user swiped right on the second, false otherwise
      */
-    public boolean checkRightSwipe( String userId1, String userId2) {
+    public boolean checkRightSwipe(String userId1, String userId2) {
         try {
             boolean mutualSwipe = swipeService.doCheckRightSwipe(userId1, userId2);
             return mutualSwipe;

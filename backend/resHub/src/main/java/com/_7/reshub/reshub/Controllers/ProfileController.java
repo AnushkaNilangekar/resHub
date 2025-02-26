@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -139,4 +141,26 @@ public class ProfileController {
             return ResponseEntity.ok("not exists");
         }
     }
+
+    /**
+     * GET endpoint that returns the list of all profiles filtered based on gender.
+     * 
+     * @param genderFilter The gender filter to filter profiles by.
+     * @return A ResponseEntity containing the list of filtered profiles with HTTP 200, 
+     *         or an empty list if no profiles match the filter.
+     */
+
+    @GetMapping("/getProfiles")
+    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter) {
+        try {
+            List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+            //System.out.println("profiles" + profiles);
+            return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+     
 }

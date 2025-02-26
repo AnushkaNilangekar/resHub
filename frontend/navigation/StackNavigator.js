@@ -2,8 +2,6 @@ import React, { useContext } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import BottomTabNavigator from "./BottomTabNavigator";
-// import HomeScreen from "../screens/HomeScreen";
-import DetailsScreen from "../screens/DetailsScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import LoginScreen from "../screens/LoginScreen";
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
@@ -28,7 +26,6 @@ const StackNavigator = () => {
       ) : (
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
-          <Stack.Screen name="DetailsScreen" component={DetailsScreen} />
           <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
           <Stack.Screen name="MatchesAndConversations" component={MatchesChatTabNavigator}

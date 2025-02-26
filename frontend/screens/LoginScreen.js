@@ -21,23 +21,15 @@ const LoginScreen = () => {
   }, [isAuthenticated]);  // Ensure 'email' is included in dependencies
 
   const checkFirstLogin = async () => {
-
-    console.log("........")
     const token = await AsyncStorage.getItem("token");
-    console.log("&&&&&")
-    console.log(token)
-    console.log(email)
     const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
       params: { email: email},
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
-    console.log(response.data);
-
     if (response.data === "exists") {
       navigation.replace('Main');
     } else {
-      console.log("Profile setup required");
       navigation.replace('ProfileSetupScreen');
     }
   };
@@ -52,7 +44,6 @@ const LoginScreen = () => {
         const requestData = { email, password };
   
         const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
-        console.log(response.data.token)
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);

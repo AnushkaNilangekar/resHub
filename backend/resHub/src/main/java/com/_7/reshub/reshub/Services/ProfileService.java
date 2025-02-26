@@ -68,7 +68,6 @@ public class ProfileService {
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .build();
         ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        //System.out.println("userid" + userId);
         return scanResponse.items().stream()
                 .filter(item -> !item.get("email").s().equals(userId)) // Exclude logged-in user
                 .filter(item -> "All".equalsIgnoreCase(genderFilter) || 

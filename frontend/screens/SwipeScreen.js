@@ -39,10 +39,7 @@ const SwipeScreen = () => {
             'Authorization': `Bearer ${userInfo.token}` 
         }
     })
-            .then(response => {
-                // Log the raw response to check for any issues
-                console.log('Raw response:', response);
-                
+            .then(response => {                
                 if (!response.ok) {
                     throw new Error(`API response error: ${response.statusText}`);
                 }
@@ -50,9 +47,6 @@ const SwipeScreen = () => {
                 return response.text(); // Use text() first to see the raw response
             })
             .then(rawData => {
-                // Log raw data to inspect the actual response
-                console.log('Raw data:', rawData);
-
                 // Try parsing it as JSON
                 try {
                     const data = JSON.parse(rawData);
@@ -80,14 +74,12 @@ const SwipeScreen = () => {
           </View>
       );
   }
-  console.log('userInfo:', userInfo);
 
     // Handle a swipe on a card.
     const handleSwiped = (cardIndex, direction) => {
         const swipedProfile = profiles[cardIndex];
         if (!swipedProfile) return;
         console.log(`Swiped ${direction} on card ${swipedProfile.email}: ${swipedProfile.fullName}`);
-        console.log('userInfo:', userInfo);
         const swipedOnUserId = swipedProfile.email;
         // Choose the correct endpoint based on swipe direction.
         const endpoint = direction === 'left'

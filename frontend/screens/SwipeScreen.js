@@ -33,35 +33,41 @@ const SwipeScreen = () => {
 
   useEffect(() => {
     if (userInfo && userInfo.userId) {
-      fetch(`${config.API_BASE_URL}/api/getProfiles?userId=${userInfo.userId}&genderFilter=${selectedGender}`, {
+    const queryParams = new URLSearchParams({
+        userId: userInfo.userId,
+        genderFilter: selectedGender,
+        filterOutSwipedOn: true
+    });
+
+    fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${userInfo.token}` 
         }
     })
-            .then(response => {                
-                if (!response.ok) {
-                    throw new Error(`API response error: ${response.statusText}`);
-                }
+        .then(response => {                
+            if (!response.ok) {
+                throw new Error(`API response error: ${response.statusText}`);
+            }
 
-                return response.text(); // Use text() first to see the raw response
-            })
-            .then(rawData => {
-                // Try parsing it as JSON
-                try {
-                    const data = JSON.parse(rawData);
-                    if (Array.isArray(data)) {
-                        setProfiles(data);
-                    } else {
-                        console.error('Received data is not an array:', data);
-                    }
-                } catch (parseError) {
-                    console.error('Error parsing JSON:', parseError);
+            return response.text(); // Use text() first to see the raw response
+        })
+        .then(rawData => {
+            // Try parsing it as JSON
+            try {
+                const data = JSON.parse(rawData);
+                if (Array.isArray(data)) {
+                    setProfiles(data);
+                } else {
+                    console.error('Received data is not an array:', data);
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching profiles:', error);
-            });
+            } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching profiles:', error);
+        });
     }
 }, [userInfo, selectedGender]);
 

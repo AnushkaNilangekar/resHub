@@ -179,7 +179,7 @@ const SwipeScreen = () => {
                 if (!card) return null;
                 return (
                   <View style={[styles.card, { backgroundColor: card.backgroundColor || "#F5E6F7" }]}>
-                    <Image source={{ uri: card.profilePictureUrl }} style={styles.profileImage} />
+                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
                     <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
                     <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
                     <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
@@ -298,11 +298,11 @@ const styles = StyleSheet.create({
     columnGap: 15, // Adds spacing between buttons in the same row
   },
   profileImage: {
-    width: 100, // Adjust size as needed
-    height: 100,
-    borderRadius: 50, // Makes it circular
-    alignSelf: "center",
-    marginBottom: 10,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "#ddd",
   },
   
 });

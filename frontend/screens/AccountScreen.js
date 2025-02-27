@@ -15,7 +15,33 @@ const AccountScreen = () => {
   const { logout } = useContext(AuthContext);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    setProfileData(null); 
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+    setProfileData(null);
+    setLoading(true); 
+    setError(null);
     fetchProfileData();
     });
     return unsubscribe;
@@ -28,20 +54,22 @@ const AccountScreen = () => {
 
   const decodeToken = (token) => {
     try {
+      if (!token) return null;
+      
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
+      
+      // Using a buffer approach instead of atob which might not be available
+      const decoded = Buffer.from(base64, 'base64').toString('utf8');
+      return JSON.parse(decoded);
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;
     }
   };
-
   const fetchProfileData = async () => {
     setLoading(true);
+    setProfileData(null);
     try {
       const token = await AsyncStorage.getItem("token");
       let email = await AsyncStorage.getItem("userEmail");
@@ -53,7 +81,7 @@ const AccountScreen = () => {
           await AsyncStorage.setItem("userEmail", email);
         }
       }
-    
+      
     if (!email) {
       console.log("No email found");
       setProfileData({
@@ -63,7 +91,7 @@ const AccountScreen = () => {
         gender: 'N/A',
         residence: 'N/A',
         major: 'N/A',
-        graduationYear: 'N/A',
+        graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
         bio: 'No bio available',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
@@ -87,7 +115,7 @@ const AccountScreen = () => {
         gender: 'N/A',
         residence: 'N/A',
         major: 'N/A',
-        graduationYear: 'N/A',
+        graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
         bio: 'No bio available',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
@@ -102,7 +130,7 @@ const AccountScreen = () => {
         gender: 'N/A',
         residence: 'N/A',
         major: 'N/A',
-        graduationYear: 'N/A',
+        graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
         bio: 'No bio available',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
@@ -214,7 +242,7 @@ const AccountScreen = () => {
           <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
         </View>
       </View>
-      <Button title="Logout" onPress={() => logout()} />
+      <Button title="Logout" onPress={handleLogout} />
     </ScrollView>
   );   
 };

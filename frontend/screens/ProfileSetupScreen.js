@@ -101,10 +101,6 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
-        if (!residence.trim() || hobbies.length === 0 || !bio.trim()) {
-            Alert.alert('Error', 'Please complete all fields.');
-            return;
-        }
         const profileData = {
             email,
             fullName,

@@ -69,10 +69,7 @@ public class ProfileController {
                 request.getGender() == null || request.getGender().trim().isEmpty() ||
                 request.getMajor() == null || request.getMajor().trim().isEmpty() ||
                 request.getAge() == null ||
-                request.getResidence() == null || request.getResidence().trim().isEmpty() ||
-                request.getHobbies() == null || request.getHobbies().isEmpty() ||
-                request.getGraduationYear() == null || request.getGraduationYear().trim().isEmpty() ||
-                request.getBio() == null || request.getBio().trim().isEmpty()) {
+                request.getGraduationYear() == null || request.getGraduationYear().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("All fields are required.");
         }
 
@@ -90,15 +87,21 @@ public class ProfileController {
         // For optional minor field: store an empty string if null.
         item.put("minor", AttributeValue.builder().s(request.getMinor() != null ? request.getMinor() : "").build());
         item.put("age", AttributeValue.builder().n(String.valueOf(request.getAge())).build());
-        item.put("residence", AttributeValue.builder().s(request.getResidence()).build());
+        item.put("residence", AttributeValue.builder()
+        .s(request.getResidence() != null ? request.getResidence() : "")
+        .build());
         // Convert the hobbies list into a DynamoDB List.
-        item.put("hobbies", AttributeValue.builder().l(
-                request.getHobbies().stream()
-                        .map(hobby -> AttributeValue.builder().s(hobby).build())
-                        .collect(Collectors.toList()))
-                .build());
+        item.put("hobbies", AttributeValue.builder()
+        .l(request.getHobbies() != null ? 
+        request.getHobbies().stream()
+            .map(hobby -> AttributeValue.builder().s(hobby).build())
+            .collect(Collectors.toList()) : 
+        Collections.emptyList())
+        .build());
         item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
-        item.put("bio", AttributeValue.builder().s(request.getBio()).build());
+        item.put("bio", AttributeValue.builder()
+        .s(request.getBio() != null ? request.getBio() : "")
+        .build());
 
         String profilePicUrl = request.getProfilePicUrl();
         if (profilePicUrl == null || profilePicUrl.trim().isEmpty()) {

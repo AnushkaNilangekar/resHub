@@ -59,6 +59,7 @@ public class S3Controller {
                 PutObjectRequest.builder()
                     .bucket(BUCKET_NAME)
                     .key(fileName)
+                    .contentType(contentType)
                     .build(),
                 RequestBody.fromBytes(file.getBytes())
             );

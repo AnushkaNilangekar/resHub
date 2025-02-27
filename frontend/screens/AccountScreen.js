@@ -93,7 +93,7 @@ const AccountScreen = () => {
         major: 'N/A',
         graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
-        bio: 'No bio available',
+        bio: 'N/A',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
       }); 
       return;
@@ -117,7 +117,7 @@ const AccountScreen = () => {
         major: 'N/A',
         graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
-        bio: 'No bio available',
+        bio: 'N/A',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
       });
     }
@@ -132,7 +132,7 @@ const AccountScreen = () => {
         major: 'N/A',
         graduationYear: response.data?.graduationYear || 'N/A',
         hobbies: [],
-        bio: 'No bio available',
+        bio: 'N/A',
         profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
       });
     } finally {
@@ -239,7 +239,7 @@ const AccountScreen = () => {
         {/* Bio Section */}
         <View style={styles.infoCard}>
           <Text style={styles.sectionTitle}>Bio</Text>
-          <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
+          <Text style={styles.bioText}>{profileData?.bio || 'N/A'}</Text>
         </View>
       </View>
       <Button title="Logout" onPress={handleLogout} />

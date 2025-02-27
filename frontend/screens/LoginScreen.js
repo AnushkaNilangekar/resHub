@@ -22,6 +22,7 @@ const LoginScreen = () => {
 
   const checkFirstLogin = async () => {
     const token = await AsyncStorage.getItem("token");
+    console.log(token)
     const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
       params: { email: email},
       headers: { 'Authorization': `Bearer ${token}` },

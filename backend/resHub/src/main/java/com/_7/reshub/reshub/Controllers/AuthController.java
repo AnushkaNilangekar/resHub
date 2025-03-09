@@ -56,7 +56,6 @@ public class AuthController {
 
             // Extract user data
             Map<String, AttributeValue> item = queryResponse.items().get(0);
-            System.out.println(item);
             String storedPasswordHash = item.get("password").s();
             String userId = item.get("userId").s(); // Retrieve userid
 
@@ -65,7 +64,6 @@ public class AuthController {
                 String token = jwtUtil.generateToken(userId);  // Use userid in JWT
                 return ResponseEntity.ok(Map.of("message", "Login successful!", "token", token,"userId", userId));
             } else {
-                System.out.println("yes");
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid email or password."));
             }
         } catch (Exception e) {

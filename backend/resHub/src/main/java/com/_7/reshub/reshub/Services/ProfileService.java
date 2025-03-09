@@ -31,7 +31,7 @@ public class ProfileService {
      * Handles retrieving information for the given user id and returns a Profile object
      */
     public Profile doGetProfile(String userId) {
-        Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(userId).build());
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -69,7 +69,7 @@ public class ProfileService {
                 .build();
         ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
         return scanResponse.items().stream()
-                .filter(item -> !item.get("email").s().equals(userId)) // Exclude logged-in user
+                .filter(item -> !item.get("userId").s().equals(userId)) // Exclude logged-in user
                 .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
                         (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
                 .map(this::convertDynamoItemToMap) // Convert AttributeValue Map to a normal Map

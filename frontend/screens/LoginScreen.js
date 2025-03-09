@@ -30,6 +30,8 @@ const LoginScreen = () => {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
+    console.log(response.data)
+
     if (response.data === "exists") {
       navigation.replace('Main');
     } else {

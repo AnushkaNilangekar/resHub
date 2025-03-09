@@ -46,17 +46,19 @@ public class UserAccountController {
             return ResponseEntity.badRequest().body("Email must end with @purdue.edu");
         }
 
-        // Check if the user already exists in DynamoDB (by email)
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("email", AttributeValue.builder().s(request.getEmail()).build());
+        /// Check if the user already exists in DynamoDB (by email)
+        QueryRequest queryRequest = QueryRequest.builder()
+            .tableName("accounts") // Use your actual table name
+            .indexName("email-index") // Replace with your actual GSI name
+            .keyConditionExpression("email = :email")
+            .expressionAttributeValues(Map.of(
+            ":email", AttributeValue.builder().s(request.getEmail()).build()
+            ))
+            .build();
 
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("userAccounts") // Use your actual table name
-                .key(key)
-                .build();
-        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
 
-        if (getItemResponse.hasItem()) {
+        if (!queryResponse.items().isEmpty()) {
             // A user with this email already exists
             return ResponseEntity.badRequest().body("Email already registered. Please log in or use a different email.");
         }

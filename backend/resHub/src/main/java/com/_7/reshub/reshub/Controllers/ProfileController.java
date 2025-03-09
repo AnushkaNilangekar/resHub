@@ -113,7 +113,7 @@ public class ProfileController {
 
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
-                .tableName("userProfiles")
+                .tableName("profiles")
                 .item(item)
                 .build();
         dynamoDbClient.putItem(putItemRequest);
@@ -170,7 +170,7 @@ public class ProfileController {
                 
                 profiles = profiles.stream()
                     .filter(profile -> {
-                        Object userIdObj = profile.get("email");
+                        Object userIdObj = profile.get("userId");
                         return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
                     })
                     .collect(Collectors.toList());

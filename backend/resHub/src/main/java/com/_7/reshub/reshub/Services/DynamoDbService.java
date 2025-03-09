@@ -23,21 +23,36 @@ public class DynamoDbService {
 
     public Map<String, AttributeValue> getUserByEmail(String email) {
         // Query DynamoDB to find the user by email
-        GetItemRequest request = GetItemRequest.builder()
+        QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(userTable)
-                .key(Map.of("email", AttributeValue.builder().s(email).build()))
+                .indexName("email-index") // Specify the GSI name
+                .keyConditionExpression("email = :email")
+                .expressionAttributeValues(Map.of(
+                        ":email", AttributeValue.builder().s(email).build()
+                ))
                 .build();
 
-        GetItemResponse response = dynamoDbClient.getItem(request);
-        return response.item();
+        QueryResponse response = dynamoDbClient.query(queryRequest);
+        if (response.items().isEmpty()) {
+            return null;
+        }
+        return response.items().get(0);
     }
 
     public void savePasswordResetToken(String email, String token, long expirationTime) {
+         // First, retrieve the userId using the email GSI
+         Map<String, AttributeValue> user = getUserByEmail(email);
+         if (user == null || !user.containsKey("userId")) {
+             throw new RuntimeException("User not found for email: " + email);
+         }
+         String userId = user.get("userId").s();
+
+         
         // Save the password reset token along with its expiration time for security purposes
         UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
                 .tableName(userTable)
                 .key(Map.of(
-                    "email", AttributeValue.builder().s(email).build()
+                    "userId", AttributeValue.builder().s(userId).build()
                 ))
                 .updateExpression("SET resetToken = :resetToken, resetTokenExpiration = :expirationTime")
                 .expressionAttributeValues(Map.of(
@@ -66,10 +81,17 @@ public class DynamoDbService {
     }
 
     public void updateUserPassword(String email, String password) {
+        // Retrieve userId using email
+        Map<String, AttributeValue> user = getUserByEmail(email);
+        if (user == null || !user.containsKey("userId")) {
+            throw new RuntimeException("User not found for email: " + email);
+        }
+        String userId = user.get("userId").s();
+
         // Update the password in DynamoDB
         UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
                 .tableName(userTable)
-                .key(Map.of("email", AttributeValue.builder().s(email).build()))
+                .key(Map.of("userId", AttributeValue.builder().s(userId).build()))
                 .updateExpression("set password = :password")
                 .expressionAttributeValues(Map.of(":password", AttributeValue.builder().s(password).build()))
                 .build();
@@ -77,10 +99,17 @@ public class DynamoDbService {
     }
 
     public void clearPasswordResetToken(String email) {
+        // Retrieve userId using email
+        Map<String, AttributeValue> user = getUserByEmail(email);
+        if (user == null || !user.containsKey("userId")) {
+            throw new RuntimeException("User not found for email: " + email);
+        }
+        String userId = user.get("userId").s();
+
         // Clear the reset token after use
         UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
                 .tableName(userTable)
-                .key(Map.of("email", AttributeValue.builder().s(email).build()))
+                .key(Map.of("userId", AttributeValue.builder().s(userId).build()))
                 .updateExpression("remove resetToken")
                 .build();
         dynamoDbClient.updateItem(updateItemRequest);

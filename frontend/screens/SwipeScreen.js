@@ -18,7 +18,7 @@ const SwipeScreen = () => {
   useEffect(() => {
       const fetchUserInfo = async () => {
           try {
-              const storedUserId = await AsyncStorage.getItem("userEmail");
+              const storedUserId = await AsyncStorage.getItem("userId");
               const token = await AsyncStorage.getItem("token");
               if (storedUserId && token) {
                   setUserInfo({ userId: storedUserId, token });

@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -65,6 +66,8 @@ public class UserAccountController {
 
         // Create a new record for DynamoDB with the hashed password
         Map<String, AttributeValue> newItem = new HashMap<>();
+        String userId = UUID.randomUUID().toString();
+        newItem.put("userId", AttributeValue.builder().s(userId).build());
         newItem.put("email", AttributeValue.builder().s(request.getEmail()).build());
         newItem.put("firstName", AttributeValue.builder().s(request.getFirstName()).build());
         newItem.put("lastName", AttributeValue.builder().s(request.getLastName()).build());
@@ -73,7 +76,7 @@ public class UserAccountController {
 
         // Put the item in DynamoDB
         PutItemRequest putItemRequest = PutItemRequest.builder()
-                .tableName("userAccounts")
+                .tableName("accounts")
                 .item(newItem)
                 .build();
 

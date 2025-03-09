@@ -80,6 +80,7 @@ public class ProfileController {
 
         // Build the DynamoDB item.
         Map<String, AttributeValue> item = new HashMap<>();
+        item.put("userId", AttributeValue.builder().s(request.getUserId()).build());
         item.put("email", AttributeValue.builder().s(request.getEmail()).build());
         item.put("fullName", AttributeValue.builder().s(request.getFullName()).build());
         item.put("gender", AttributeValue.builder().s(request.getGender()).build());
@@ -129,14 +130,14 @@ public class ProfileController {
      */
 
     @GetMapping("/profile/exists")
-    public ResponseEntity<String> profileExists(@RequestParam String email) {
-        // Build the key using the provided email
+    public ResponseEntity<String> profileExists(@RequestParam String userId) {
+        // Build the key using the provided userId
         Map<String, AttributeValue> key = new HashMap<>();
-        key.put("email", AttributeValue.builder().s(email).build());
+        key.put("userId", AttributeValue.builder().s(userId).build());
 
         // Create a GET request to DynamoDB
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("userProfiles") 
+                .tableName("profiles") 
                 .key(key)
                 .build();
         GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);

@@ -27,7 +27,7 @@ public class JwtUtil {
         this.SECRET_KEY = new SecretKeySpec(secret.getBytes(), SignatureAlgorithm.HS256.getJcaName());
     }
 
-    public String generateToken(String email) {
+    public String generateToken(String userId) {
         // Get current issued time (truncated to seconds)
         Instant issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
         
@@ -37,7 +37,7 @@ public class JwtUtil {
 
         // Build and return the JWT
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .setIssuedAt(Date.from(issuedAt))
                 .setExpiration(Date.from(expiration))
                 .signWith(SECRET_KEY)

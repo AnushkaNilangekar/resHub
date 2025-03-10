@@ -86,7 +86,7 @@ const SwipeScreen = () => {
         const swipedProfile = profiles[cardIndex];
         if (!swipedProfile) return;
         console.log(`Swiped ${direction} on card ${swipedProfile.email}: ${swipedProfile.fullName}`);
-        const swipedOnUserId = swipedProfile.email;
+        const swipedOnUserId = swipedProfile.userId;
         // Choose the correct endpoint based on swipe direction.
         const endpoint = direction === 'left'
             ? `${config.API_BASE_URL}/api/swipes/swipeLeft`

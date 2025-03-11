@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -45,17 +46,19 @@ public class UserAccountController {
             return ResponseEntity.badRequest().body("Email must end with @purdue.edu");
         }
 
-        // Check if the user already exists in DynamoDB (by email)
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("email", AttributeValue.builder().s(request.getEmail()).build());
+        /// Check if the user already exists in DynamoDB (by email)
+        QueryRequest queryRequest = QueryRequest.builder()
+            .tableName("accounts") // Use your actual table name
+            .indexName("email-index") // Replace with your actual GSI name
+            .keyConditionExpression("email = :email")
+            .expressionAttributeValues(Map.of(
+            ":email", AttributeValue.builder().s(request.getEmail()).build()
+            ))
+            .build();
 
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("userAccounts") // Use your actual table name
-                .key(key)
-                .build();
-        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
 
-        if (getItemResponse.hasItem()) {
+        if (!queryResponse.items().isEmpty()) {
             // A user with this email already exists
             return ResponseEntity.badRequest().body("Email already registered. Please log in or use a different email.");
         }
@@ -65,6 +68,8 @@ public class UserAccountController {
 
         // Create a new record for DynamoDB with the hashed password
         Map<String, AttributeValue> newItem = new HashMap<>();
+        String userId = UUID.randomUUID().toString();
+        newItem.put("userId", AttributeValue.builder().s(userId).build());
         newItem.put("email", AttributeValue.builder().s(request.getEmail()).build());
         newItem.put("firstName", AttributeValue.builder().s(request.getFirstName()).build());
         newItem.put("lastName", AttributeValue.builder().s(request.getLastName()).build());
@@ -73,7 +78,7 @@ public class UserAccountController {
 
         // Put the item in DynamoDB
         PutItemRequest putItemRequest = PutItemRequest.builder()
-                .tableName("userAccounts")
+                .tableName("accounts")
                 .item(newItem)
                 .build();
 

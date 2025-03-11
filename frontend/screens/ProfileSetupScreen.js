@@ -31,6 +31,9 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [hobbies, setHobbies] = useState([]);
     const [bio, setBio] = useState('');
 
+    // State for userId
+    const [userId, setUserId] = useState('');
+
     const [imageUri, setImageUri] = useState('https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg');
 
     // Common hobbies list for multi-select
@@ -62,7 +65,22 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 Alert.alert('Error', 'Failed to retrieve email.');
             }
         };
+        const fetchUserId = async () => {
+            try {
+                const storedUserId = await AsyncStorage.getItem('userId');
+                if (storedUserId) {
+                    setUserId(storedUserId);
+                } else {
+                    Alert.alert('Error', 'No userId found. Please log in again.');
+                    navigation.navigate('Login');
+                }
+            } catch (error) {
+                console.error('Error fetching userId:', userId);
+                Alert.alert('Error', 'Failed to retrieve userId.');
+            }
+        };
         fetchEmail();
+        fetchUserId();
     }, []);
 
     // handleNext: Validate fields on current step.
@@ -102,6 +120,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
         const profileData = {
+            userId,
             email,
             fullName,
             gender,

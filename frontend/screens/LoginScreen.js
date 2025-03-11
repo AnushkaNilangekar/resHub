@@ -22,11 +22,15 @@ const LoginScreen = () => {
 
   const checkFirstLogin = async () => {
     const token = await AsyncStorage.getItem("token");
+    const userId = await AsyncStorage.getItem("userId")
     console.log(token);
+    console.log(userId);
     const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
-      params: { email: email},
+      params: { userId: userId},
       headers: { 'Authorization': `Bearer ${token}` },
     });
+
+    console.log(response.data)
 
     if (response.data === "exists") {
       navigation.replace('Main');
@@ -48,6 +52,7 @@ const LoginScreen = () => {
   
         if (response.status === 200) {
             await AsyncStorage.setItem("token", response.data.token);
+            await AsyncStorage.setItem("userId", response.data.userId);
             await AsyncStorage.setItem("userEmail", email);
             await login(response.data.token);
             Alert.alert("Success", "Login successful!", [{ text: "OK" }]);

@@ -8,6 +8,7 @@ import java.util.List;
  * and request data separate since the request can't change but this class may need to.
  */
 public class Profile {
+    private String userId;
     private String email;
     private String fullName; //TODO should we separate this into first and last name so we can only use one or the other when needed?
     private String gender;

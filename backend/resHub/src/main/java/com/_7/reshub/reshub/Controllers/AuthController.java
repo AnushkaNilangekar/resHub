@@ -26,7 +26,7 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    private static final String TABLE_NAME = "userAccounts"; 
+    private static final String TABLE_NAME = "accounts"; 
 
     private final PasswordEncoder passwordEncoder;
 
@@ -39,28 +39,30 @@ public class AuthController {
         try {
             String email = loginRequest.get("email");
             String password = loginRequest.get("password");
-            // Retrieve the user by email
-            Map<String, AttributeValue> key = new HashMap<>();
-            key.put("email", AttributeValue.builder().s(email).build());
 
-            GetItemRequest getItemRequest = GetItemRequest.builder()
-                    .tableName(TABLE_NAME)
-                    .key(key)
-                    .build();
+            // Query the user by email using GSI
+            QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(TABLE_NAME)
+                .indexName("email-index")  // Ensure you have a GSI on 'email'
+                .keyConditionExpression("email = :email")
+                .expressionAttributeValues(Map.of(":email", AttributeValue.builder().s(email).build()))
+                .build();
 
-            GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+            QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
 
-            if (!getItemResponse.hasItem()) {
+            if (queryResponse.count() == 0) {
                 return ResponseEntity.badRequest().body(Map.of("error", "User not found."));
             }
 
-            // Extract stored password hash
-            String storedPasswordHash = getItemResponse.item().get("password").s();
+            // Extract user data
+            Map<String, AttributeValue> item = queryResponse.items().get(0);
+            String storedPasswordHash = item.get("password").s();
+            String userId = item.get("userId").s(); // Retrieve userid
 
             // Verify password
             if (passwordEncoder.matches(password, storedPasswordHash)) {
-                String token = jwtUtil.generateToken(email);  // Generate JWT
-                return ResponseEntity.ok(Map.of("message", "Login successful!", "token", token));
+                String token = jwtUtil.generateToken(userId);  // Use userid in JWT
+                return ResponseEntity.ok(Map.of("message", "Login successful!", "token", token,"userId", userId));
             } else {
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid email or password."));
             }

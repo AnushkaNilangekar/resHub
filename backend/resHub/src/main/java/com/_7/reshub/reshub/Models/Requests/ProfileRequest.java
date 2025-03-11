@@ -4,6 +4,7 @@ import java.util.List;
 
 // Class representing the JSON body for a profile creation request.
 public class ProfileRequest {
+    private String userId;
     private String email; // User email (unique key)
     private String fullName; // Full name of the user
     private String gender; // Gender (dropdown)
@@ -15,6 +16,10 @@ public class ProfileRequest {
     private String graduationYear; // Graduation year (dropdown: "2025", … ,"2030", or "n/a")
     private String bio; // Bio (paragraph about themselves for their profile)
     private String profilePicUrl; //Profile Picture (upload)
+
+    public String getUserId() {
+        return userId;
+    }
 
     // Getters and setters for JSON mapping
     public String getEmail() {

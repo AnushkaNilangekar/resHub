@@ -73,6 +73,7 @@ const AccountScreen = () => {
     try {
       const token = await AsyncStorage.getItem("token");
       let email = await AsyncStorage.getItem("userEmail");
+      const userId = await AsyncStorage.getItem("userId");
 
       if (!email && token) {
         const decodedToken = decodeToken(token);
@@ -100,7 +101,7 @@ const AccountScreen = () => {
     }
 
     const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
-      params: { userId: email },
+      params: { userId: userId },
       headers: { 'Authorization': `Bearer ${token}` }
     });
 

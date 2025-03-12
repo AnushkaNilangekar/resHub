@@ -23,7 +23,6 @@ export default function Step5UserTraits({
                 <Picker.Item label="Select" value="" />
                 <Picker.Item label="Non-Smoker" value="Non-Smoker" />
                 <Picker.Item label="Smoker" value="Smoker" />
-                <Picker.Item label="Occasional Smoker" value="Occasional Smoker" />
             </Picker>
             <Text style={styles.label}>Cleanliness Level</Text>
             <Picker selectedValue={cleanlinessLevel} onValueChange={setCleanlinessLevel} style={styles.picker}>
@@ -31,7 +30,6 @@ export default function Step5UserTraits({
                 <Picker.Item label="Very Clean" value="Very Clean" />
                 <Picker.Item label="Moderate" value="Moderate" />
                 <Picker.Item label="Messy" value="Messy" />
-                <Picker.Item label="Other" value="Other" />
             </Picker>
             <Text style={styles.label}>Sleep Schedule</Text>
             <Picker selectedValue={sleepSchedule} onValueChange={setSleepSchedule} style={styles.picker}>
@@ -39,7 +37,6 @@ export default function Step5UserTraits({
                 <Picker.Item label="Early Bird" value="Early Bird" />
                 <Picker.Item label="Night Owl" value="Night Owl" />
                 <Picker.Item label="Flexible" value="Flexible" />
-                <Picker.Item label="Other" value="Other" />
             </Picker>
             <Text style={styles.label}>Guest Frequency</Text>
             <Picker selectedValue={guestFrequency} onValueChange={setGuestFrequency} style={styles.picker}>
@@ -53,6 +50,7 @@ export default function Step5UserTraits({
                 <Picker.Item label="Select" value="" />
                 <Picker.Item label="Yes" value="Yes" />
                 <Picker.Item label="No" value="No" />
+                <Picker.Item label="Might" value="Might" />
             </Picker>
             <Text style={styles.label}>Noise Level</Text>
             <Picker selectedValue={noiseLevel} onValueChange={setNoiseLevel} style={styles.picker}>

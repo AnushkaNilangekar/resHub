@@ -24,7 +24,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Non-Smoker" value="Non-Smoker" />
                 <Picker.Item label="Smoker" value="Smoker" />
                 <Picker.Item label="Only when I'm not around" value="Only when I'm not around" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Cleanliness Level:</Text>
             <Picker selectedValue={roommateCleanlinessLevel} onValueChange={setRoommateCleanlinessLevel} style={styles.picker}>
@@ -32,7 +31,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Very Clean" value="Very Clean" />
                 <Picker.Item label="Moderate" value="Moderate" />
                 <Picker.Item label="Messy" value="Messy" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Sleep Schedule:</Text>
             <Picker selectedValue={roommateSleepSchedule} onValueChange={setRoommateSleepSchedule} style={styles.picker}>
@@ -40,7 +38,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Early Bird" value="Early Bird" />
                 <Picker.Item label="Night Owl" value="Night Owl" />
                 <Picker.Item label="Flexible" value="Flexible" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Guest Frequency:</Text>
             <Picker selectedValue={roommateGuestFrequency} onValueChange={setRoommateGuestFrequency} style={styles.picker}>
@@ -48,14 +45,12 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Rarely" value="Rarely" />
                 <Picker.Item label="Occasionally" value="Occasionally" />
                 <Picker.Item label="Frequently" value="Frequently" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Pet Preference:</Text>
             <Picker selectedValue={roommatePetPreference} onValueChange={setRoommatePetPreference} style={styles.picker}>
                 <Picker.Item label="Select" value="" />
                 <Picker.Item label="No Pets" value="No Pets" />
                 <Picker.Item label="Okay with Pets" value="Okay with Pets" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Noise Tolerance:</Text>
             <Picker selectedValue={roommateNoiseTolerance} onValueChange={setRoommateNoiseTolerance} style={styles.picker}>
@@ -63,7 +58,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Quiet" value="Quiet" />
                 <Picker.Item label="Moderate Noise" value="Moderate Noise" />
                 <Picker.Item label="Loud Environment" value="Loud Environment" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Sharing Common Items:</Text>
             <Picker selectedValue={roommateSharingCommonItems} onValueChange={setRoommateSharingCommonItems} style={styles.picker}>
@@ -71,7 +65,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Strictly Separate" value="Strictly Separate" />
                 <Picker.Item label="Willing to Share" value="Willing to Share" />
                 <Picker.Item label="Flexible" value="Flexible" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <Text style={styles.label}>Roommate Dietary Preference:</Text>
             <Picker selectedValue={roommateDietaryPreference} onValueChange={setRoommateDietaryPreference} style={styles.picker}>
@@ -79,7 +72,6 @@ export default function Step6RoommatePreferences({
                 <Picker.Item label="Vegetarian" value="Vegetarian" />
                 <Picker.Item label="Vegan" value="Vegan" />
                 <Picker.Item label="No Restrictions" value="No Restrictions" />
-                <Picker.Item label="No Preference" value="No Preference" />
             </Picker>
             <View style={styles.buttonContainer}>
                 <Button title="Back" onPress={handleBack} />

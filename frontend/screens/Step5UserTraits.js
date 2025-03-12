@@ -17,6 +17,7 @@ export default function Step5UserTraits({
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Step 5: Your Own Traits</Text>
+            <Text style={styles.note}>Note: These fields are optional</Text>
             <Text style={styles.label}>Do you smoke?</Text>
             <Picker selectedValue={smokingStatus} onValueChange={setSmokingStatus} style={styles.picker}>
                 <Picker.Item label="Select" value="" />
@@ -90,9 +91,14 @@ const styles = StyleSheet.create({
     container: { marginBottom: 20, marginTop: 20 },
     title: {
         fontSize: 22,
-        marginBottom: 20,
+        marginBottom: 8,
         marginTop: 20,
         fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    note: {
+        fontSize: 15,
+        marginBottom: 20,
         textAlign: 'center',
     },
     label: { fontSize: 16, marginBottom: 8 },

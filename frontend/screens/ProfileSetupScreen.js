@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScrollView, Alert, StyleSheet } from 'react-native';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
@@ -72,6 +72,14 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             setHobbies([...hobbies, hobby]);
         }
     };
+
+    const scrollViewRef = useRef(null);
+
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ y: 0, animated: true });
+        }
+    }, [step]);
 
     useEffect(() => {
         const fetchEmail = async () => {
@@ -200,7 +208,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={styles.container} ref={scrollViewRef}>
             {step === 1 && (
                 <Step1BasicInfo
                     fullName={fullName}

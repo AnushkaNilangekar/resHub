@@ -4,7 +4,9 @@ import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
 import Step3AcademicInfo from './Step3AcademicInfo';
 import Step4ResHobbiesBio from './Step4ResHobbiesBio';
-import UploadProfilePic from './UploadProfilePic';  
+import Step5UserTraits from './Step5UserTraits';
+import Step6RoommatePreferences from './Step6UserPreferences';
+import UploadProfilePic from './UploadProfilePic';
 import config from '../config';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,6 +35,27 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
     // State for userId
     const [userId, setUserId] = useState('');
+
+    // State for User's Own Traits
+    const [smokingStatus, setSmokingStatus] = useState('');
+    const [cleanlinessLevel, setCleanlinessLevel] = useState('');
+    const [sleepSchedule, setSleepSchedule] = useState('');
+    const [guestFrequency, setGuestFrequency] = useState('');
+    const [hasPets, setHasPets] = useState('');
+    const [noiseLevel, setNoiseLevel] = useState('');
+    const [sharingCommonItems, setSharingCommonItems] = useState('');
+    const [dietaryPreference, setDietaryPreference] = useState('');
+    const [allergies, setAllergies] = useState('');
+
+    // State for Roommate Preferences
+    const [roommateSmokingPreference, setRoommateSmokingPreference] = useState('');
+    const [roommateCleanlinessLevel, setRoommateCleanlinessLevel] = useState('');
+    const [roommateSleepSchedule, setRoommateSleepSchedule] = useState('');
+    const [roommateGuestFrequency, setRoommateGuestFrequency] = useState('');
+    const [roommatePetPreference, setRoommatePetPreference] = useState('');
+    const [roommateNoiseTolerance, setRoommateNoiseTolerance] = useState('');
+    const [roommateSharingCommonItems, setRoommateSharingCommonItems] = useState('');
+    const [roommateDietaryPreference, setRoommateDietaryPreference] = useState('');
 
     const [imageUri, setImageUri] = useState('https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg');
 
@@ -131,28 +154,48 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             residence,
             hobbies,
             bio,
-            profilePicUrl: imageUri
+            profilePicUrl: imageUri,
+            // New fields for user's own traits:
+            smokingStatus,
+            cleanlinessLevel,
+            sleepSchedule,
+            guestFrequency,
+            hasPets,
+            noiseLevel,
+            sharingCommonItems,
+            dietaryPreference,
+            allergies,
+            // New fields for roommate preferences:
+            roommateSmokingPreference,
+            roommateCleanlinessLevel,
+            roommateSleepSchedule,
+            roommateGuestFrequency,
+            roommatePetPreference,
+            roommateNoiseTolerance,
+            roommateSharingCommonItems,
+            roommateDietaryPreference,
         };
+
         try {
             const token = await AsyncStorage.getItem("token");
             await AsyncStorage.setItem("userEmail", email);
 
             const response = await axios.post(`${config.API_BASE_URL}/api/profile`, profileData, {
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (response.status === 200) {
-                
+
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Main', { screen: 'Home' }); 
-              }
-            } catch (error) {
-              console.error('Profile creation error:', error.response || error);
-              Alert.alert('Error', error.response?.data || error.message);
+                navigation.navigate('Main', { screen: 'Home' });
             }
-          };
+        } catch (error) {
+            console.error('Profile creation error:', error.response || error);
+            Alert.alert('Error', error.response?.data || error.message);
+        }
+    };
 
 
 
@@ -200,10 +243,39 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                     commonHobbies={commonHobbies}
                 />
             )}
-           {step === 5 && (
-                <UploadProfilePic onPictureUploaded={(uri) => setImageUri(uri)} 
-                 handleSubmit={handleSubmit}
-                 handleBack={handleBack}
+            {step === 5 && (
+                <Step5UserTraits
+                    smokingStatus={smokingStatus} setSmokingStatus={setSmokingStatus}
+                    cleanlinessLevel={cleanlinessLevel} setCleanlinessLevel={setCleanlinessLevel}
+                    sleepSchedule={sleepSchedule} setSleepSchedule={setSleepSchedule}
+                    guestFrequency={guestFrequency} setGuestFrequency={setGuestFrequency}
+                    hasPets={hasPets} setHasPets={setHasPets}
+                    noiseLevel={noiseLevel} setNoiseLevel={setNoiseLevel}
+                    sharingCommonItems={sharingCommonItems} setSharingCommonItems={setSharingCommonItems}
+                    dietaryPreference={dietaryPreference} setDietaryPreference={setDietaryPreference}
+                    allergies={allergies} setAllergies={setAllergies}
+                    handleNext={handleNext}
+                    handleBack={handleBack}
+                />
+            )}
+            {step === 6 && (
+                <Step6RoommatePreferences
+                    roommateSmokingPreference={roommateSmokingPreference} setRoommateSmokingPreference={setRoommateSmokingPreference}
+                    roommateCleanlinessLevel={roommateCleanlinessLevel} setRoommateCleanlinessLevel={setRoommateCleanlinessLevel}
+                    roommateSleepSchedule={roommateSleepSchedule} setRoommateSleepSchedule={setRoommateSleepSchedule}
+                    roommateGuestFrequency={roommateGuestFrequency} setRoommateGuestFrequency={setRoommateGuestFrequency}
+                    roommatePetPreference={roommatePetPreference} setRoommatePetPreference={setRoommatePetPreference}
+                    roommateNoiseTolerance={roommateNoiseTolerance} setRoommateNoiseTolerance={setRoommateNoiseTolerance}
+                    roommateSharingCommonItems={roommateSharingCommonItems} setRoommateSharingCommonItems={setRoommateSharingCommonItems}
+                    roommateDietaryPreference={roommateDietaryPreference} setRoommateDietaryPreference={setRoommateDietaryPreference}
+                    handleNext={handleNext}
+                    handleBack={handleBack}
+                />
+            )}
+            {step === 7 && (
+                <UploadProfilePic onPictureUploaded={(uri) => setImageUri(uri)}
+                    handleSubmit={handleSubmit}
+                    handleBack={handleBack}
                 />
             )}
         </ScrollView>
@@ -212,8 +284,8 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,  
-        justifyContent: 'center',  
+        flexGrow: 1,
+        justifyContent: 'center',
         padding: 20,
         backgroundColor: '#fff',
     },

@@ -10,29 +10,69 @@ import java.util.List;
 public class Profile {
     private String userId;
     private String email;
-    private String fullName; //TODO should we separate this into first and last name so we can only use one or the other when needed?
+    private String fullName; // TODO: Consider separating this into first and last name if needed.
     private String gender;
     private String major;
-    private String minor; 
+    private String minor;
     private int age;
     private String residence;
-    private List<String> hobbies; 
+    private List<String> hobbies;
     private String graduationYear;
     private String bio;
     private String profilePicUrl;
 
+    // New fields for the user's own traits
+    private String smokingStatus;
+    private String cleanlinessLevel;
+    private String sleepSchedule;
+    private String guestFrequency;
+    private String hasPets;
+    private String noiseLevel;
+    private String sharingCommonItems;
+    private String dietaryPreference;
+    private String allergies;
+
+    // New fields for roommate preferences
+    private String roommateSmokingPreference;
+    private String roommateCleanlinessLevel;
+    private String roommateSleepSchedule;
+    private String roommateGuestFrequency;
+    private String roommatePetPreference;
+    private String roommateNoiseTolerance;
+    private String roommateSharingCommonItems;
+    private String roommateDietaryPreference;
+
+    /**
+     * Constructor for Profile including new traits and roommate preferences.
+     */
     public Profile(
-        String fullName,
-        String gender,
-        String major,
-        String minor,
-        int age,
-        String residence,
-        List<String> hobbies,
-        String graduationYear,
-        String bio,
-        String profilePictureUrl)
-    {
+            String fullName,
+            String gender,
+            String major,
+            String minor,
+            Integer age,
+            String residence,
+            List<String> hobbies,
+            String graduationYear,
+            String bio,
+            String profilePicUrl,
+            String smokingStatus,
+            String cleanlinessLevel,
+            String sleepSchedule,
+            String guestFrequency,
+            String hasPets,
+            String noiseLevel,
+            String sharingCommonItems,
+            String dietaryPreference,
+            String allergies,
+            String roommateSmokingPreference,
+            String roommateCleanlinessLevel,
+            String roommateSleepSchedule,
+            String roommateGuestFrequency,
+            String roommatePetPreference,
+            String roommateNoiseTolerance,
+            String roommateSharingCommonItems,
+            String roommateDietaryPreference) {
         this.fullName = fullName;
         this.gender = gender;
         this.major = major;
@@ -42,7 +82,30 @@ public class Profile {
         this.hobbies = hobbies;
         this.graduationYear = graduationYear;
         this.bio = bio;
-        this.profilePicUrl = profilePictureUrl;
+        this.profilePicUrl = profilePicUrl;
+        this.smokingStatus = smokingStatus;
+        this.cleanlinessLevel = cleanlinessLevel;
+        this.sleepSchedule = sleepSchedule;
+        this.guestFrequency = guestFrequency;
+        this.hasPets = hasPets;
+        this.noiseLevel = noiseLevel;
+        this.sharingCommonItems = sharingCommonItems;
+        this.dietaryPreference = dietaryPreference;
+        this.allergies = allergies;
+        this.roommateSmokingPreference = roommateSmokingPreference;
+        this.roommateCleanlinessLevel = roommateCleanlinessLevel;
+        this.roommateSleepSchedule = roommateSleepSchedule;
+        this.roommateGuestFrequency = roommateGuestFrequency;
+        this.roommatePetPreference = roommatePetPreference;
+        this.roommateNoiseTolerance = roommateNoiseTolerance;
+        this.roommateSharingCommonItems = roommateSharingCommonItems;
+        this.roommateDietaryPreference = roommateDietaryPreference;
+    }
+
+    // Getters for all fields
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getEmail() {
@@ -65,7 +128,7 @@ public class Profile {
         return minor;
     }
 
-    public Integer getAge() {
+    public int getAge() {
         return age;
     }
 
@@ -85,8 +148,77 @@ public class Profile {
         return bio;
     }
 
-    public String getProfilePicUrl()
-    {
+    public String getProfilePicUrl() {
         return profilePicUrl;
+    }
+
+    // Getters for user's own traits
+    public String getSmokingStatus() {
+        return smokingStatus;
+    }
+
+    public String getCleanlinessLevel() {
+        return cleanlinessLevel;
+    }
+
+    public String getSleepSchedule() {
+        return sleepSchedule;
+    }
+
+    public String getGuestFrequency() {
+        return guestFrequency;
+    }
+
+    public String getHasPets() {
+        return hasPets;
+    }
+
+    public String getNoiseLevel() {
+        return noiseLevel;
+    }
+
+    public String getSharingCommonItems() {
+        return sharingCommonItems;
+    }
+
+    public String getDietaryPreference() {
+        return dietaryPreference;
+    }
+
+    public String getAllergies() {
+        return allergies;
+    }
+
+    // Getters for roommate preferences
+    public String getRoommateSmokingPreference() {
+        return roommateSmokingPreference;
+    }
+
+    public String getRoommateCleanlinessLevel() {
+        return roommateCleanlinessLevel;
+    }
+
+    public String getRoommateSleepSchedule() {
+        return roommateSleepSchedule;
+    }
+
+    public String getRoommateGuestFrequency() {
+        return roommateGuestFrequency;
+    }
+
+    public String getRoommatePetPreference() {
+        return roommatePetPreference;
+    }
+
+    public String getRoommateNoiseTolerance() {
+        return roommateNoiseTolerance;
+    }
+
+    public String getRoommateSharingCommonItems() {
+        return roommateSharingCommonItems;
+    }
+
+    public String getRoommateDietaryPreference() {
+        return roommateDietaryPreference;
     }
 }

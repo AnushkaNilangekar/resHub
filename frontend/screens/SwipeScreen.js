@@ -209,6 +209,7 @@ const SwipeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 15,
     backgroundColor: '#f0f0f0',
     justifyContent: 'flex-start', // Ensures everything starts from top
     alignItems: 'center',

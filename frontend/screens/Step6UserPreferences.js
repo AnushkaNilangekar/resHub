@@ -89,10 +89,11 @@ export default function Step6RoommatePreferences({
 }
 
 const styles = StyleSheet.create({
-    container: { marginBottom: 20 },
+    container: { marginBottom: 20, marginTop: 20 },
     title: {
         fontSize: 22,
         marginBottom: 20,
+        marginTop: 20,
         fontWeight: 'bold',
         textAlign: 'center',
     },

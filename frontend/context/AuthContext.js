@@ -30,7 +30,8 @@ export const AuthProvider = ({ children }) => {
   await AsyncStorage.multiRemove([
       "token",
       "userEmail",
-      "profileData" 
+      "profileData",
+      "userId" 
     ]);
     setIsAuthenticated(false);
   };

@@ -52,7 +52,7 @@ public class UserService {
      * Handles retrieving the user ids of the given user's matches.
      */
     public List<String> doGetUserMatches(String userId) {
-        Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(userId).build());
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -166,6 +166,8 @@ public class UserService {
     public void doCreateMatch(String userId, String matchUserId) {
         doAddToMatches(userId, matchUserId);
         doAddToMatches(matchUserId, userId);
+        createChat(userId, matchUserId);
+        
     }
 
     /*
@@ -178,7 +180,7 @@ public class UserService {
             matches.add(matchUserId);
         }
     
-        Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(userId).build());
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
         Map<String, AttributeValue> updateValues = Map.of(
                 ":newMatches", AttributeValue.builder().l(matches.stream()
                         .map(match -> AttributeValue.builder().s(match).build())
@@ -198,9 +200,9 @@ public class UserService {
     /*
      * Handles retrieving the user ids of the given user's chatss.
      */
-    public List<String> retrieveUserChats(String email) {
+    public List<String> retrieveUserChats(String userId) {
         // Set up the key for querying the userProfiles table using email
-        Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(email).build());
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
     
         // Create the GetItemRequest for the userProfiles table
         GetItemRequest getItemRequest = GetItemRequest.builder()
@@ -230,7 +232,7 @@ public class UserService {
         return Collections.emptyList();
     }
 
-    public String getOtherUserEmail(String chatId, String loggedInUserEmail) {
+    public String getOtherUserId(String chatId, String loggedInUserId) {
         // Create the key to retrieve the chat item
         Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
     
@@ -253,13 +255,13 @@ public class UserService {
     
                 // If there are two participants, filter out the logged-in user's email
                 if (participants.size() == 2) {
-                    String otherUserEmail = participants.stream()
+                    String otherUserId = participants.stream()
                             .map(AttributeValue::s)
-                            .filter(email -> !email.equals(loggedInUserEmail))  // Filter out logged-in user's email
+                            .filter(userId -> !userId.equals(loggedInUserId))  // Filter out logged-in user's email
                             .findFirst()
                             .orElse(null);  // Return null if not found
     
-                    return otherUserEmail;  // Return the other user's email
+                    return otherUserId;  // Return the other user's email
                 }
             }
         }
@@ -267,22 +269,22 @@ public class UserService {
         return null;  // Return null if no other user is found
     }
 
-    public List<String> getOtherUserEmails(String loggedInUserEmail) {
-        List<String> otherUserEmails = new ArrayList<>();
+    public List<String> getOtherUserIds(String loggedInUserId) {
+        List<String> otherUserIds = new ArrayList<>();
         
         // Retrieve the chat IDs from the user's chats
-        List<String> chatIds = retrieveUserChats(loggedInUserEmail); // Assuming you have a function that returns the user's chat IDs
+        List<String> chatIds = retrieveUserChats(loggedInUserId); // Assuming you have a function that returns the user's chat IDs
     
         for (String chatId : chatIds) {
             // For each chat, retrieve the participants
-            String otherUserEmail = getOtherUserEmail(chatId, loggedInUserEmail); // Get the other user's email from the chat
+            String otherUserId = getOtherUserId(chatId, loggedInUserId); // Get the other user's email from the chat
             
-            if (otherUserEmail != null) {
-                otherUserEmails.add(otherUserEmail); // Add the other user's email to the list
+            if (otherUserId != null) {
+                otherUserIds.add(otherUserId); // Add the other user's email to the list
             }
         }
         
-        return otherUserEmails; // Return the list of other user emails
+        return otherUserIds; // Return the list of other user emails
     }
 
     // Method to retrieve the last message from the chat
@@ -317,16 +319,14 @@ public class UserService {
     // Method to get other user's email and last message
     public Map<String, String> getChatDetails(String userId, String chatId) throws Exception {
         // Logic to retrieve the other user's email
-        String otherUserEmail = getOtherUserEmail(chatId, userId);
-        System.out.println(otherUserEmail);
+        String otherUserId = getOtherUserId(chatId, userId);
         
         // Logic to retrieve the last message in the chat
         String lastMessage = getLastMessage(chatId);
-        System.out.println(lastMessage);
         
         // Returning both email and last message in a Map
         Map<String, String> chatDetails = new HashMap<>();
-        chatDetails.put("otherUserEmail", otherUserEmail);
+        chatDetails.put("otherUserId", otherUserId);
         chatDetails.put("lastMessage", lastMessage);
         
         return chatDetails;
@@ -338,9 +338,9 @@ public class UserService {
      * email: The email of the user
      * chatId: The ID of the chat to add
      */
-    private void updateUserChats(String email, String chatId) {
+    private void updateUserChats(String userId, String chatId) {
         // Retrieve the user's profile from the 'userProfiles' table
-        Map<String, AttributeValue> key = Map.of("email", AttributeValue.builder().s(email).build());
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
         GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
@@ -375,7 +375,7 @@ public class UserService {
      * email2: The email of the second user
      * @return The ID of the created chat
      */
-    public String createChat(String email1, String email2) {
+    public String createChat(String user1Id, String user2Id) {
         // Step 1: Generate a new chat ID (this can be a UUID or a timestamp-based ID)
         String chatId = UUID.randomUUID().toString();
         System.out.println("Generated Chat ID: " + chatId);  // Debugging line
@@ -385,8 +385,8 @@ public class UserService {
         chatItem.put("chatId", AttributeValue.builder().s(chatId).build());
         chatItem.put("participants", AttributeValue.builder().l(
                 Arrays.asList(
-                    AttributeValue.builder().s(email1).build(),
-                    AttributeValue.builder().s(email2).build()
+                    AttributeValue.builder().s(user1Id).build(),
+                    AttributeValue.builder().s(user2Id).build()
                 )
             ).build());
         chatItem.put("updatedAt", AttributeValue.builder().s(String.valueOf(System.currentTimeMillis())).build());
@@ -408,9 +408,9 @@ public class UserService {
     
         // Step 3: Update both users' profiles to add this chat ID to their 'chats' list
         try {
-            updateUserChats(email1, chatId);
-            updateUserChats(email2, chatId);
-            System.out.println("User chats updated for: " + email1 + " and " + email2);  // Debugging line
+            updateUserChats(user1Id, chatId);
+            updateUserChats(user2Id, chatId);
+            System.out.println("User chats updated for: " + user1Id + " and " + user2Id);  // Debugging line
         } catch (Exception e) {
             System.err.println("Error updating user chats: " + e.getMessage());  // Debugging error
             e.printStackTrace();

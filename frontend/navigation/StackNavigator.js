@@ -10,6 +10,7 @@ import ResetPassword from "../screens/ResetPassword";
 import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
 import SwipeScreen from "../screens/SwipeScreen";
 
+
 const Stack = createNativeStackNavigator();
 
 const StackNavigator = () => {

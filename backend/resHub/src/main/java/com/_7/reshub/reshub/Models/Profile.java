@@ -1,5 +1,6 @@
 package com._7.reshub.reshub.Models;
 
+import java.time.Instant;
 import java.util.List;
 
 /*
@@ -19,9 +20,11 @@ public class Profile {
     private List<String> hobbies; 
     private String graduationYear;
     private String bio;
+    private Instant lastTimeActive;
     private String profilePicUrl;
 
     public Profile(
+        String userId,
         String fullName,
         String gender,
         String major,
@@ -31,8 +34,10 @@ public class Profile {
         List<String> hobbies,
         String graduationYear,
         String bio,
+        Instant lastTimeActive,
         String profilePictureUrl)
     {
+        this.userId = userId;
         this.fullName = fullName;
         this.gender = gender;
         this.major = major;
@@ -42,7 +47,12 @@ public class Profile {
         this.hobbies = hobbies;
         this.graduationYear = graduationYear;
         this.bio = bio;
+        this.lastTimeActive = lastTimeActive;
         this.profilePicUrl = profilePictureUrl;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getEmail() {
@@ -83,6 +93,10 @@ public class Profile {
 
     public String getBio() {
         return bio;
+    }
+
+    public Instant getLastTimeActive() {
+        return lastTimeActive;
     }
 
     public String getProfilePicUrl()

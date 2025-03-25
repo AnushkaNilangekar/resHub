@@ -18,15 +18,15 @@ const SwipeScreen = () => {
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-        try {
-            const storedUserId = await AsyncStorage.getItem("userId");
-            const token = await AsyncStorage.getItem("token");
-            if (storedUserId && token) {
-                setUserInfo({ userId: storedUserId, token });
-            }
-        } catch (error) {
-            console.error("Error fetching user info:", error);
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        const token = await AsyncStorage.getItem("token");
+        if (storedUserId && token) {
+          setUserInfo({ userId: storedUserId, token });
         }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
     };
 
     fetchUserInfo();
@@ -34,16 +34,16 @@ const SwipeScreen = () => {
 
   const fetchProfileCards = async () => {
     if (userInfo && userInfo.userId) {
-    const queryParams = new URLSearchParams({
+      const queryParams = new URLSearchParams({
         userId: userInfo.userId,
         genderFilter: selectedGender,
         filterOutSwipedOn: true
-    });
+      });
 
     await fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${userInfo.token}` 
+          'Authorization': `Bearer ${userInfo.token}`
         }
     })
       .then(response => {                
@@ -219,12 +219,13 @@ const SwipeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 15,
     backgroundColor: '#f0f0f0',
     justifyContent: 'flex-start',
     paddingTop: 40,
   },
   titleContainer: {
-    marginTop: 15,
+    marginTop: 15, // Adjust to position below the back button
     width: "100%", 
     alignItems: "center",
   },
@@ -317,6 +318,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#ddd",
   },
+  
 });
 
 export default SwipeScreen;

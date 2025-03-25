@@ -126,7 +126,7 @@ const ChatsScreen = () => {
           renderItem={({ item }) => (
             <TouchableOpacity 
               style={styles.chatCard} 
-              onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId })}
+              onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
             >
               {item.profilePicUrl ? (
                 <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />

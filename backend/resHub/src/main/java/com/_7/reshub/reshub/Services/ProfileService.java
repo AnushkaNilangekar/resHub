@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ public class ProfileService {
             Map<String, AttributeValue> item = response.item();
 
             Profile profile = new Profile(
+                    userId,
                     item.getOrDefault("fullName", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("gender", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("major", AttributeValue.builder().s("").build()).s(),
@@ -54,6 +56,9 @@ public class ProfileService {
                             .stream().map(AttributeValue::s).collect(Collectors.toList()),
                     item.getOrDefault("graduationYear", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
+                    Instant.parse(
+                        item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s()
+                    ),
                     item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s()
             );
 

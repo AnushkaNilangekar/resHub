@@ -2,11 +2,13 @@ package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -16,7 +18,6 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 
 import java.time.Instant;
-import java.util.*;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -419,5 +420,36 @@ public class UserService {
         return chatId;
     }
     
-    
+    public void doUpdateLastTimeActive(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
+        
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            
+            String timestamp = Instant.now().toString();
+            
+            Map<String, AttributeValue> updatedItem = new HashMap<>(item);
+            updatedItem.put("lastTimeActive", AttributeValue.builder().s(timestamp).build());
+            
+            try
+            {
+                PutItemRequest updateUserRequest = PutItemRequest.builder()
+                        .tableName(dynamoDbConfig.getUserProfilesTableName())
+                        .item(updatedItem)
+                        .build();
+                
+                dynamoDbClient.putItem(updateUserRequest);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
 }

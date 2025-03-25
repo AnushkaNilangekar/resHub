@@ -1,5 +1,6 @@
 package com._7.reshub.reshub.Models;
 
+import java.time.Instant;
 import java.util.List;
 
 /*
@@ -19,6 +20,7 @@ public class Profile {
     private List<String> hobbies;
     private String graduationYear;
     private String bio;
+    private Instant lastTimeActive;
     private String profilePicUrl;
 
     // New fields for the user's own traits
@@ -46,6 +48,7 @@ public class Profile {
      * Constructor for Profile including new traits and roommate preferences.
      */
     public Profile(
+            String userId,
             String fullName,
             String gender,
             String major,
@@ -55,6 +58,7 @@ public class Profile {
             List<String> hobbies,
             String graduationYear,
             String bio,
+            Instant lastTimeActive,
             String profilePicUrl,
             String smokingStatus,
             String cleanlinessLevel,
@@ -73,6 +77,7 @@ public class Profile {
             String roommateNoiseTolerance,
             String roommateSharingCommonItems,
             String roommateDietaryPreference) {
+        this.userId = userId;
         this.fullName = fullName;
         this.gender = gender;
         this.major = major;
@@ -82,6 +87,7 @@ public class Profile {
         this.hobbies = hobbies;
         this.graduationYear = graduationYear;
         this.bio = bio;
+        this.lastTimeActive = lastTimeActive;
         this.profilePicUrl = profilePicUrl;
         this.smokingStatus = smokingStatus;
         this.cleanlinessLevel = cleanlinessLevel;
@@ -103,6 +109,10 @@ public class Profile {
     }
 
     // Getters for all fields
+
+    public String getUserId() {
+        return userId;
+    }
 
     public String getUserId() {
         return userId;
@@ -148,7 +158,12 @@ public class Profile {
         return bio;
     }
 
-    public String getProfilePicUrl() {
+    public Instant getLastTimeActive() {
+        return lastTimeActive;
+    }
+
+    public String getProfilePicUrl()
+    {
         return profilePicUrl;
     }
 

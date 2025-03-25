@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   titleContainer: {
-    marginTop: 15, // Adjust to position below the back button
+    marginTop: 15,
     width: "100%", 
     alignItems: "center",
   },
@@ -318,7 +318,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#ddd",
   },
-  
 });
 
 export default SwipeScreen;

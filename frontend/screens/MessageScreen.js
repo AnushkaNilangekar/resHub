@@ -3,20 +3,23 @@ import { View, StyleSheet, TouchableOpacity, Text, Keybo } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native"; 
 import { Ionicons } from "@expo/vector-icons"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const MessageScreen = ({ route }) => {
   const { chatId, otherUserId, name } = route.params;
   const [messages, setMessages] = useState([]);
-  const navigation = useNavigation();
+  const userId = AsyncStorage.getItem("userId");
+  const token = AsyncStorage.getItem("token");
+  // const navigation = useNavigation();
 
-    // Set the header title dynamically
-    useLayoutEffect(() => {
-      navigation.setOptions({
-        title: `Chat with ${name}`, // Customize the title dynamically
-        headerStyle: { backgroundColor: "orange" }, // Customize header background
-        headerTitleStyle: { color: "white" }, // Customize header text color
-      });
-    }, [navigation, otherUserId]);
+    // // Set the header title dynamically
+    // useLayoutEffect(() => {
+    //   navigation.setOptions({
+    //     title: `Chat with ${name}`, // Customize the title dynamically
+    //     headerStyle: { backgroundColor: "orange" }, // Customize header background
+    //     headerTitleStyle: { color: "white" }, // Customize header text color
+    //   });
+    // }, [navigation, otherUserId]);
   
 
   // Dummy data for messages
@@ -61,10 +64,18 @@ const MessageScreen = ({ route }) => {
         text,
         createdAt: new Date(),
         user: {
-          // _id: 1,
-          name: "Vishal Chaturvedi",
+          _id: userId,
+          name: name,
         },
       };
+      const profileResponse = await axios.post(`${config.API_BASE_URL}/api/users/createChat`, {
+        params: {
+          newMessage // Assuming email is used as the userId for the profile
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
       setMessages((prevMessages) => [newMessage, ...prevMessages]);
     }
   };

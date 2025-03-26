@@ -418,6 +418,34 @@ public class UserService {
     
         return chatId;
     }
+
+     /*
+     * Create a new message in a chat.
+     */
+    public void createMessage(String chatId, String createdAt, Map user, String text) {
+         // Step 2: Create a new message item in the 'messages' table with participants and initial data
+        Map<String, AttributeValue> messageItem = new HashMap<>();
+        messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
+        messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
+        messageItem.put("user", AttributeValue.builder().m(user).build());
+        messageItem.put("text", AttributeValue.builder().s(text).build());
+
+        // Insert the new chat into the 'chats' table
+        PutItemRequest putMessageRequest = PutItemRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .item(messageItem)
+                .build();
+        try {
+            dynamoDbClient.putItem(putMessageRequest);
+            System.out.println("Chat item inserted successfully.");
+        } catch (Exception e) {
+            System.err.println("Error inserting chat item: " + e.getMessage());  // Debugging error
+            e.printStackTrace();
+        }
+
+    }
+    
+
     
     
 }

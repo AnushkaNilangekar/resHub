@@ -129,5 +129,16 @@ public class UserController {
             return "Error: " + e.getMessage();
         }
     }
+
+    @PostMapping("/createMessage")
+    public String createChat(@RequestParam String chatId, @RequestParam String createdAt, @RequestParam Map<String, String> user, @RequestParam String text) {
+        try {
+            userService.createMessage(chatId, createdAt, user, text);
+            return "message created";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
+    }
     
 }

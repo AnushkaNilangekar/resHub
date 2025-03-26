@@ -114,10 +114,6 @@ public class Profile {
         return userId;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -162,8 +158,7 @@ public class Profile {
         return lastTimeActive;
     }
 
-    public String getProfilePicUrl()
-    {
+    public String getProfilePicUrl() {
         return profilePicUrl;
     }
 

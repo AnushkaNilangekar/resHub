@@ -75,12 +75,12 @@ public class UserController {
      * chatId: The id of the chat to find the other user in
      * @return The email of the other user in the chat
      */
-    @GetMapping("/getOtherUserEmail")
-    public String getOtherUserEmail(@RequestParam String userId, @RequestParam String chatId) {
+    @GetMapping("/getOtherUserId")
+    public String getOtherUserId(@RequestParam String userId, @RequestParam String chatId) {
 
         try {
-            String otherUserEmail = userService.getOtherUserEmail(chatId, userId);  // Assuming this method is implemented in your UserService
-            return otherUserEmail;
+            String otherUserId = userService.getOtherUserId(chatId, userId);  // Assuming this method is implemented in your UserService
+            return otherUserId;
         } catch (Exception e) {
             e.printStackTrace();
             return "Error: " + e.getMessage();
@@ -93,12 +93,12 @@ public class UserController {
      * userId: The id of the user whose other chat participant's email is to be retrieved
      * @return The emails of users which has a chat with the user
      */
-    @GetMapping("/getOtherUserEmails")
-    public List<String> getOtherUserEmails(@RequestParam String userId) {
+    @GetMapping("/getOtherUserIds")
+    public List<String> getOtherUserIds(@RequestParam String userId) {
 
         try {
-            List<String> otherUserEmails = userService.getOtherUserEmails(userId);
-            return otherUserEmails;
+            List<String> otherUserIds = userService.getOtherUserIds(userId);
+            return otherUserIds;
         } catch (Exception e) {
             e.printStackTrace();
             return List.of("Error: " + e.getMessage());
@@ -118,9 +118,9 @@ public class UserController {
     }
 
     @PostMapping("/createChat")
-    public String createChat(@RequestParam String email1, @RequestParam String email2) {
+    public String createChat(@RequestParam String userId1, @RequestParam String userId2) {
         try {
-            String chatId = userService.createChat(email1, email2);
+            String chatId = userService.createChat(userId1, userId2);
             return chatId;
         } catch (Exception e) {
             e.printStackTrace();

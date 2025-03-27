@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
@@ -15,6 +15,9 @@ const SwipeScreen = () => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const { logout } = useContext(AuthContext);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const [swipeFeedback, setSwipeFeedback] = useState(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -94,126 +97,164 @@ const SwipeScreen = () => {
         ? `${config.API_BASE_URL}/api/swipes/swipeLeft`
         : `${config.API_BASE_URL}/api/swipes/swipeRight`;
 
-    axios.post(endpoint, null, {
-        params: {
-            userId: userInfo.userId,        // Access userId from userInfo
-            swipedOnUserId,
-        },
-        headers: {
-            'Authorization': `Bearer ${userInfo.token}`,   // Access token from userInfo
-        }
-    })
-    .catch(error => {
-        if (error.response && error.response.status === 404) {
-            console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
-        } else {
-            console.error('Error recording swipe:', error.response?.data || error.message);
-        }
-    });    
-  };
+        axios.post(endpoint, null, {
+            params: {
+                userId: userInfo.userId,        // Access userId from userInfo
+                swipedOnUserId,
+            },
+            headers: {
+                'Authorization': `Bearer ${userInfo.token}`,   // Access token from userInfo
+            }
+        })
+        .catch(error => {
+            if (error.response && error.response.status === 404) {
+                console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
+            } else {
+                console.error('Error recording swipe:', error.response?.data || error.message);
+            }
+        });
+        triggerSwipeFeedback(direction);  
+    };
 
-  const header = (() => {
-    return (
-      <View>
-        <View style={styles.buttonContainer}>
-          <Button title="Logout" onPress={() => logout()} />
-          <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
-          <Button title="Refresh" onPress={() => onRefresh()} />
+    const triggerSwipeFeedback = (direction) => {
+      setSwipeFeedback(direction);
+
+      // Reset animations
+      fadeAnim.setValue(0);
+      translateY.setValue(0);
+
+      Animated.parallel([
+          Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 10,
+              useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+              toValue: -10,
+              duration: 10,
+              useNativeDriver: true,
+          }),
+      ]).start(() => {
+          setTimeout(() => setSwipeFeedback(null), 300);
+      });
+    };
+
+    const header = (() => {
+      return (
+        <View>
+          <View style={styles.buttonContainer}>
+            <Button title="Logout" onPress={() => logout()} />
+            <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
+            <Button title="Refresh" onPress={() => onRefresh()} />
+          </View>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Profiles for You</Text>
+          </View>
+          <View style={styles.filterContainer}>
+            {["All", "Male", "Female", "Non-binary"].map((gender) => (
+              <TouchableOpacity
+                key={gender}
+                style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
+                onPress={() => setSelectedGender(gender)}
+              >
+                <Text style={styles.filterText}>{gender}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Profiles for You</Text>
+      );
+    });
+  
+    const loadingItem = ((itemLoading) => {
+      return (
+        <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text>Loading {itemLoading}...</Text>
         </View>
-        <View style={styles.filterContainer}>
-          {["All", "Male", "Female", "Non-binary"].map((gender) => (
-            <TouchableOpacity
-              key={gender}
-              style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
-              onPress={() => setSelectedGender(gender)}
-            >
-              <Text style={styles.filterText}>{gender}</Text>
-            </TouchableOpacity>
-          ))}
+      );
+    });
+  
+    if (!userInfo || !userInfo.userId) {
+      {loadingItem("user information")}
+    };
+  
+    if (refreshing) {
+      return (
+        <View style={styles.container}>
+          {header()}
+          {loadingItem("profile cards")}
         </View>
-      </View>
-    );
-  });
-
-  const loadingItem = ((itemLoading) => {
-    return (
-      <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text>Loading {itemLoading}...</Text>
-      </View>
-    );
-  });
-
-  if (!userInfo || !userInfo.userId) {
-    {loadingItem("user information")}
-  };
-
-  if (refreshing) {
-    return (
-      <View style={styles.container}>
-        {header()}
-        {loadingItem("profile cards")}
-      </View>
-    );
-  }
-
-  if (profiles.length === 0 && !refreshing) {
-    return (
-      <View style={styles.container}>
-        {header()}
+      );
+    }
+  
+    if (profiles.length === 0 && !refreshing) {
+      return (
+        <View style={styles.container}>
+          {header()}
+      
+          {/* Display a message when no profiles match the filters */}
+          <View style={styles.noProfilesContainer}>
+            <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
+          </View>
+        </View>
+      );
+    }
     
-        {/* Display a message when no profiles match the filters */}
-        <View style={styles.noProfilesContainer}>
-          <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
-        </View>
+    return (
+      <View style={styles.container}>
+        {header()}
+        {swipeFeedback && (
+          <Animated.View style={[
+              styles.swipeFeedback,
+              { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.7, 1],
+              }) }] },
+              swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
+          ]}>
+              <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
+          </Animated.View>
+        )}
+        {/* Profile swiper or loading */}
+        {isSwipedAll ? (
+          <View style={styles.endCard}>
+            <Text style={styles.endCardText}>No more cards</Text>
+          </View>
+        ) : (
+          <View style={{ flex: 1, width: "100%"}}>
+            <Swiper
+              cards={profiles}
+              renderCard={(card) => {
+                if (!card) return null;
+                return (
+                  <View style={[styles.card, { backgroundColor: card.backgroundColor || "#F5E6F7" }]}>
+                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
+                    <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
+                    <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Major: {card.major || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Minor: {card.minor || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Residence: {card.residence || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Graduation Year: {card.graduationYear || "N/A"}</Text>
+                    <Text style={styles.cardSubtitle}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
+                    <Text style={styles.cardSubtitle}>Bio: {card.bio || "No Bio available"}</Text>
+                  </View>
+                );
+              }}
+              onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
+              onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
+              onSwipedAll={() => setIsSwipedAll(true)}
+              disableTopSwipe
+              disableBottomSwipe
+              cardIndex={0}
+              backgroundColor={'#f0f0f0'}
+              stackSize={3}
+            />
+          </View>
+        )}
       </View>
     );
-  }
-  
-  return (
-    <View style={styles.container}>
-      {header()}
-  
-      {/* Profile swiper or loading */}
-      {isSwipedAll ? (
-        <View style={styles.endCard}>
-          <Text style={styles.endCardText}>No more cards</Text>
-        </View>
-      ) : (
-        <View style={{ flex: 1, width: "100%"}}>
-          <Swiper
-            cards={profiles}
-            renderCard={(card) => {
-              if (!card) return null;
-              return (
-                <View style={[styles.card, { backgroundColor: card.backgroundColor || "#F5E6F7" }]}>
-                  <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
-                  <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
-                  <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Major: {card.major || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Minor: {card.minor || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Residence: {card.residence || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Graduation Year: {card.graduationYear || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
-                  <Text style={styles.cardSubtitle}>Bio: {card.bio || "No Bio available"}</Text>
-                </View>
-              );
-            }}
-            onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
-            onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
-            onSwipedAll={() => setIsSwipedAll(true)}
-            cardIndex={0}
-            backgroundColor={'#f0f0f0'}
-            stackSize={3}
-          />
-        </View>
-      )}
-    </View>
-  );
+        
 };
 
 const styles = StyleSheet.create({
@@ -253,6 +294,36 @@ const styles = StyleSheet.create({
   filterText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  swipeFeedback: {
+    position: 'absolute',
+    top: '40%',
+    zIndex: 100,
+    width: 70, 
+    height: 70, 
+    borderRadius: 35, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  rightSwipeFeedback: {
+    right: 20, 
+    borderColor: 'rgba(0, 255, 0, 0.5)',
+    borderWidth: 3,
+  },
+  leftSwipeFeedback: {
+    left: 20, 
+    borderColor: 'rgba(255, 0, 0, 0.5)',
+    borderWidth: 3,
+  },
+  swipeIcon: {
+    fontSize: 30, 
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,

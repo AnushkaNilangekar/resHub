@@ -114,10 +114,6 @@ public class Profile {
         return userId;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
     public String getEmail() {
         return email;
     }

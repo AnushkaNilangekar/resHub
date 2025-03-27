@@ -4,12 +4,13 @@ import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native"; 
 import { Ionicons } from "@expo/vector-icons"; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import config from "../config";
 
 const MessageScreen = ({ route }) => {
   const { chatId, otherUserId, name } = route.params;
   const [messages, setMessages] = useState([]);
-  const userId = AsyncStorage.getItem("userId");
-  const token = AsyncStorage.getItem("token");
+  const [userId, setUserId]= useState("");
   // const navigation = useNavigation();
 
     // // Set the header title dynamically
@@ -22,67 +23,102 @@ const MessageScreen = ({ route }) => {
     // }, [navigation, otherUserId]);
   
 
-  // Dummy data for messages
-  const fetchMessages = () => {
-    const dummyMessages = [
-      {
-        // _id: 1,
-        text: "Hey, how are you?",
-        createdAt: new Date(),
-        user: {
-          _id: 23,
-          name: "John Doe",
-        },
-      },
-      {
-        // _id: 2,
-        text: "I'm good, thanks! How about you?",
-        createdAt: new Date(),
-        user: {
-          _id: 1,
-          name: "Vishal Chaturvedi",
-        },
-      },
-      {
-        // _id: 3,
-        text: "I'm doing well, working on some coding projects.",
-        createdAt: new Date(),
-        user: {
-          _id: 23,
-          name: "John Doe",
-        },
-      },
-    ];
-    setMessages(dummyMessages);
-  };
-
-  // Handle sending a new message
-  const onSendMessage = (text) => {
-    if (text.trim()) {
-      const newMessage = {
-        // _id: messages.length + 1,
-        text,
-        createdAt: new Date(),
-        user: {
-          _id: userId,
-          name: name,
-        },
-      };
-      const profileResponse = await axios.post(`${config.API_BASE_URL}/api/users/createChat`, {
-        params: {
-          newMessage // Assuming email is used as the userId for the profile
-        },
+  const fetchMessages = async () => {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    setUserId(storedUserId);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.get(`${config.API_BASE_URL}/api/users/getMessages`, {
+        params: { chatId },
         headers: {
           'Authorization': `Bearer ${token}`,
-        }
+        },
       });
-      setMessages((prevMessages) => [newMessage, ...prevMessages]);
+
+      if (response.status === 200) {
+        let messageId = 1;
+        // Assuming the backend returns an array of messages
+        const formattedMessages = response.data.map((msg, index) => ({
+          _id: messageId + index,
+          text: msg.text,
+          createdAt: msg.createdAt,
+          user: {
+              _id: msg.userId,
+              name: msg.name,
+            },
+        }));
+    
+        setMessages(formattedMessages);
+      } else {
+        console.error("Failed to fetch messages:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
     }
   };
 
-  useEffect(() => {
-    fetchMessages(); // Load dummy messages when the component mounts
-  }, [chatId]);
+  // Handle sending a new message
+const onSendMessage = async (text) => {
+  console.log("clicked")
+  const token = await AsyncStorage.getItem("token");
+  console.log(token)
+
+  console.log("Sending message:", text);
+  if (text.trim()) {
+    // const newMessage = {
+    //   text,
+    //   createdAt: new Date(),
+    //   user: {
+    //     _id: userId,
+    //     name: name,
+    //   },
+    // };
+
+    const requestData = {
+      chatId: chatId,  // Include chatId in the URL
+      createdAt: new Date().toISOString(),
+      userId: userId,
+      name: name,
+      text: text,
+    };
+    
+    
+    const userParams = new URLSearchParams();
+    userParams.append('chatId', requestData.chatId);
+    userParams.append('createdAt', requestData.createdAt);
+    userParams.append('text', requestData.text);
+    userParams.append('userId', requestData.userId);
+    userParams.append('name', requestData.name);
+
+    try {
+      console.log("yes")
+      await axios.post(
+        `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
+        {},  // You don't need to send the body if all data is in the URL
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      // setMessages((prevMessages) => [newMessage, ...prevMessages]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+
+    fetchMessages();  // Fetch messages again to include the new message
+  }
+};
+
+useEffect(() => {
+  fetchMessages(); // Initial fetch
+
+  const interval = setInterval(() => {
+    fetchMessages(); // Fetch messages every 5 seconds
+  }, 100);
+
+  return () => clearInterval(interval); // Cleanup on unmount
+}, [chatId]);
 
   return (
     <View style={styles.container}>
@@ -96,20 +132,20 @@ const MessageScreen = ({ route }) => {
       <Chat
         messages={messages}
         setMessages={onSendMessage}
-        // themeColor="white"
-        // themeTextColor="black"
-        showSenderAvatar={false}
+        themeColor="blue"
+        themeTextColor="white"
+        showSenderAvatar={true}
         showReceiverAvatar={true}
-        // inputBorderColor="orange"
+        inputBorderColor="black"
         user={{
-          _id: 1,
-          name: "Vishal Chaturvedi",
+          _id: userId,
+          name: name,
         }}
         backgroundColor="white"
         inputBackgroundColor="white"
         placeholder="Enter Your Message"
         placeholderColor="gray"
-        showEmoji={true}
+        showEmoji={false}
         onPressEmoji={() => console.log("Emoji Button Pressed..")}
         showAttachment={true}
         onPressAttachment={() => console.log("Attachment Button Pressed..")}

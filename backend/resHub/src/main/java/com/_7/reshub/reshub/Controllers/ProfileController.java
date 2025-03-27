@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -203,29 +204,163 @@ public class ProfileController {
      *         or an empty list if no profiles match the filter.
      */
 
-    @GetMapping("/getProfiles")
-    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter,
-            @RequestParam boolean filterOutSwipedOn) {
-        try {
-            List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+     @GetMapping("/getProfiles")
+     public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter,
+             @RequestParam boolean filterOutSwipedOn) {
+         try {
+             List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+ 
+             if (filterOutSwipedOn) {
+                 List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
+ 
+                 profiles = profiles.stream()
+                         .filter(profile -> {
+                             Object userIdObj = profile.get("userId");
+                             return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                         })
+                         .collect(Collectors.toList());
+             }
+ 
+             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
+         } catch (Exception e) {
+             e.printStackTrace();
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                     .body(Map.of("error", e.getMessage()));
+         }
+     }
 
-            if (filterOutSwipedOn) {
-                List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
 
-                profiles = profiles.stream()
-                        .filter(profile -> {
-                            Object userIdObj = profile.get("userId");
-                            return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
-                        })
-                        .collect(Collectors.toList());
-            }
+     /**
+      * PUT endpoint that updates a user's profile information.
+      * 
+      * @param request The request body containing updated profile details.
+      * @return A ResponseEntity with HTTP 200 if the update is successful,
+      *         HTTP 400 if the request is invalid, or HTTP 404 if the user profile is not found.
+      */
+     @PutMapping("/updateProfile")
+     public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request) {
+         try {
+             if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
+                 return ResponseEntity.badRequest().body("User ID is required");
+             }
+     
+             System.out.println("Received Update Request:");
+             System.out.println("User ID: " + request.getUserId());
+             System.out.println("Full Name: " + request.getFullName());
+             System.out.println("Gender: " + request.getGender());
+             System.out.println("Major: " + request.getMajor());
+             System.out.println("Minor: " + request.getMinor());
+             System.out.println("Graduation Year: " + request.getGraduationYear());
+             System.out.println("Residence: " + request.getResidence());
+             System.out.println("Bio: " + request.getBio());
+             System.out.println("Hobbies: " + (request.getHobbies() != null ? request.getHobbies().toString() : "null"));
+     
+             Map<String, AttributeValue> key = new HashMap<>();
+             key.put("userId", AttributeValue.builder().s(request.getUserId()).build());
+     
+             GetItemRequest getItemRequest = GetItemRequest.builder()
+                 .tableName("profiles")
+                 .key(key)
+                 .build();
+             GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+     
+             if (!getItemResponse.hasItem()) {
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
+             }
 
-            return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
+             Map<String, AttributeValue> attributeValues = new HashMap<>();
+             Map<String, String> expressionAttributeNames = new HashMap<>();
+             StringBuilder updateExpression = new StringBuilder("SET ");
+             List<String> updateList = new ArrayList<>();
+     
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "age", request.getAge());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "bio", request.getBio());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "gender", request.getGender());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "major", request.getMajor());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "minor", request.getMinor());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "residence", request.getResidence());
+             addAttribute(updateList, attributeValues, expressionAttributeNames, "graduationYear", request.getGraduationYear());
+             
+             // handle hobbies 
+             if (request.getHobbies() != null && !request.getHobbies().isEmpty()) {
+                 String attributeKey = ":hobbiesValue";
+                 String expressionField = "#hobbies";
+                 
+                 expressionAttributeNames.put(expressionField, "hobbies");
+                 
+                 updateList.add(expressionField + " = " + attributeKey);
+                 attributeValues.put(attributeKey, AttributeValue.builder()
+                     .l(request.getHobbies().stream()
+                         .map(hobby -> AttributeValue.builder().s(hobby).build())
+                         .collect(Collectors.toList()))
+                     .build());
+             }
+     
+             if (updateList.isEmpty()) {
+                 return ResponseEntity.badRequest().body("No fields to update");
+             }
+     
+             updateExpression.append(String.join(", ", updateList));
+     
+             // complete request
+             UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                 .tableName("profiles")
+                 .key(key)
+                 .updateExpression(updateExpression.toString())
+                 .expressionAttributeNames(expressionAttributeNames)
+                 .expressionAttributeValues(attributeValues)
+                 .build();
+     
+             dynamoDbClient.updateItem(updateItemRequest);
+     
+             return ResponseEntity.ok("Profile updated successfully");
+         } catch (Exception e) {
+             e.printStackTrace();
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body(Map.of("error", e.getMessage()));
+         }
+     }
+     
+        //helper methods
+        private void addAttribute(
+        List<String> updateList, 
+        Map<String, AttributeValue> attributeValues, 
+        Map<String, String> expressionAttributeNames,
+        String fieldName, 
+        String value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+                
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().s(value).build());
         }
-    }
+        }
 
+        private void addAttribute(
+        List<String> updateList, 
+        Map<String, AttributeValue> attributeValues, 
+        Map<String, String> expressionAttributeNames,
+        String fieldName, 
+        Integer value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+                
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+        }
+        }
+     
 }
+        

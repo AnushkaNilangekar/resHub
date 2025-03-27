@@ -56,7 +56,7 @@ export default function Step5UserTraits({
             <Picker selectedValue={noiseLevel} onValueChange={setNoiseLevel} style={styles.picker} itemStyle={{ color: '#000' }}>
                 <Picker.Item label="Select" value="Select an option" />
                 <Picker.Item label="Quiet" value="Quiet" />
-                <Picker.Item label="Moderate Noise" value="Moderate Noise" />
+                <Picker.Item label="Moderate" value="Moderate" />
                 <Picker.Item label="Loud Environment" value="Loud Environment" />
             </Picker>
             <Text style={styles.label}>Sharing Common Items</Text>

@@ -6,6 +6,7 @@ import config from '../config';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors } from '../styles/colors';
 
 const SwipeScreen = () => {
   const [profiles, setProfiles] = useState([]);
@@ -189,17 +190,43 @@ const SwipeScreen = () => {
             renderCard={(card) => {
               if (!card) return null;
               return (
-                <View style={[styles.card, { backgroundColor: card.backgroundColor || "#F5E6F7" }]}>
-                  <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
-                  <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
-                  <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Major: {card.major || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Minor: {card.minor || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Residence: {card.residence || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Graduation Year: {card.graduationYear || "N/A"}</Text>
-                  <Text style={styles.cardSubtitle}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
-                  <Text style={styles.cardSubtitle}>Bio: {card.bio || "No Bio available"}</Text>
+                <View style={styles.card}>
+                  <View style={styles.rowContainer}>
+                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
+                    <View stylele={styles.columnContainer}>
+                      <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
+                      <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
+                      <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
+                    </View>
+                  </View>
+
+                  <View stylele={styles.columnContainer}>
+                    <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
+                    <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
+                    <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
+                    <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
+                    <Text style={styles.cardText}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
+                    <Text style={styles.cardText}>Bio: {card.bio || "No Bio available"}</Text>
+                  </View>
+
+                  <View style={styles.cardFooter}>
+                    <View style={styles.rowContainerBody}>
+                      <View stylele={styles.columnContainer}>
+                        <Text style={styles.footerText}>Smoking: {card.smokingStatus || "N/A"}</Text>
+                        <Text style={styles.footerText}>Cleanliness: {card.cleanlinessLevel || "N/A"}</Text>
+                        <Text style={styles.footerText}>Noise: {card.noiseLevel || "N/A"}</Text>
+                        <Text style={styles.footerText}>Sharing: {card.sharingCommonItems || "N/A"}</Text>
+                        <Text style={styles.footerText}>Diet: {card.dietaryPreference || "N/A"}</Text>
+                      </View>
+                      <View style={styles.columnContainer}>
+                        <Text style={styles.footerText}>Sleep: {card.sleepSchedule || "N/A"}</Text>
+                        <Text style={styles.footerText}>Pets: {card.hasPets || "N/A"}</Text>
+                        <Text style={styles.footerText}>Guests: {card.guestFrequency || "N/A"}</Text>
+                        <Text style={styles.footerText}>Allergies: {card.allergies || "N/A"}</Text>
+                        <Text style={styles.footerText}></Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               );
             }}
@@ -207,7 +234,7 @@ const SwipeScreen = () => {
             onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
             onSwipedAll={() => setIsSwipedAll(true)}
             cardIndex={0}
-            backgroundColor={'#f0f0f0'}
+            backgroundColor={colors.white}
             stackSize={3}
           />
         </View>
@@ -220,17 +247,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 15,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.white,
     justifyContent: 'flex-start',
     paddingTop: 40,
   },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,  
+  },
+  rowContainerBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  columnContainer: {
+    flexDirection: 'column',
+  },
   titleContainer: {
-    marginTop: 15,
     width: "100%", 
     alignItems: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -245,40 +284,88 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: "#FFC0CB", // Pastel Pink
+    backgroundColor: colors.pastelPink,
   },
   selectedFilter: {
-    backgroundColor: "#1E90FF", // Blue
+    backgroundColor: colors.blue,
   },
   filterText: {
-    color: "#fff",
+    color: colors.white,
     fontWeight: "bold",
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.white,
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 40,
   },
   card: {
-    flex: 0.65,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    justifyContent: 'center',
-    padding: 10,
-    marginHorizontal: 20,
+    backgroundColor: colors.pastelPink,
+    borderRadius: 25,
+    borderWidth: 5,
+    borderColor: colors.lightPastelPink,
+    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    width: '100%',
+    height: '65%',
+    alignSelf: 'center',
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    // For Apple
+    shadowColor: '#000',
+    shadowOffset: { width: 10, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    // For Android
+    elevation: 5,
+  },
+  cardFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    backgroundColor: colors.white,
+    borderRadius: 15,
+    borderTopWidth: 5,
+    borderLeftWidth: 2,
+    borderRightWidth: 2,
+    borderColor: colors.lightPastelPink,
   },
   cardTitle: {
-    fontSize: 22,
-    marginBottom: 10,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '85%',
   },
   cardSubtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 2,
+    width: '85%',
+  },
+  cardText: {
     fontSize: 16,
-    color: '#555',
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '85%',
+  },
+  footerText: {
+    fontSize: 14,
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '100%',
   },
   noProfilesContainer: {
     flex: 1,
@@ -288,7 +375,7 @@ const styles = StyleSheet.create({
   noProfilesText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#555',
+    color: colors.cardTextColor,
     textAlign: 'center',
     marginTop: 20,
   },
@@ -301,7 +388,7 @@ const styles = StyleSheet.create({
   endCardText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.cardTextColor,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -312,11 +399,12 @@ const styles = StyleSheet.create({
     columnGap: 15,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     borderWidth: 2,
-    borderColor: "#ddd",
+    borderColor: colors.profilePicBorder,
+    marginRight: 15,
   },
 });
 

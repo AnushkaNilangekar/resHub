@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import SwipeScreen from "../screens/SwipeScreen";
 import AccountScreen from '../screens/AccountScreen';
-import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
+import ChatScreen from '../screens/ChatScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,7 +15,7 @@ const BottomTabNavigator = () => {
           let iconName;
           if (route.name === 'Home') {
             iconName = 'home';
-          } else if (route.name === 'Matches') {
+          } else if (route.name === 'Chats') {
             iconName = 'chatbubble';
           } else if (route.name === 'Account') {
             iconName = 'person';
@@ -32,8 +32,8 @@ const BottomTabNavigator = () => {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Matches"
-        component={MatchesChatTabNavigator}
+        name="Chats"
+        component={ChatScreen}
         options={{ headerShown: true }}
       />
       <Tab.Screen

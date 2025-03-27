@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
       "token",
       "userEmail",
       "profileData",
-      "userId"
+      "userId" 
     ]);
     setIsAuthenticated(false);
   };

@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 const ChatsScreen = () => {
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
   /*
   * Gets a list of the chat ids for the current user
@@ -19,15 +20,16 @@ const ChatsScreen = () => {
   async function getChats() {
     try {
       const token = await AsyncStorage.getItem("token");
-      const email = await AsyncStorage.getItem("userEmail");
+      const userId = await AsyncStorage.getItem("userId");
       const response = await axios.get(`${config.API_BASE_URL}/api/users/getChats`, {
         params: {
-          userId: email,
+          userId: userId,
         },
         headers: {
           'Authorization': `Bearer ${token}`,
         }
       });
+      console.log(response.data)
 
       return response.data;
     } catch (error) {
@@ -44,11 +46,11 @@ const ChatsScreen = () => {
 
     for (const chatId of chatIds) {
       try {
-        const email = await AsyncStorage.getItem("userEmail");
+        const userId = await AsyncStorage.getItem("userId");
         const token = await AsyncStorage.getItem("token");
         const response = await axios.get(`${config.API_BASE_URL}/api/users/getChatDetails`, {
           params: {
-            userId: email,
+            userId: userId,
             chatId: chatId,
           },
           headers: {
@@ -56,12 +58,12 @@ const ChatsScreen = () => {
           }
         });
 
-        const { otherUserEmail, lastMessage } = response.data;
+        const { otherUserId, lastMessage } = response.data;
 
         // Get profile info for the other user
         const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
-            userId: otherUserEmail, // Assuming email is used as the userId for the profile
+            userId: otherUserId, // Assuming email is used as the userId for the profile
           },
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -75,7 +77,7 @@ const ChatsScreen = () => {
           fullName,
           profilePicUrl,
           lastMessage,
-          otherUserEmail,
+          otherUserId,
         });
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
@@ -113,31 +115,32 @@ const ChatsScreen = () => {
   return (
     <View style={styles.container}>
       {chats.length === 0 ? (
-              <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-                <Ionicons name="sad-outline" size={50} color="#555" />
-                <Text style={styles.noMatchesText}>No chats yet</Text>
-              </ScrollView>
+        <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+          <Ionicons name="sad-outline" size={50} color="#555" />
+          <Text style={styles.noMatchesText}>No chats yet</Text>
+        </ScrollView>
       ) : (
-      <FlatList
-        data={chats}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.chatCard}>
-            {item.profilePicUrl ? (
-              <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-            ) : (
-              <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
-            )}
-
-            <View style={styles.textContainer}>
-              <Text style={styles.fullName}>{item.fullName}</Text>
-              <Text style={styles.bio}>{item.lastMessage}</Text>
-            </View>
-
-          </View>
-        )}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      />
+        <FlatList
+          data={chats}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.chatCard} 
+              onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+            >
+              {item.profilePicUrl ? (
+                <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+              ) : (
+                <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
+              )}
+              <View style={styles.textContainer}>
+                <Text style={styles.fullName}>{item.fullName}</Text>
+                <Text style={styles.bio}>{item.lastMessage}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        />
       )}
     </View>
   );

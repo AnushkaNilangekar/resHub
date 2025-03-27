@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
@@ -16,6 +16,9 @@ const SwipeScreen = () => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const { logout } = useContext(AuthContext);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const [swipeFeedback, setSwipeFeedback] = useState(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -95,23 +98,47 @@ const SwipeScreen = () => {
         ? `${config.API_BASE_URL}/api/swipes/swipeLeft`
         : `${config.API_BASE_URL}/api/swipes/swipeRight`;
 
-    axios.post(endpoint, null, {
-        params: {
-            userId: userInfo.userId,        // Access userId from userInfo
-            swipedOnUserId,
-        },
-        headers: {
-            'Authorization': `Bearer ${userInfo.token}`,   // Access token from userInfo
-        }
-    })
-    .catch(error => {
-        if (error.response && error.response.status === 404) {
-            console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
-        } else {
-            console.error('Error recording swipe:', error.response?.data || error.message);
-        }
-    });    
-  };
+        axios.post(endpoint, null, {
+            params: {
+                userId: userInfo.userId,        // Access userId from userInfo
+                swipedOnUserId,
+            },
+            headers: {
+                'Authorization': `Bearer ${userInfo.token}`,   // Access token from userInfo
+            }
+        })
+        .catch(error => {
+            if (error.response && error.response.status === 404) {
+                console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
+            } else {
+                console.error('Error recording swipe:', error.response?.data || error.message);
+            }
+        });
+        triggerSwipeFeedback(direction);  
+    };
+
+    const triggerSwipeFeedback = (direction) => {
+      setSwipeFeedback(direction);
+
+      // Reset animations
+      fadeAnim.setValue(0);
+      translateY.setValue(0);
+
+      Animated.parallel([
+          Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 10,
+              useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+              toValue: -10,
+              duration: 10,
+              useNativeDriver: true,
+          }),
+      ]).start(() => {
+          setTimeout(() => setSwipeFeedback(null), 300);
+      });
+    };
 
   const header = (() => {
     return (
@@ -177,7 +204,20 @@ const SwipeScreen = () => {
   return (
     <View style={styles.container}>
       {header()}
-  
+      
+      {swipeFeedback && (
+        <Animated.View style={[
+            styles.swipeFeedback,
+            { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.7, 1],
+            }) }] },
+            swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
+        ]}>
+            <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
+        </Animated.View>
+      )}
+
       {/* Profile swiper or loading */}
       {isSwipedAll ? (
         <View style={styles.endCard}>
@@ -233,6 +273,8 @@ const SwipeScreen = () => {
             onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
             onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
             onSwipedAll={() => setIsSwipedAll(true)}
+            disableTopSwipe
+            disableBottomSwipe
             cardIndex={0}
             backgroundColor={colors.white}
             stackSize={3}
@@ -292,6 +334,36 @@ const styles = StyleSheet.create({
   filterText: {
     color: colors.white,
     fontWeight: "bold",
+  },
+  swipeFeedback: {
+    position: 'absolute',
+    top: '40%',
+    zIndex: 100,
+    width: 70, 
+    height: 70, 
+    borderRadius: 35, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  rightSwipeFeedback: {
+    right: 20, 
+    borderColor: 'rgba(0, 255, 0, 0.5)',
+    borderWidth: 3,
+  },
+  leftSwipeFeedback: {
+    left: 20, 
+    borderColor: 'rgba(255, 0, 0, 0.5)',
+    borderWidth: 3,
+  },
+  swipeIcon: {
+    fontSize: 30, 
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,

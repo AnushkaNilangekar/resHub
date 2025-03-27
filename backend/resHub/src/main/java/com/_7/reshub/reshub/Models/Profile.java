@@ -158,8 +158,7 @@ public class Profile {
         return lastTimeActive;
     }
 
-    public String getProfilePicUrl()
-    {
+    public String getProfilePicUrl() {
         return profilePicUrl;
     }
 

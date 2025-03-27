@@ -121,21 +121,21 @@ const SwipeScreen = () => {
 
       // Reset animations
       fadeAnim.setValue(0);
-      translateY.setValue(50);
+      translateY.setValue(0);
 
       Animated.parallel([
           Animated.timing(fadeAnim, {
               toValue: 1,
-              duration: 400,
+              duration: 10,
               useNativeDriver: true,
           }),
           Animated.timing(translateY, {
-              toValue: -400,
-              duration: 400,
+              toValue: -10,
+              duration: 10,
               useNativeDriver: true,
           }),
       ]).start(() => {
-          setTimeout(() => setSwipeFeedback(null), 600);
+          setTimeout(() => setSwipeFeedback(null), 300);
       });
     };
 
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   swipeFeedback: {
     position: 'absolute',
-    top: '45%',
+    top: '40%',
     zIndex: 100,
     width: 70, 
     height: 70, 

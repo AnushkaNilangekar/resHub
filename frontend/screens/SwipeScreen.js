@@ -322,6 +322,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 15,
+    marginBottom: -50,
     zIndex: 5,
   },
   filterButton: {
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'column',
     width: '100%',
-    height: height * 0.55,
+    height: height * 0.60,
     alignSelf: 'center',
     padding: 20,
     marginTop: 20,

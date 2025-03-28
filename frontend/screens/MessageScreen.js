@@ -20,7 +20,6 @@ const MessageScreen = ({ route }) => {
       });
     }, [navigation, otherUserId]);
   
-
   const fetchMessages = async () => {
     const storedUserId = await AsyncStorage.getItem("userId");
     setUserId(storedUserId);
@@ -145,7 +144,6 @@ useEffect(() => {
     </View>
     </KeyboardAvoidingView>
     </SafeAreaView>
-
   );
 };
 

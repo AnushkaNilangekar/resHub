@@ -1328,10 +1328,10 @@
     wrap-ansi "^7.0.0"
     ws "^8.12.1"
 
-"@expo/cli@0.22.19":
-  version "0.22.19"
-  resolved "https://registry.npmjs.org/@expo/cli/-/cli-0.22.19.tgz"
-  integrity sha512-vgAM3gUsAUQWgDm10RIYSrWQ5q235Ir/lMUdx5Yd/gObYaDlaBIdsq5H72eJ44QB+4ndvhm2wbqntTI19kBIRw==
+"@expo/cli@0.22.21":
+  version "0.22.21"
+  resolved "https://registry.npmjs.org/@expo/cli/-/cli-0.22.21.tgz"
+  integrity sha512-lLtH0CiNTwB+qgduew61Jocgj0B092QiQllBuPXigHI4VQms5VXYXHfQC2pMZ7KWFKhNjBIjLSD8A2n1dBMb1Q==
   dependencies:
     "@0no-co/graphql.web" "^1.0.8"
     "@babel/runtime" "^7.20.0"
@@ -5691,13 +5691,13 @@ expo-application@~5.3.0:
   resolved "https://registry.npmjs.org/expo-application/-/expo-application-5.3.1.tgz"
   integrity sha512-HR2+K+Hm33vLw/TfbFaHrvUbRRNRco8R+3QaCKy7eJC2LFfT05kZ15ynGaKfB5DJ/oqPV3mxXVR/EfwmE++hoA==
 
-expo-asset@~11.0.4:
-  version "11.0.4"
-  resolved "https://registry.npmjs.org/expo-asset/-/expo-asset-11.0.4.tgz"
-  integrity sha512-CdIywU0HrR3wsW5c3n0cT3jW9hccZdnqGsRqY+EY/RWzJbDXtDfAQVEiFHO3mDK7oveUwrP2jK/6ZRNek41/sg==
+expo-asset@~11.0.5:
+  version "11.0.5"
+  resolved "https://registry.npmjs.org/expo-asset/-/expo-asset-11.0.5.tgz"
+  integrity sha512-TL60LmMBGVzs3NQcO8ylWqBumMh4sx0lmeJsn7+9C88fylGDhyyVnKZ1PyTXo9CVDBkndutZx2JUEQWM9BaiXw==
   dependencies:
     "@expo/image-utils" "^0.6.5"
-    expo-constants "~17.0.7"
+    expo-constants "~17.0.8"
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
@@ -5784,7 +5784,7 @@ expo-constants@~14.4.2:
     "@expo/config" "~8.1.0"
     uuid "^3.3.2"
 
-expo-constants@~17.0.6, expo-constants@~17.0.7, expo-constants@~17.0.8:
+expo-constants@~17.0.8:
   version "17.0.8"
   resolved "https://registry.npmjs.org/expo-constants/-/expo-constants-17.0.8.tgz"
   integrity sha512-XfWRyQAf1yUNgWZ1TnE8pFBMqGmFP5Gb+SFSgszxDdOoheB/NI5D4p7q86kI2fvGyfTrxAe+D+74nZkfsGvUlg==
@@ -5799,10 +5799,10 @@ expo-file-system@~15.4.0, expo-file-system@~15.4.5:
   dependencies:
     uuid "^3.4.0"
 
-expo-file-system@~18.0.10, expo-file-system@~18.0.11:
-  version "18.0.11"
-  resolved "https://registry.npmjs.org/expo-file-system/-/expo-file-system-18.0.11.tgz"
-  integrity sha512-yDwYfEzWgPXsBZHJW2RJ8Q66ceiFN9Wa5D20pp3fjXVkzPBDwxnYwiPWk4pVmCa5g4X5KYMoMne1pUrsL4OEpg==
+expo-file-system@~18.0.10, expo-file-system@~18.0.12:
+  version "18.0.12"
+  resolved "https://registry.npmjs.org/expo-file-system/-/expo-file-system-18.0.12.tgz"
+  integrity sha512-HAkrd/mb8r+G3lJ9MzmGeuW2B+BxQR1joKfeCyY4deLl1zoZ48FrAWjgZjHK9aHUVhJ0ehzInu/NQtikKytaeg==
   dependencies:
     web-streams-polyfill "^3.3.2"
 
@@ -5904,22 +5904,22 @@ expo-pwa@0.0.127:
     commander "2.20.0"
     update-check "1.5.3"
 
-expo@*, expo@^52.0.36:
-  version "52.0.38"
-  resolved "https://registry.npmjs.org/expo/-/expo-52.0.38.tgz"
-  integrity sha512-6DZJjN/oEeYOPGoNUWE41vUuwVSl/Cg9o3rTbP62Pchgspp61Elsf8G7FtdcAtdgOzkJmbnPrPqklpMXGwpgfA==
+expo@*, expo@^52.0.40:
+  version "52.0.40"
+  resolved "https://registry.npmjs.org/expo/-/expo-52.0.40.tgz"
+  integrity sha512-kRRXW0VRlnc49LiMO9csF5DjWmUQhQ0lHudNIi3m9Z4nvecJbDaKWI5nNxB5UG7Sqj0I/wsBMes5G6gEndeYlQ==
   dependencies:
     "@babel/runtime" "^7.20.0"
-    "@expo/cli" "0.22.19"
+    "@expo/cli" "0.22.21"
     "@expo/config" "~10.0.11"
     "@expo/config-plugins" "~9.0.17"
     "@expo/fingerprint" "0.11.11"
     "@expo/metro-config" "0.19.12"
     "@expo/vector-icons" "^14.0.0"
     babel-preset-expo "~12.0.9"
-    expo-asset "~11.0.4"
+    expo-asset "~11.0.5"
     expo-constants "~17.0.8"
-    expo-file-system "~18.0.11"
+    expo-file-system "~18.0.12"
     expo-font "~13.0.4"
     expo-keep-awake "~14.0.3"
     expo-modules-autolinking "2.0.8"
@@ -11679,9 +11679,9 @@ undici-types@~6.20.0:
   integrity sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==
 
 undici@^6.18.2:
-  version "6.21.1"
-  resolved "https://registry.npmjs.org/undici/-/undici-6.21.1.tgz"
-  integrity sha512-q/1rj5D0/zayJB2FraXdaWxbhWiNKDvu8naDT2dl1yTlvJp4BLtOcp2a5BvgGNQpYYJzau7tf1WgKv3b+7mqpQ==
+  version "6.21.2"
+  resolved "https://registry.npmjs.org/undici/-/undici-6.21.2.tgz"
+  integrity sha512-uROZWze0R0itiAKVPsYhFov9LxrPMHLMEQFszeI2gCN6bnIIZ8twzBCJcN2LJrBBLfrP0t1FW0g+JmKVl8Vk1g==
 
 unicode-canonical-property-names-ecmascript@^2.0.0:
   version "2.0.1"

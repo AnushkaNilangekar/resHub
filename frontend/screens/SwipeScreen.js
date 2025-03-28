@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   swipeFeedback: {
     position: 'absolute',
-    top: '40%',
+    top: '36%',
     zIndex: 100,
     width: 70, 
     height: 70, 
@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    marginBottom: 5,
     width: "100%",
     paddingHorizontal: 10,
     rowGap: 10,

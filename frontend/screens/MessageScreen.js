@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, Keybo } from "react-native";
+import { View, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, TouchableOpacity, Text, Keybo } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native"; 
 import { Ionicons } from "@expo/vector-icons"; 
@@ -11,16 +11,14 @@ const MessageScreen = ({ route }) => {
   const { chatId, otherUserId, name } = route.params;
   const [messages, setMessages] = useState([]);
   const [userId, setUserId]= useState("");
-  // const navigation = useNavigation();
+  const navigation = useNavigation();
 
-    // // Set the header title dynamically
-    // useLayoutEffect(() => {
-    //   navigation.setOptions({
-    //     title: `Chat with ${name}`, // Customize the title dynamically
-    //     headerStyle: { backgroundColor: "orange" }, // Customize header background
-    //     headerTitleStyle: { color: "white" }, // Customize header text color
-    //   });
-    // }, [navigation, otherUserId]);
+    // Set the header title dynamically
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        title: `Chat with ${name}`, // Customize the title dynamically
+      });
+    }, [navigation, otherUserId]);
   
 
   const fetchMessages = async () => {
@@ -59,21 +57,9 @@ const MessageScreen = ({ route }) => {
 
   // Handle sending a new message
 const onSendMessage = async (text) => {
-  console.log("clicked")
   const token = await AsyncStorage.getItem("token");
-  console.log(token)
 
-  console.log("Sending message:", text);
   if (text.trim()) {
-    // const newMessage = {
-    //   text,
-    //   createdAt: new Date(),
-    //   user: {
-    //     _id: userId,
-    //     name: name,
-    //   },
-    // };
-
     const requestData = {
       chatId: chatId,  // Include chatId in the URL
       createdAt: new Date().toISOString(),
@@ -91,7 +77,6 @@ const onSendMessage = async (text) => {
     userParams.append('name', requestData.name);
 
     try {
-      console.log("yes")
       await axios.post(
         `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
         {},  // You don't need to send the body if all data is in the URL
@@ -101,7 +86,6 @@ const onSendMessage = async (text) => {
           },
         }
       );
-      // setMessages((prevMessages) => [newMessage, ...prevMessages]);
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -115,12 +99,17 @@ useEffect(() => {
 
   const interval = setInterval(() => {
     fetchMessages(); // Fetch messages every 5 seconds
-  }, 100);
+  }, 1000);
 
   return () => clearInterval(interval); // Cleanup on unmount
 }, [chatId]);
 
   return (
+    <SafeAreaView style={styles.container}>
+       <KeyboardAvoidingView
+        style={styles.chatContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
     <View style={styles.container}>
       {/* <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -154,6 +143,8 @@ useEffect(() => {
       />
       </View>
     </View>
+    </KeyboardAvoidingView>
+    </SafeAreaView>
 
   );
 };
@@ -164,22 +155,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#f0f0f0",
   },
-  // header: {
-  //   height: 60, // Ensure the header has enough space
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  //   paddingHorizontal: 15,
-  //   backgroundColor: "white",
-  //   elevation: 3, // Android shadow
-  //   shadowColor: "#000", // iOS shadow
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowOpacity: 0.1,
-  //   shadowRadius: 2,
-  // },
-  // backButton: {
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  // },
   chatContainer: {
     flex: 1, // Ensures the chat takes up the remaining space
     marginTop: 10, // Creates space between the header and chat

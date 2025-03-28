@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,8 @@ public class ProfileService {
     private DynamoDbClient dynamoDbClient;
 
     /*
-     * Handles retrieving information for the given user id and returns a Profile object
+     * Handles retrieving information for the given user id and returns a Profile
+     * object
      */
     public Profile doGetProfile(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
@@ -44,6 +46,7 @@ public class ProfileService {
             Map<String, AttributeValue> item = response.item();
 
             Profile profile = new Profile(
+                    userId,
                     item.getOrDefault("fullName", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("gender", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("major", AttributeValue.builder().s("").build()).s(),
@@ -54,7 +57,29 @@ public class ProfileService {
                             .stream().map(AttributeValue::s).collect(Collectors.toList()),
                     item.getOrDefault("graduationYear", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
-                    item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s()
+                    Instant.parse(
+                        item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s()
+                    ),
+                    item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s(),
+                    // New fields for user's own traits:
+                    item.getOrDefault("smokingStatus", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("cleanlinessLevel", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("sleepSchedule", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("guestFrequency", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("hasPets", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("noiseLevel", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("sharingCommonItems", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("dietaryPreference", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("allergies", AttributeValue.builder().s("").build()).s(),
+                    // New fields for roommate preferences:
+                    item.getOrDefault("roommateSmokingPreference", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateCleanlinessLevel", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateSleepSchedule", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateGuestFrequency", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommatePetPreference", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
+                    item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s()
             );
 
             return profile;
@@ -70,7 +95,7 @@ public class ProfileService {
         ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
         return scanResponse.items().stream()
                 .filter(item -> !item.get("userId").s().equals(userId)) // Exclude logged-in user
-                .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
+                .filter(item -> "All".equalsIgnoreCase(genderFilter) ||
                         (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
                 .map(this::convertDynamoItemToMap) // Convert AttributeValue Map to a normal Map
                 .collect(Collectors.toList());
@@ -82,13 +107,16 @@ public class ProfileService {
     private Map<String, Object> convertDynamoItemToMap(Map<String, AttributeValue> item) {
         Map<String, Object> converted = new HashMap<>();
         item.forEach((key, value) -> {
-            if (value.s() != null) converted.put(key, value.s());
-            else if (value.n() != null) converted.put(key, Integer.parseInt(value.n()));
-            else if (value.l() != null) converted.put(key, value.l().stream().map(AttributeValue::s).collect(Collectors.toList()));
-            else converted.put(key, null); // Handle other cases as needed
+            if (value.s() != null)
+                converted.put(key, value.s());
+            else if (value.n() != null)
+                converted.put(key, Integer.parseInt(value.n()));
+            else if (value.l() != null)
+                converted.put(key, value.l().stream().map(AttributeValue::s).collect(Collectors.toList()));
+            else
+                converted.put(key, null); // Handle other cases as needed
         });
         return converted;
     }
-
 
 }

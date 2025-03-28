@@ -34,8 +34,10 @@ public class ProfileController {
 
     /*
      * GET endpoint to retrieve information for a given user.
+     * 
      * @params
      * userId: The id of the user whose profile should be retrieved
+     * 
      * @return
      * Profile object
      */
@@ -47,7 +49,7 @@ public class ProfileController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -89,26 +91,64 @@ public class ProfileController {
         item.put("minor", AttributeValue.builder().s(request.getMinor() != null ? request.getMinor() : "").build());
         item.put("age", AttributeValue.builder().n(String.valueOf(request.getAge())).build());
         item.put("residence", AttributeValue.builder()
-        .s(request.getResidence() != null ? request.getResidence() : "")
-        .build());
+                .s(request.getResidence() != null ? request.getResidence() : "")
+                .build());
         // Convert the hobbies list into a DynamoDB List.
         item.put("hobbies", AttributeValue.builder()
-        .l(request.getHobbies() != null ? 
-        request.getHobbies().stream()
-            .map(hobby -> AttributeValue.builder().s(hobby).build())
-            .collect(Collectors.toList()) : 
-        Collections.emptyList())
-        .build());
+                .l(request.getHobbies() != null ? request.getHobbies().stream()
+                        .map(hobby -> AttributeValue.builder().s(hobby).build())
+                        .collect(Collectors.toList()) : Collections.emptyList())
+                .build());
         item.put("graduationYear", AttributeValue.builder().s(request.getGraduationYear()).build());
         item.put("bio", AttributeValue.builder()
-        .s(request.getBio() != null ? request.getBio() : "")
-        .build());
+                .s(request.getBio() != null ? request.getBio() : "")
+                .build());
+
+        item.put("smokingStatus", AttributeValue.builder()
+                .s(request.getSmokingStatus() != null ? request.getSmokingStatus() : "").build());
+        item.put("cleanlinessLevel", AttributeValue.builder()
+                .s(request.getCleanlinessLevel() != null ? request.getCleanlinessLevel() : "").build());
+        item.put("sleepSchedule", AttributeValue.builder()
+                .s(request.getSleepSchedule() != null ? request.getSleepSchedule() : "").build());
+        item.put("guestFrequency", AttributeValue.builder()
+                .s(request.getGuestFrequency() != null ? request.getGuestFrequency() : "").build());
+        item.put("hasPets",
+                AttributeValue.builder().s(request.getHasPets() != null ? request.getHasPets() : "").build());
+        item.put("noiseLevel",
+                AttributeValue.builder().s(request.getNoiseLevel() != null ? request.getNoiseLevel() : "").build());
+        item.put("sharingCommonItems", AttributeValue.builder()
+                .s(request.getSharingCommonItems() != null ? request.getSharingCommonItems() : "").build());
+        item.put("dietaryPreference", AttributeValue.builder()
+                .s(request.getDietaryPreference() != null ? request.getDietaryPreference() : "").build());
+        item.put("allergies",
+                AttributeValue.builder().s(request.getAllergies() != null ? request.getAllergies() : "").build());
+        item.put("roommateSmokingPreference",
+                AttributeValue.builder()
+                        .s(request.getRoommateSmokingPreference() != null ? request.getRoommateSmokingPreference() : "")
+                        .build());
+        item.put("roommateCleanlinessLevel", AttributeValue.builder()
+                .s(request.getRoommateCleanlinessLevel() != null ? request.getRoommateCleanlinessLevel() : "").build());
+        item.put("roommateSleepSchedule", AttributeValue.builder()
+                .s(request.getRoommateSleepSchedule() != null ? request.getRoommateSleepSchedule() : "").build());
+        item.put("roommateGuestFrequency", AttributeValue.builder()
+                .s(request.getRoommateGuestFrequency() != null ? request.getRoommateGuestFrequency() : "").build());
+        item.put("roommatePetPreference", AttributeValue.builder()
+                .s(request.getRoommatePetPreference() != null ? request.getRoommatePetPreference() : "").build());
+        item.put("roommateNoiseTolerance", AttributeValue.builder()
+                .s(request.getRoommateNoiseTolerance() != null ? request.getRoommateNoiseTolerance() : "").build());
+        item.put("roommateSharingCommonItems",
+                AttributeValue.builder().s(
+                        request.getRoommateSharingCommonItems() != null ? request.getRoommateSharingCommonItems() : "")
+                        .build());
+        item.put("roommateDietaryPreference",
+                AttributeValue.builder()
+                        .s(request.getRoommateDietaryPreference() != null ? request.getRoommateDietaryPreference() : "")
+                        .build());
 
         String profilePicUrl = request.getProfilePicUrl();
         if (profilePicUrl == null || profilePicUrl.trim().isEmpty()) {
             profilePicUrl = "https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg";
         }
-        
         item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
         // Save the item to the DynamoDB table.
@@ -137,7 +177,7 @@ public class ProfileController {
 
         // Create a GET request to DynamoDB
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName("profiles") 
+                .tableName("profiles")
                 .key(key)
                 .build();
         GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
@@ -153,27 +193,31 @@ public class ProfileController {
     /**
      * GET endpoint that returns the list of all profiles filtered based on gender.
      * 
-     * @param userId The user currently looking at the page (will not be included in result)
-     * @param genderFilter The gender filter to filter profiles by.
-     * @param filterOutSwipedOn If true, filters out userIds that the current user has already swiped on
-     * @return A ResponseEntity containing the list of filtered profiles with HTTP 200, 
+     * @param userId            The user currently looking at the page (will not be
+     *                          included in result)
+     * @param genderFilter      The gender filter to filter profiles by.
+     * @param filterOutSwipedOn If true, filters out userIds that the current user
+     *                          has already swiped on
+     * @return A ResponseEntity containing the list of filtered profiles with HTTP
+     *         200,
      *         or an empty list if no profiles match the filter.
      */
 
     @GetMapping("/getProfiles")
-    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
+    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter,
+            @RequestParam boolean filterOutSwipedOn) {
         try {
             List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
 
             if (filterOutSwipedOn) {
                 List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
-                
+
                 profiles = profiles.stream()
-                    .filter(profile -> {
-                        Object userIdObj = profile.get("userId");
-                        return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
-                    })
-                    .collect(Collectors.toList());
+                        .filter(profile -> {
+                            Object userIdObj = profile.get("userId");
+                            return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                        })
+                        .collect(Collectors.toList());
             }
 
             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
@@ -183,5 +227,5 @@ public class ProfileController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
-     
+
 }

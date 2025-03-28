@@ -1,6 +1,7 @@
 package com._7.reshub.reshub.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -87,9 +88,6 @@ public class UserController {
             return "Error: " + e.getMessage();
         }
     }
-    
-   
-
 
      /*
      * GET endpoint to get the emails of uses that a user has a chat with.
@@ -129,6 +127,16 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace();
             return "Error: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/updateLastTimeActive")
+    public ResponseEntity<?> updateRecentlyActive(@RequestParam String userId) {
+        try {
+            userService.doUpdateLastTimeActive(userId);
+            return ResponseEntity.ok("User " + userId + " last time active updated.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
 

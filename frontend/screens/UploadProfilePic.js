@@ -40,7 +40,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
 
       if (!result.canceled) {
         const { uri } = result.assets[0];
-        setSelectedImage(uri); 
+        setSelectedImage(uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -52,10 +52,10 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       Alert.alert("Upload Failed", "Please select an image first.");
       return;
     }
-  
+
     const uriParts = selectedImage.split(".");
     const fileType = uriParts[uriParts.length - 1].toLowerCase();
-  
+
     const formData = new FormData();
     const fileObject = {
       uri: selectedImage,
@@ -63,23 +63,23 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       type: `image/${fileType}`,
     };
     formData.append("file", fileObject);
-  
+
     try {
       const token = await AsyncStorage.getItem("token");
       const response = await axios.post(`${config.API_BASE_URL}/api/s3/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', 
+          'Content-Type': 'multipart/form-data',
         },
       });
-  
+
       if (response.status >= 200 && response.status < 300) {
-        const data = response.data; 
+        const data = response.data;
         Alert.alert("Success", "Image uploaded successfully!");
         setUploadSuccess(true); // Update upload status
         onPictureUploaded(data.url);
       } else {
-        const errorData = response.data; 
+        const errorData = response.data;
         Alert.alert("Upload Failed", errorData.message || "Unknown error");
       }
     } catch (error) {
@@ -87,52 +87,52 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       console.error(error);
     }
   };
-  
-  
+
+
 
   return (
-      <View style={styles.container}>
-          <Text style={styles.title}>Upload Profile Picture</Text>
-          
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-              <Text style={styles.buttonText}>Pick an image from gallery</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Upload Profile Picture</Text>
+
+      <TouchableOpacity style={styles.button} onPress={pickImage}>
+        <Text style={styles.buttonText}>Pick an image from gallery</Text>
+      </TouchableOpacity>
+
+      {uploadSuccess && (
+        <Text style={styles.uploadStatus}>
+          ✓ Image uploaded successfully - Ready to submit
+        </Text>
+      )}
+
+      {selectedImage && (
+        <>
+          <Image source={{ uri: selectedImage }} style={styles.image} />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={uploadImage}
+          >
+            <Text style={styles.buttonText}>Upload Image</Text>
           </TouchableOpacity>
+        </>
+      )}
 
-          {uploadSuccess && (
-          <Text style={styles.uploadStatus}>
-              ✓ Image uploaded successfully - Ready to submit
-            </Text>
-          )}
-
-          {selectedImage && (
-              <>
-                  <Image source={{ uri: selectedImage }} style={styles.image} />
-                  <TouchableOpacity 
-                      style={styles.button} 
-                      onPress={uploadImage}
-                  >
-                      <Text style={styles.buttonText}>Upload Image</Text>
-                  </TouchableOpacity>
-              </>
-          )}
-
-          <View style={styles.buttonContainer}>
-              <Button title="Back" onPress={handleBack} />
-              <View style={styles.buttonSpacer} />
-              <Button 
-                  title="Skip" 
-                  onPress={handleSkip}
-                  color="#FF0000" 
-              />
-              <Button 
-                  title="Submit" 
-                  onPress={handleSubmit} 
-                  disabled={!uploadSuccess}
-              />
-          </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Back" onPress={handleBack} />
+        <View style={styles.buttonSpacer} />
+        <Button
+          title="Skip"
+          onPress={handleSkip}
+          color="#FF0000"
+        />
+        <Button
+          title="Submit Form"
+          onPress={handleSubmit}
+          disabled={!uploadSuccess}
+        />
       </View>
-    );
-  };
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -174,12 +174,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonSpacer: {
-      width: 20,
+    width: 20,
   },
   uploadStatus: {
-      marginTop: 10,
-      color: '#007AFF',
-      fontSize: 14,
+    marginTop: 10,
+    color: '#007AFF',
+    fontSize: 14,
   },
 });
 

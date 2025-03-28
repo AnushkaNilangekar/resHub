@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../styles/colors';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
 const { height, width } = Dimensions.get('window');
 
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     borderColor: colors.lightPastelPink,
   },
   cardTitle: {
-    fontSize: 26,
+    fontSize: RFPercentage(3.3),
     fontWeight: 'bold',
     flexWrap: 'wrap',
     color: colors.cardTextColor,
@@ -420,22 +421,21 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   cardSubtitle: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.3),
     fontWeight: 'bold',
     flexWrap: 'wrap',
     color: colors.cardTextColor,
     marginBottom: 2,
-    width: '85%',
   },
   cardText: {
-    fontSize: 16,
+    fontSize: RFPercentage(2),
     flexWrap: 'wrap',
     color: colors.cardTextColor,
     marginBottom: 5,
     width: '85%',
   },
   footerText: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.8),
     flexWrap: 'wrap',
     color: colors.cardTextColor,
     marginBottom: 5,
@@ -473,9 +473,9 @@ const styles = StyleSheet.create({
     columnGap: 15,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: width * 0.23,
+    height: width * 0.23,
+    borderRadius: (width * 0.23) / 2,
     borderWidth: 2,
     borderColor: colors.profilePicBorder,
     marginRight: 15,

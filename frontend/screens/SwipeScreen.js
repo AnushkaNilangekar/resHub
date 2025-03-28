@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated } from 'react-native';
+import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
@@ -7,6 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../styles/colors';
+
+const { height, width } = Dimensions.get('window');
 
 const SwipeScreen = () => {
   const [profiles, setProfiles] = useState([]);
@@ -204,7 +206,7 @@ const SwipeScreen = () => {
   return (
     <View style={styles.container}>
       {header()}
-      
+
       {swipeFeedback && (
         <Animated.View style={[
             styles.swipeFeedback,
@@ -380,7 +382,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'column',
     width: '100%',
-    height: '65%',
+    height: height * 0.55,
     alignSelf: 'center',
     padding: 20,
     marginTop: 20,

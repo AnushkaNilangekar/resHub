@@ -11,6 +11,7 @@ const MessageScreen = ({ route }) => {
   const { chatId, otherUserId, name } = route.params;
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
+  const [token, setToken] = useState("");
   const navigation = useNavigation();
 
   // Set the header title dynamically
@@ -23,6 +24,8 @@ const MessageScreen = ({ route }) => {
   const fetchMessages = async () => {
     const storedUserId = await AsyncStorage.getItem("userId");
     setUserId(storedUserId);
+    const storedToken = await AsyncStorage.getItem("token");
+    setToken(storedToken);
     try {
       const token = await AsyncStorage.getItem("token");
       const response = await axios.get(`${config.API_BASE_URL}/api/users/getMessages`, {
@@ -55,10 +58,9 @@ const MessageScreen = ({ route }) => {
   };
 
   // Handle sending a new message
-  const onSendMessage = async (newMessages = []) => {
-    if (newMessages.length === 0) return;
-    const text = newMessages[0].text;
-    const token = await AsyncStorage.getItem("token");
+  const onSendMessage = async (text) => {
+    // if (newMessages.length === 0) return;
+    // const text = newMessages[0].text;
 
     if (text.trim()) {
       const requestData = {
@@ -76,6 +78,8 @@ const MessageScreen = ({ route }) => {
       userParams.append('text', requestData.text);
       userParams.append('userId', requestData.userId);
       userParams.append('name', requestData.name);
+
+      console.log("params:" + userParams.toString());
 
       try {
         await axios.post(
@@ -121,7 +125,7 @@ const MessageScreen = ({ route }) => {
           <View style={styles.chatContainer}>
             <Chat
               messages={messages}
-              onSet={onSendMessage}
+              setMessages={(val) => onSendMessage(val)}
               themeColor="blue"
               themeTextColor="white"
               showSenderAvatar={true}

@@ -1,4 +1,3 @@
-// File: Step6RoommatePreferences.js
 import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -77,62 +76,6 @@ export default function Step6RoommatePreferences({
                 <Button title="Back" onPress={handleBack} />
                 <Button title="Next" onPress={handleNext} />
             </View>
-
-            <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Roommate Preferences</Text>
-            <CustomDropdown 
-                label="Roommate Smoking Preference"
-                selectedValue={roommateSmokingPreference}
-                onValueChange={setRoommateSmokingPreference}
-                options={[
-                    'Non-Smoker', 
-                    'Smoker', 
-                    'Only when I\'m not around'
-                ]}
-            />
-            <CustomDropdown 
-                label="Roommate Cleanliness Level"
-                selectedValue={roommateCleanlinessLevel}
-                onValueChange={setRoommateCleanlinessLevel}
-                options={['Very Clean', 'Moderate', 'Messy']}
-            />
-            <CustomDropdown 
-                label="Roommate Sleep Schedule"
-                selectedValue={roommateSleepSchedule}
-                onValueChange={setRoommateSleepSchedule}
-                options={['Early Bird', 'Night Owl', 'Flexible']}
-            />
-            <CustomDropdown 
-                label="Roommate Guest Frequency"
-                selectedValue={roommateGuestFrequency}
-                onValueChange={setRoommateGuestFrequency}
-                options={['Rarely', 'Occasionally', 'Frequently']}
-            />
-            <CustomDropdown 
-                label="Roommate Pet Preference"
-                selectedValue={roommatePetPreference}
-                onValueChange={setRoommatePetPreference}
-                options={['No Pets', 'Okay with Pets']}
-            />
-            <CustomDropdown 
-                label="Roommate Noise Tolerance"
-                selectedValue={roommateNoiseTolerance}
-                onValueChange={setRoommateSleepSchedule}
-                options={['Quiet', 'Moderate Noise', 'Loud Environment']}
-            />
-            <CustomDropdown 
-                label="Roommate Sharing Common Items"
-                selectedValue={roommateSharingCommonItems}
-                onValueChange={setRoommateSharingCommonItems}
-                options={['Strictly Separate', 'Willing to Share', 'Flexible']}
-            />
-            <CustomDropdown 
-                label="Roommate Dietary Preference"
-                selectedValue={roommateDietaryPreference}
-                onValueChange={setRoommateDietaryPreference}
-                options={['Vegetarian', 'Vegan', 'No Restrictions']}
-            />
-        </View>
         </View>
     );
 }

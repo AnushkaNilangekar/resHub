@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, Modal, Platform, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 
 export default function Step2Demographics({ gender, setGender, age, setAge, handleNext, handleBack }) {
@@ -67,39 +68,61 @@ export default function Step2Demographics({ gender, setGender, age, setAge, hand
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Step 2: Demographics</Text>
-            <Text style={styles.label}>Gender:</Text>
-            {renderGenderPicker()}
-            <Text style={styles.label}>Age:</Text>
-            <TextInput
-                style={styles.input}
-                value={age}
-                onChangeText={setAge}
-                placeholder="Enter age"
-                keyboardType="numeric"
-            />
-            <View style={styles.buttonContainer}>
-                <Button title="Back" onPress={handleBack} />
-                <View style={styles.buttonSpacer} />
-                <Button title="Next" onPress={handleNext} />
+        <LinearGradient
+            colors={['#6C85FF', '#4A90E2', '#7B4A9E']}
+            style={styles.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            locations={[0, 0.6, 1]}
+        >
+            <View style={styles.container}>
+                <Text style={styles.title}>Step 2: Demographics</Text>
+                <Text style={styles.label}>Gender:</Text>
+                {renderGenderPicker()}
+                <Text style={styles.label}>Age:</Text>
+                <TextInput
+                    style={styles.input}
+                    value={age}
+                    onChangeText={setAge}
+                    placeholder="Enter age"
+                    keyboardType="numeric"
+                    placeholderTextColor="#a9a9a9"
+                />
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity style={styles.button} onPress={handleBack}>
+                        <Text style={styles.buttonText}>Back</Text>
+                    </TouchableOpacity>
+                    <View style={styles.buttonSpacer} />
+                    <TouchableOpacity style={styles.button} onPress={handleNext}>
+                        <Text style={styles.buttonText}>Next</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { marginBottom: 20 },
+    gradient: {
+        flex: 1,
+    },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        marginTop: 20,
+    },
     title: {
-        fontSize: 22,
-        marginBottom: 20,
+        fontSize: 24,
+        marginBottom: 30,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#fff',
     },
     label: {
         fontSize: 16,
         marginBottom: 8,
-        color: "#a9a9a9",
+        color: "#fff",
     },
     input: {
         borderWidth: 1,
@@ -109,6 +132,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#fff',
         fontSize: 16,
+        color: '#000',
     },
     pickerContainer: {
         borderWidth: 1,
@@ -153,4 +177,17 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     buttonSpacer: { width: 20 },
+    button: {
+        backgroundColor: '#4A90E2',
+        paddingVertical: 12,
+        paddingHorizontal: 25,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buttonText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: 'bold',
+    },
 });

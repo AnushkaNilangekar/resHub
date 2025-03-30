@@ -86,20 +86,25 @@ export default function Step5UserTraits({
 }
 
 const styles = StyleSheet.create({
-    container: { marginBottom: 20, marginTop: 20 },
+    container: { paddingHorizontal: 20, marginBottom: 20, marginTop: 20 },
     title: {
-        fontSize: 22,
-        marginBottom: 8,
-        marginTop: 20,
+        fontSize: 24,
+        marginBottom: 10,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#333',
     },
     note: {
-        fontSize: 15,
+        fontSize: 14,
         marginBottom: 20,
         textAlign: 'center',
+        color: '#666',
     },
-    label: { fontSize: 16, marginBottom: 8 },
+    label: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: '#444',
+    },
     input: {
         borderWidth: 1,
         borderColor: '#ccc',
@@ -108,6 +113,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#fff',
         fontSize: 16,
+        color: '#333',
     },
     picker: {
         borderWidth: 1,

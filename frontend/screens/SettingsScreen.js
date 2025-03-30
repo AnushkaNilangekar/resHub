@@ -629,8 +629,8 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
     },
     hobbySelected: {
-        backgroundColor: '#4CAF50', 
-        borderColor: '#4CAF50',
+        backgroundColor: '#6C85FF', 
+        borderColor: '#6C85FF',
     },
     hobbyText: {
         fontSize: 16,

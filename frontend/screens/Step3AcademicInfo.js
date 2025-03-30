@@ -110,25 +110,27 @@ export default function Step3AcademicInfo({
             <Text style={styles.label}>Graduation Year:</Text>
             {renderYearPicker()}
             <View style={styles.buttonContainer}>
-                <Button title="Back" onPress={handleBack} />
+                <Button title="Back" onPress={handleBack} color="#007AFF" />
                 <View style={styles.buttonSpacer} />
-                <Button title="Next" onPress={handleNext} />
+                <Button title="Next" onPress={handleNext} color="#007AFF" />
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { marginBottom: 20 },
+    container: { marginBottom: 20, paddingHorizontal: 20 },
     title: {
-        fontSize: 22,
+        fontSize: 24,
         marginBottom: 20,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#333',
     },
     label: {
         fontSize: 16,
-        marginBottom: 8
+        marginBottom: 8,
+        color: '#444',
     },
     input: {
         borderWidth: 1,
@@ -138,6 +140,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#fff',
         fontSize: 16,
+        color: '#333',
     },
     pickerContainer: {
         borderWidth: 1,
@@ -148,7 +151,10 @@ const styles = StyleSheet.create({
         padding: Platform.OS === 'ios' ? 12 : 0,
         justifyContent: 'center',
     },
-    pickerText: { fontSize: 16, color: '#000' },
+    pickerText: {
+        fontSize: 16,
+        color: '#000',
+    },
     modalContainer: {
         flex: 1,
         justifyContent: 'flex-end',

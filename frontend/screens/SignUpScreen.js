@@ -1,15 +1,23 @@
 import React, { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    Button,
-    Alert,
-    Keyboard,
-    TouchableWithoutFeedback
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  TouchableWithoutFeedback,
+  StyleSheet, 
+  Keyboard,
+  Alert, 
+  KeyboardAvoidingView, 
+  Platform, 
+  StatusBar, 
+  SafeAreaView, 
+  Animated, 
+  ActivityIndicator
 } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../config";
 
 const SignUpScreen = ({ navigation }) => {
@@ -18,6 +26,7 @@ const SignUpScreen = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignUp = async () => {
         // Client-side validation checks...
@@ -64,59 +73,93 @@ const SignUpScreen = ({ navigation }) => {
     return (
         // Wrap the container with TouchableWithoutFeedback to dismiss the keyboard when tapping outside
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.container}>
-                <Text style={styles.title}>Sign Up</Text>
+             <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" />
+            <LinearGradient
+                colors={['#7B4A9E', '#6BBFBC', '#6C85FF', '#404756']}
+                style={styles.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                locations={[0, 0.4, 0.7, 1]}
+            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.keyboardAvoidingView}
+                >
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="First Name"
-                    placeholderTextColor="#333"  // Darker placeholder text
-                    value={firstName}
-                    onChangeText={setFirstName}
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Last Name"
-                    placeholderTextColor="#333"
-                    value={lastName}
-                    onChangeText={setLastName}
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email (must end in @purdue.edu)"
-                    placeholderTextColor="#333"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number"
-                    placeholderTextColor="#333"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    keyboardType="phone-pad"
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    placeholderTextColor="#333"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
-
-                <Button title="Sign Up" onPress={handleSignUp} />
-
-                <View style={{ marginTop: 10 }}>
-                    <Button title="Go Back" onPress={() => navigation.goBack()} />
+                <View style={styles.logoContainer}>
+                        <View style={styles.iconContainer}>
+                            <Ionicons name="home" size={36} color="#fff" />
+                        </View>
+                        <Text style={styles.appName}>Sign Up</Text>
                 </View>
-            </View>
+
+                    <View style={styles.contentContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="First Name"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={firstName}
+                            onChangeText={setFirstName}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Last Name"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={lastName}
+                            onChangeText={setLastName}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Email"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Phone Number"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                            keyboardType="phone-pad"
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Password"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                        />
+
+                        <TouchableOpacity
+                            style={styles.signupButton}
+                            onPress={handleSignUp}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.buttonText}>SIGN UP</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <View style={styles.signupContainer}>
+                            <Text style={styles.signupText}>Already have an account? </Text>
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate("LoginScreen")}
+                                style={styles.signupLink}
+                            >
+                                <Text style={styles.signupText}>Login</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </KeyboardAvoidingView>
+            </LinearGradient>
+        </SafeAreaView>
         </TouchableWithoutFeedback>
     );
 };
@@ -126,21 +169,78 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        paddingHorizontal: 20
     },
-    title: {
-        fontSize: 24,
+    gradient: {
+        flex: 1,
+        justifyContent: "space-between",
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+        justifyContent: "center",
+        paddingHorizontal: 25,
+    },
+    logoContainer: {
+        alignItems: "center",
+        marginTop: 50,
+      },
+      iconContainer: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+      },
+    appName: {
+        fontSize: 38,
         fontWeight: "bold",
-        marginBottom: 20,
-        alignSelf: "center"
+        color: "#fff",
+    },
+    contentContainer: {
+        paddingTop: 30,
+        paddingBottom: 50,
+        marginTop: 20,
     },
     input: {
+        height: 55,
+        marginBottom: 16,
+        paddingHorizontal: 15,
+        fontSize: 16,
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+        color: "#fff",
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#ccc",
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15
-    }
+        borderColor: "rgba(255, 255, 255, 0.25)",
+    },
+    signupButton: {
+        backgroundColor: "#7B4A9E",
+        borderRadius: 12,
+        paddingVertical: 15,
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+        letterSpacing: 1,
+    },
+    signupContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        marginTop: 20,
+    },
+    signupText: {
+        color: "#fff",
+        fontSize: 14,
+    },
+    signupLink: {
+        marginLeft: 5,
+    },
 });

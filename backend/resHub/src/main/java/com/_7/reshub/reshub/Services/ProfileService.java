@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,9 +58,10 @@ public class ProfileService {
                             .stream().map(AttributeValue::s).collect(Collectors.toList()),
                     item.getOrDefault("graduationYear", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
-                    Instant.parse(
-                        item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s()
-                    ),
+                    Optional.ofNullable(item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s())
+                        .filter(s -> !s.isEmpty())
+                        .map(Instant::parse)
+                        .orElse(null),
                     item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s(),
                     // New fields for user's own traits:
                     item.getOrDefault("smokingStatus", AttributeValue.builder().s("").build()).s(),

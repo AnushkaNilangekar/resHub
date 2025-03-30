@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TextInput } from 'react-native';
-import axios from 'axios';
+import axios, { formToJSON } from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
@@ -81,16 +81,19 @@ const SettingsScreen = ({ navigation }) => {
     const [graduationYear, setGraduationYear] = useState('');
     const [residence, setResidence] = useState('');
     const [bio, setBio] = useState('');
-    const [hobbies, setHobbies] = useState('');
-    const commonHobbies = ["Reading", "Traveling", "Cooking", "Sports", "Music", "Gaming", "Art"];
+    const [hobbies, setHobbies] = useState([]);
+    const commonHobbies = [
+        "Reading", "Hiking", "Gaming", "Cooking", 
+        "Traveling", "Sports", "Music", "Art", "Working Out"
+    ];
 
     const toggleHobby = (hobby) => {
-        setHobbies(prevHobbies =>
-            prevHobbies.includes(hobby) 
-                ? prevHobbies.filter(item => item !== hobby) 
-                : [...prevHobbies, hobby] 
-        );
-    };
+        if (hobbies.includes(hobby)) {
+          setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
+        } else {
+          setHobbies([...hobbies, hobby]);
+        }
+      };   
 
     // Personal Traits States
     const [smokingStatus, setSmokingStatus] = useState('');
@@ -153,7 +156,7 @@ const SettingsScreen = ({ navigation }) => {
             setGraduationYear(profile.graduationYear ? profile.graduationYear.toString() : '');
             setResidence(profile.residence || '');
             setBio(profile.bio || '');
-            setHobbies(profile.hobbies ? profile.hobbies.join(', ') : '');
+            setHobbies(profile.hobbies || []); 
 
             // Set personal traits
             setSmokingStatus(profile.smokingStatus || '');
@@ -186,6 +189,7 @@ const SettingsScreen = ({ navigation }) => {
         try {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('token');
+            const formattedHobbies = hobbies.join(', '); 
             const updateData = {
                 userId,
                 fullName,
@@ -196,7 +200,7 @@ const SettingsScreen = ({ navigation }) => {
                 graduationYear: parseInt(graduationYear),
                 residence,
                 bio,
-                hobbies,
+                hobbies: formattedHobbies.split(',').map(h => h.trim()),
                 
                 // Personal Traits
                 smokingStatus,
@@ -298,26 +302,21 @@ const SettingsScreen = ({ navigation }) => {
                     />
                     <Text style={styles.label}>Select Your Hobbies:</Text>
                     <View style={styles.hobbiesContainer}>
-                        {commonHobbies.map((hobby) => (
-                            <TouchableOpacity
-                                key={hobby}
-                                style={[
-                                    styles.hobbyItem,
-                                    hobbies.includes(hobby) && styles.hobbySelected, // Toggle selected style
-                                ]}
-                                onPress={() => toggleHobby(hobby)}
-                            >
-                                <Text
-                                    style={[
-                                        styles.hobbyText,
-                                        hobbies.includes(hobby) && styles.hobbyTextSelected, // Change text style if selected
-                                    ]}
-                                >
-                                    {hobby}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                {commonHobbies.map((hobby) => (
+                    <TouchableOpacity
+                        key={hobby}
+                        style={[
+                            styles.hobbyItem,
+                            hobbies.includes(hobby) && styles.hobbySelected,
+                        ]}
+                        onPress={() => toggleHobby(hobby)}
+                    >
+                        <Text style={[styles.hobbyText, hobbies.includes(hobby) && styles.hobbyTextSelected]}>
+                            {hobby}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
                 </View>
 
                 {/* Personal Traits Section */}

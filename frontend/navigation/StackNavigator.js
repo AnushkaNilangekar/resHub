@@ -9,8 +9,8 @@ import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
 import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
-import EditProfileScreen from  "../screens/EditProfileScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
+import SplashScreen from  "../screens/SplashScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +21,7 @@ const StackNavigator = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isAuthenticated ? (
         <>
+          <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
           <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
@@ -32,7 +33,6 @@ const StackNavigator = () => {
           <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
           <Stack.Screen name="MessageScreen" component={MessageScreen} />
-          <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
           <Stack.Screen 
                 name="Settings" 
                 component={SettingsScreen} 

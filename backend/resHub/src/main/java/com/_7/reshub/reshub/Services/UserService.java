@@ -15,7 +15,8 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 import java.time.Instant;
 import java.util.logging.Logger;
@@ -418,6 +419,62 @@ public class UserService {
         }
     
         return chatId;
+    }
+
+     /*
+     * Create a new message in a chat.
+     */
+    public void createMessage(String chatId, String createdAt, String userId, String name, String text) {
+         // Step 2: Create a new message item in the 'messages' table with participants and initial data
+        Map<String, AttributeValue> messageItem = new HashMap<>();
+        messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
+        messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
+        messageItem.put("userId", AttributeValue.builder().s(userId).build());
+        messageItem.put("name", AttributeValue.builder().s(name).build());
+        messageItem.put("text", AttributeValue.builder().s(text).build());
+
+        // Insert the new chat into the 'chats' table
+        PutItemRequest putMessageRequest = PutItemRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .item(messageItem)
+                .build();
+        try {
+            dynamoDbClient.putItem(putMessageRequest);
+            System.out.println("Chat item inserted successfully.");
+        } catch (Exception e) {
+            System.err.println("Error inserting chat item: " + e.getMessage());  // Debugging error
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+    /*
+     * Retrieves a list of messages from the messages table for the given chatId,
+     * sorted by the createdAt attribute in ascending order.
+     */
+    public List<Map<String, String>> getMessages(String chatId) {
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .scanIndexForward(false)
+                .build();
+
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+
+        return queryResponse.items().stream()
+                .map(this::convertToSimpleMap) // Convert DynamoDB response to a simple Map<String, String>
+                .toList();
+    }
+
+    private Map<String, String> convertToSimpleMap(Map<String, AttributeValue> item) {
+        return item.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().s() // Extract string values directly
+                ));
     }
     
     public void doUpdateLastTimeActive(String userId) {

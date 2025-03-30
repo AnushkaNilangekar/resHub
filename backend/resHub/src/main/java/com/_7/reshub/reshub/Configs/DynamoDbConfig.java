@@ -31,6 +31,10 @@ public class DynamoDbConfig {
     @Value("${dynamodb.chats.table.name}")
     private String chatsTableName; 
 
+    // dynamodb.messages.table.name in application.properties
+    @Value("${dynamodb.messages.table.name}")
+    private String messagesTableName;
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
     }
@@ -50,6 +54,11 @@ public class DynamoDbConfig {
     public String getChatsTableName() {
         return chatsTableName;  // New getter for chats table
     }
+
+    public String getMessagesTableName() {
+        return messagesTableName;  // New getter for chats table
+    }
+
 
     /*
      * Creates the DynamoDB client using the credentials stored in your system.

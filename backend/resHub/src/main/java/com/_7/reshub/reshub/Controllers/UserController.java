@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import com._7.reshub.reshub.Services.UserService;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.util.List;
 import java.util.Map;
 
@@ -135,6 +137,28 @@ public class UserController {
             return ResponseEntity.ok("User " + userId + " last time active updated.");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/createMessage")
+    public String createMessage(@RequestParam String chatId, @RequestParam String createdAt, @RequestParam String userId, @RequestParam String name, @RequestParam String text) {
+        try {
+            userService.createMessage(chatId, createdAt, userId, name, text);
+            return "message created";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
+    }      
+
+    @GetMapping("/getMessages")
+    public ResponseEntity<?> getMessages(@RequestParam String chatId) {
+        try {
+            List<Map<String, String>> messages = userService.getMessages(chatId);
+            return ResponseEntity.ok(messages);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
     

@@ -7,10 +7,11 @@ import LoginScreen from "../screens/LoginScreen";
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
 import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
-import MatchesChatTabNavigator from "./MatchesChatTabNavigator";
 import SwipeScreen from "../screens/SwipeScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import SettingsScreen from '../screens/SettingsScreen';
+import MessageScreen from "../screens/MessageScreen";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -46,6 +47,7 @@ const StackNavigator = () => {
                     headerBackTitle: 'Back'
                 }}
             />
+          <Stack.Screen name="MessageScreen" component={MessageScreen} />
         </>
       )}
     </Stack.Navigator>

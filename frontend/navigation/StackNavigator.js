@@ -8,9 +8,9 @@ import ProfileSetupScreen from "../screens/ProfileSetupScreen";
 import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
 import SwipeScreen from "../screens/SwipeScreen";
-import EditProfileScreen from "../screens/EditProfileScreen";
-import SettingsScreen from '../screens/SettingsScreen';
 import MessageScreen from "../screens/MessageScreen";
+import EditProfileScreen from  "../screens/EditProfileScreen";
+import SettingsScreen from  "../screens/SettingsScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -29,17 +29,11 @@ const StackNavigator = () => {
       ) : (
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen}/>
           <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
-          <Stack.Screen name="MatchesAndConversations" component={MatchesChatTabNavigator}
-            options={{
-              headerShown: true,
-              headerTitle: "ResHub",
-              headerBackTitle: "Back"
-            }}
-          />
-           <Stack.Screen 
+          <Stack.Screen name="MessageScreen" component={MessageScreen} />
+          <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+          <Stack.Screen 
                 name="Settings" 
                 component={SettingsScreen} 
                 options={{
@@ -47,7 +41,6 @@ const StackNavigator = () => {
                     headerBackTitle: 'Back'
                 }}
             />
-          <Stack.Screen name="MessageScreen" component={MessageScreen} />
         </>
       )}
     </Stack.Navigator>

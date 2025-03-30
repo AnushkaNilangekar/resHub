@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Alert, RefreshControl, Button } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import config from '../config';
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 const AccountScreen = () => {
   const [profileData, setProfileData] = useState(null);
@@ -13,6 +15,79 @@ const AccountScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
+
+  const navigateToEditProfile = (sectionTitle) => {
+    navigation.navigate('EditProfile', { 
+      profileData, 
+      section: sectionTitle 
+    });
+  };
+
+  const handleLogout = async () => {
+    setProfileData(null); 
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  const decodeToken = (token) => {
+    try {
+      if (!token) return null;
+      
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      
+      const decoded = Buffer.from(base64, 'base64').toString('utf8');
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+  const fetchProfileData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userId = await AsyncStorage.getItem("userId");
+
+      if (!token || !userId) {
+        throw new Error("No authentication token or user ID found");
+      }
+
+      const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+        params: { userId: userId },
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.data) {
+        setProfileData(response.data);
+      } else {
+        throw new Error("No profile data found");
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setError('Unable to load profile. Please try again.');
+      setProfileData({
+        fullName: 'N/A',
+        email: 'N/A',
+        age: 'N/A',
+        gender: 'N/A',
+        residence: 'N/A',
+        major: 'N/A',
+        graduationYear: 'N/A',
+        hobbies: [],
+        bio: 'No bio available',
+        profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,120 +103,26 @@ const AccountScreen = () => {
     checkAuth();
   }, []);
 
-  const handleLogout = async () => {
-    setProfileData(null); 
-    await logout();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  };
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-    setProfileData(null);
-    setLoading(true); 
-    setError(null);
-    fetchProfileData();
-    });
-    return unsubscribe;
-  }, [navigation]);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfileData();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchProfileData();
   };
 
-  const decodeToken = (token) => {
-    try {
-      if (!token) return null;
-      
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      
-      // Using a buffer approach instead of atob which might not be available
-      const decoded = Buffer.from(base64, 'base64').toString('utf8');
-      return JSON.parse(decoded);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
-  const fetchProfileData = async () => {
-    setLoading(true);
-    setProfileData(null);
-    try {
-      const token = await AsyncStorage.getItem("token");
-      let email = await AsyncStorage.getItem("userEmail");
-      const userId = await AsyncStorage.getItem("userId");
+  const EditButton = ({ sectionTitle, onPress }) => (
+    <TouchableOpacity 
+      onPress={() => onPress(sectionTitle)} 
+      style={styles.editIconButton}
+    >
+      <Feather name="edit-2" size={16} color="#666" />
+    </TouchableOpacity>
+  );
 
-      if (!email && token) {
-        const decodedToken = decodeToken(token);
-        if (decodedToken && decodedToken.sub) {
-          email = decodedToken.sub; 
-          await AsyncStorage.setItem("userEmail", email);
-        }
-      }
-      
-    if (!email) {
-      console.log("No email found");
-      setProfileData({
-        fullName: 'N/A',
-        email: 'N/A',
-        age: 'N/A',
-        gender: 'N/A',
-        residence: 'N/A',
-        major: 'N/A',
-        graduationYear: response.data?.graduationYear || 'N/A',
-        hobbies: [],
-        bio: 'No bio available',
-        profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
-      }); 
-      return;
-    }
-
-    const response = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
-      params: { userId: userId },
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-      
-    if (response.data) {
-      setProfileData(response.data);
-    } else {
-      setProfileData({
-        fullName: 'N/A',
-        email: email, 
-        age: 'N/A',
-        gender: 'N/A',
-        residence: 'N/A',
-        major: 'N/A',
-        graduationYear: response.data?.graduationYear || 'N/A',
-        hobbies: [],
-        bio: 'No bio available',
-        profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
-      });
-    }
-    } catch (error) {
-      console.error('Error fetching profile:', error.response || error);
-      setProfileData({
-        fullName: 'N/A',
-        email: 'N/A',
-        age: 'N/A',
-        gender: 'N/A',
-        residence: 'N/A',
-        major: 'N/A',
-        graduationYear: response.data?.graduationYear || 'N/A',
-        hobbies: [],
-        bio: 'No bio available',
-        profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg'
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
- };
-  
   if (loading) {
     return (
       <View style={styles.container}>
@@ -164,21 +145,29 @@ const AccountScreen = () => {
       contentContainerStyle={{ paddingBottom: 30 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+
+       {/* Settings Icon */}
+       <View style={styles.headerContainer}>
+                <TouchableOpacity 
+                    style={styles.settingsIcon}
+                    onPress={() => navigation.navigate('Settings')}
+                >
+                    <Ionicons name="settings-outline" size={24} color="black" />
+                </TouchableOpacity>
+            </View>
+
       <View style={styles.container}>
-        {/* Profile Picture Section */}
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={{ uri: profileData?.profilePicUrl || 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }}
-            style={styles.profileImage}
-            onError={() => setProfileData(prev => ({ ...prev, profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }))}
-          />
-        </View>
+       {/* Profile Picture Section with Edit Option */}
+      <View style={styles.profileImageContainer}>
+        <Image
+          source={{ uri: profileData?.profilePicUrl || 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }}
+          style={styles.profileImage}
+          onError={() => setProfileData(prev => ({ ...prev, profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }))}
+        />
+      </View>
   
         {/* Name and Email Section */}
-        <View style={[
-          styles.infoSection, 
-          !(profileData?.email && profileData.email !== 'N/A') && { marginBottom: 0 }
-        ]}>
+        <View style={styles.infoSection}>
           <Text style={styles.name}>{profileData?.fullName || 'N/A'}</Text>
           {profileData?.email && profileData.email !== 'N/A' && (
             <Text style={styles.email}>{profileData.email}</Text>
@@ -187,7 +176,13 @@ const AccountScreen = () => {
   
         {/* Basic Info Section */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Basic Information</Text>
+            <EditButton 
+              sectionTitle="Basic Information"
+              onPress={navigateToEditProfile} 
+            />
+          </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Age:</Text>
             <Text style={styles.value}>{profileData?.age || 'N/A'}</Text>
@@ -204,7 +199,13 @@ const AccountScreen = () => {
   
         {/* Academic Info Section */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Academic Information</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Academic Information</Text>
+            <EditButton 
+              sectionTitle="Academic Information"
+              onPress={navigateToEditProfile} 
+            />
+          </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Major:</Text>
             <Text style={styles.value}>{profileData?.major || 'N/A'}</Text>
@@ -223,7 +224,13 @@ const AccountScreen = () => {
   
         {/* Hobbies Section */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Hobbies</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Hobbies</Text>
+            <EditButton 
+              sectionTitle="Hobbies"
+              onPress={navigateToEditProfile} 
+            />
+          </View>
           <View style={styles.hobbiesContainer}>
             {profileData?.hobbies?.length ? (
               profileData.hobbies.map((hobby, index) => (
@@ -239,14 +246,28 @@ const AccountScreen = () => {
   
         {/* Bio Section */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Bio</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Bio</Text>
+            <EditButton 
+              sectionTitle="Bio"
+              onPress={navigateToEditProfile} 
+            />
+          </View>
           <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
         </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity 
+          style={styles.logoutButton} 
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
       </View>
-      <Button title="Logout" onPress={handleLogout} />
     </ScrollView>
   );   
 };
+
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -257,11 +278,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+
   profileImageContainer: {
     alignItems: 'center',
     marginVertical: 20,
+    position: 'relative',
   },
-  
   profileImage: {
     width: 120, 
     height: 120, 
@@ -274,7 +296,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-
+  editProfilePicButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 120,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
   profileImageContainer: {
     alignItems: 'center',
     marginVertical: 10, 
@@ -361,6 +390,30 @@ const styles = StyleSheet.create({
     placeholderText: {
       color: '#999',
       fontSize: 14,
+    },
+    sectionTitleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    editIconButton: {
+      padding: 8,
+    },
+    logoutButton: {
+      backgroundColor: '#f8f8f8',
+      padding: 15,
+      borderRadius: 10,
+      alignItems: 'center',
+      marginTop: 20,
+      marginHorizontal: 20,
+      borderWidth: 1,
+      borderColor: '#ddd',
+    },
+    logoutButtonText: {
+      color: '#333',
+      fontWeight: '600',
+      fontSize: 16,
     },
   });
 

@@ -225,13 +225,48 @@ public class UserService {
                 for (AttributeValue chat : chatsAttribute.l()) {
                     chats.add(chat.s()); // Add each chat ID to the list
                 }
-                return chats; // Return the list of chat IDs
+                return getSortedChatIds(chats); // Return the list of chat IDs
             }
         }
+
 
         // Return an empty list if no chats are found
         return Collections.emptyList();
     }
+
+    public List<String> getSortedChatIds(List<String> chatIds) {
+        // Map to store chatId -> updatedAt
+        Map<String, String> chatIdToUpdatedAt = new HashMap<>();
+    
+        for (String chatId : chatIds) {
+            // Create the key for retrieving the chat item
+            Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+    
+            // GetItem request to fetch updatedAt for each chatId
+            GetItemRequest getItemRequest = GetItemRequest.builder()
+                    .tableName(dynamoDbConfig.getChatsTableName())
+                    .key(key)
+                    .attributesToGet("updatedAt") // Fetch only updatedAt field
+                    .build();
+    
+            GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+    
+            if (response.hasItem() && response.item().containsKey("updatedAt")) {
+                String updatedAt = response.item().get("updatedAt").s(); // Assuming it's stored as a String (ISO format)
+                chatIdToUpdatedAt.put(chatId, updatedAt);
+            }
+        }
+    
+        // Sort chatIds based on updatedAt in descending order
+        List<String> sortedChatIds = chatIdToUpdatedAt.entrySet()
+                .stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue())) // Sort by updatedAt descending
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    
+        return sortedChatIds;
+    }
+    
 
     public String getOtherUserId(String chatId, String loggedInUserId) {
         // Create the key to retrieve the chat item
@@ -607,6 +642,124 @@ public class UserService {
 
                 dynamoDbClient.putItem(updateUserRequest);
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void unmatch(String userId1, String userId2, String chatId) {
+        removeFromMatches(userId1, userId2);
+        removeFromMatches(userId2, userId1);
+
+        removeChatFromUser(userId1, chatId);
+        removeChatFromUser(userId2, chatId);
+
+        deleteChat(chatId);
+
+        deleteMessagesByChatId(chatId);
+
+    }
+
+    private void removeFromMatches(String userId, String matchUserId) {
+        List<String> matches = new ArrayList<>(doGetUserMatches(userId));
+    
+        if (matches.contains(matchUserId)) {
+            matches.remove(matchUserId);
+        }
+    
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":newMatches", AttributeValue.builder().l(matches.stream()
+                        .map(match -> AttributeValue.builder().s(match).build())
+                        .collect(Collectors.toList())).build());
+    
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("SET matches = :newMatches")
+                .expressionAttributeValues(updateValues)
+                .build();
+    
+        dynamoDbClient.updateItem(updateRequest);
+    }
+
+    private void removeChatFromUser(String userId, String chatId) {
+        // Get the current chats for the user
+        List<String> chats = retrieveUserChats(userId);
+    
+        // Remove the chatId if it exists
+        if (chats.contains(chatId)) {
+            chats.remove(chatId);
+        }
+    
+        // Update the user's chats list in the table
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":newChats", AttributeValue.builder().l(chats.stream()
+                        .map(chat -> AttributeValue.builder().s(chat).build())
+                        .collect(Collectors.toList())).build());
+    
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("SET chats = :newChats")
+                .expressionAttributeValues(updateValues)
+                .build();
+    
+        try {
+            dynamoDbClient.updateItem(updateRequest);
+            System.out.println("Chat ID removed from user profile: " + userId);
+        } catch (Exception e) {
+            System.err.println("Error removing chat from user profile: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteChat(String chatId) {
+        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+    
+        DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(key)
+                .build();
+    
+        try {
+            dynamoDbClient.deleteItem(deleteRequest);
+            System.out.println("Chat item deleted from chats table: " + chatId);
+        } catch (Exception e) {
+            System.err.println("Error deleting chat item: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteMessagesByChatId(String chatId) {
+        // Query the messages table for all messages in this chatId
+        Map<String, AttributeValue> keyCondition = Map.of(
+                "chatId", AttributeValue.builder().s(chatId).build());
+    
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(keyCondition)
+                .build();
+    
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+    
+        // Loop through the results and delete each message by chatId
+        for (Map<String, AttributeValue> message : queryResponse.items()) {
+            // Since we don't have messageId, we will use chatId as the identifier
+            Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+    
+            DeleteItemRequest deleteMessageRequest = DeleteItemRequest.builder()
+                    .tableName(dynamoDbConfig.getMessagesTableName())
+                    .key(key)
+                    .build();
+    
+            try {
+                dynamoDbClient.deleteItem(deleteMessageRequest);
+                System.out.println("Message deleted for chatId: " + chatId);
+            } catch (Exception e) {
+                System.err.println("Error deleting message for chatId " + chatId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

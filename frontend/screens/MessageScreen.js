@@ -159,7 +159,7 @@ const MessageScreen = ({ route }) => {
               placeholderColor="gray"
               showEmoji={false}
               onPressEmoji={() => console.log("Emoji Button Pressed..")}
-              showAttachment={true}
+              showAttachment={false}
               onPressAttachment={() => console.log("Attachment Button Pressed..")}
               timeContainerColor="red"
               timeContainerTextColor="white"

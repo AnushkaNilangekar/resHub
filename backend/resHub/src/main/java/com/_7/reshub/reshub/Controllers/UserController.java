@@ -180,4 +180,15 @@ public class UserController {
         }
     }
 
+    @PostMapping("/unMatch")
+    public ResponseEntity<?> unMatch(@RequestParam String userId, @RequestParam String matchUserId, @RequestParam String chatId) {
+        try {
+            userService.unMatch(userId, matchUserId, chatId);
+            return ResponseEntity.ok("Unmatched successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
 }

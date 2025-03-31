@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
-    "expo": "^52.0.40"
+    "expo": "^52.0.41"
   },
   "expo": {
     "platforms": [

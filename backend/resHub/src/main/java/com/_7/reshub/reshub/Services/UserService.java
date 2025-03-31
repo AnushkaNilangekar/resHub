@@ -31,7 +31,7 @@ import java.util.UUID;
 
 @Service
 public class UserService {
-    
+
     private static final Logger logger = Logger.getLogger(UserService.class.getName());
     private static final long TOKEN_EXPIRATION_TIME = 15 * 60; // 15 minutes in seconds
 
@@ -119,7 +119,7 @@ public class UserService {
             logger.info("Password reset email sent to: " + email);
         } catch (Exception e) {
             logger.severe("Failed to send password reset email to " + email + ": " + e.getMessage());
-        }        
+        }
     }
 
     /**
@@ -169,35 +169,34 @@ public class UserService {
         doAddToMatches(userId, matchUserId);
         doAddToMatches(matchUserId, userId);
         createChat(userId, matchUserId);
-        
     }
 
     /*
-     * Handles adding the new match to the user1's document in the userProfiles table
+     * Handles adding the new match to the user1's document in the userProfiles
+     * table
      */
     public void doAddToMatches(String userId, String matchUserId) {
         List<String> matches = new ArrayList<>(doGetUserMatches(userId));
-    
+
         if (!matches.contains(matchUserId)) {
             matches.add(matchUserId);
         }
-    
+
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
         Map<String, AttributeValue> updateValues = Map.of(
                 ":newMatches", AttributeValue.builder().l(matches.stream()
                         .map(match -> AttributeValue.builder().s(match).build())
-                        .collect(Collectors.toList())).build()
-        );
-    
+                        .collect(Collectors.toList())).build());
+
         UpdateItemRequest updateRequest = UpdateItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
                 .updateExpression("SET matches = :newMatches")
                 .expressionAttributeValues(updateValues)
                 .build();
-    
+
         dynamoDbClient.updateItem(updateRequest);
-    }    
+    }
 
     /*
      * Handles retrieving the user ids of the given user's chatss.
@@ -205,31 +204,31 @@ public class UserService {
     public List<String> retrieveUserChats(String userId) {
         // Set up the key for querying the userProfiles table using email
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
-    
+
         // Create the GetItemRequest for the userProfiles table
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName(dynamoDbConfig.getUserProfilesTableName())  // Use userProfiles table
+                .tableName(dynamoDbConfig.getUserProfilesTableName()) // Use userProfiles table
                 .key(key)
                 .build();
-    
+
         // Send the request to DynamoDB
         GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
-    
+
         // Check if the item exists in the response
         if (response.hasItem()) {
             Map<String, AttributeValue> item = response.item();
-            AttributeValue chatsAttribute = item.get("chats");  // Retrieve the chats attribute
-    
+            AttributeValue chatsAttribute = item.get("chats"); // Retrieve the chats attribute
+
             // If the chats attribute exists and is a list, extract the chat IDs
             if (chatsAttribute != null && chatsAttribute.l() != null) {
                 List<String> chats = new ArrayList<>();
                 for (AttributeValue chat : chatsAttribute.l()) {
-                    chats.add(chat.s());  // Add each chat ID to the list
+                    chats.add(chat.s()); // Add each chat ID to the list
                 }
-                return chats;  // Return the list of chat IDs
+                return chats; // Return the list of chat IDs
             }
         }
-    
+
         // Return an empty list if no chats are found
         return Collections.emptyList();
     }
@@ -237,55 +236,56 @@ public class UserService {
     public String getOtherUserId(String chatId, String loggedInUserId) {
         // Create the key to retrieve the chat item
         Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
-    
+
         // Create the GetItemRequest for the chat table
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName(dynamoDbConfig.getChatsTableName())  // Use chat table
+                .tableName(dynamoDbConfig.getChatsTableName()) // Use chat table
                 .key(key)
                 .build();
-    
+
         // Send the request to DynamoDB
         GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
-    
+
         // Check if the item exists in the response
         if (response.hasItem()) {
             Map<String, AttributeValue> item = response.item();
             AttributeValue participantsAttribute = item.get("participants");
-    
+
             if (participantsAttribute != null && participantsAttribute.l() != null) {
                 List<AttributeValue> participants = participantsAttribute.l();
-    
+
                 // If there are two participants, filter out the logged-in user's email
                 if (participants.size() == 2) {
                     String otherUserId = participants.stream()
                             .map(AttributeValue::s)
-                            .filter(userId -> !userId.equals(loggedInUserId))  // Filter out logged-in user's email
+                            .filter(userId -> !userId.equals(loggedInUserId)) // Filter out logged-in user's email
                             .findFirst()
-                            .orElse(null);  // Return null if not found
-    
-                    return otherUserId;  // Return the other user's email
+                            .orElse(null); // Return null if not found
+
+                    return otherUserId; // Return the other user's email
                 }
             }
         }
-    
-        return null;  // Return null if no other user is found
+
+        return null; // Return null if no other user is found
     }
 
     public List<String> getOtherUserIds(String loggedInUserId) {
         List<String> otherUserIds = new ArrayList<>();
-        
+
         // Retrieve the chat IDs from the user's chats
-        List<String> chatIds = retrieveUserChats(loggedInUserId); // Assuming you have a function that returns the user's chat IDs
-    
+        List<String> chatIds = retrieveUserChats(loggedInUserId); // Assuming you have a function that returns the
+                                                                  // user's chat IDs
+
         for (String chatId : chatIds) {
             // For each chat, retrieve the participants
             String otherUserId = getOtherUserId(chatId, loggedInUserId); // Get the other user's email from the chat
-            
+
             if (otherUserId != null) {
                 otherUserIds.add(otherUserId); // Add the other user's email to the list
             }
         }
-        
+
         return otherUserIds; // Return the list of other user emails
     }
 
@@ -296,7 +296,7 @@ public class UserService {
 
         // Create the GetItemRequest for the chat table
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName(dynamoDbConfig.getChatsTableName())  // Use chat table
+                .tableName(dynamoDbConfig.getChatsTableName()) // Use chat table
                 .key(key)
                 .build();
 
@@ -306,11 +306,11 @@ public class UserService {
         // Check if the item exists in the response
         if (response.hasItem()) {
             Map<String, AttributeValue> item = response.item();
-            AttributeValue lastMessageAttribute = item.get("lastMessage");  // Retrieve the lastmessage field
+            AttributeValue lastMessageAttribute = item.get("lastMessage"); // Retrieve the lastmessage field
 
             // Check if lastmessage attribute is present
             if (lastMessageAttribute != null && lastMessageAttribute.s() != null) {
-                return lastMessageAttribute.s();  // Return the last message
+                return lastMessageAttribute.s(); // Return the last message
             }
         }
 
@@ -318,24 +318,94 @@ public class UserService {
         return "No messages yet";
     }
 
+    // Method to find unread messages
+    public int getUnreadCount(String chatId, String userId) {
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .build();
+
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+        int count = 0;
+        for (Map<String, AttributeValue> item : queryResponse.items()) {
+            // Count messages that are unread and not sent by the current user
+            if (!item.get("userId").s().equals(userId)
+                    && item.containsKey("isUnread")
+                    && item.get("isUnread").bool()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // method to mark a message as read
+    public void markMessagesAsRead(String chatId, String userId) {
+        // Query the messages table for messages in the chat that are unread and not
+        // sent by userId
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .build();
+
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+
+        for (Map<String, AttributeValue> messageItem : queryResponse.items()) {
+            // If the message is unread and not sent by the current user, mark it as read
+            if (!messageItem.get("userId").s().equals(userId) &&
+                    messageItem.containsKey("isUnread") && messageItem.get("isUnread").bool()) {
+                // Update the message item to set isUnread to false
+                Map<String, AttributeValue> key = Map.of("chatId", messageItem.get("chatId"), "createdAt",
+                        messageItem.get("createdAt"));
+                Map<String, AttributeValue> updateValues = Map.of(":isUnread",
+                        AttributeValue.builder().bool(false).build());
+                UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                        .tableName(dynamoDbConfig.getMessagesTableName())
+                        .key(key)
+                        .updateExpression("SET isUnread = :isUnread")
+                        .expressionAttributeValues(updateValues)
+                        .build();
+                dynamoDbClient.updateItem(updateRequest);
+            }
+        }
+    }
+
     // Method to get other user's email and last message
     public Map<String, String> getChatDetails(String userId, String chatId) throws Exception {
         // Logic to retrieve the other user's email
         String otherUserId = getOtherUserId(chatId, userId);
-        
-        // Logic to retrieve the last message in the chat
-        String lastMessage = getLastMessage(chatId);
-        
-        // Returning both email and last message in a Map
+
+        // Retrieve last message details from the chat item
+        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(key)
+                .build();
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        String lastMessage = "";
+        String lastMessageSender = "";
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            lastMessage = item.get("lastMessage") != null ? item.get("lastMessage").s() : "";
+            lastMessageSender = item.get("lastMessageSender") != null ? item.get("lastMessageSender").s() : "";
+        }
+
+        // Declare and initialize unreadCount by calling the getUnreadCount method
+        int unreadCount = getUnreadCount(chatId, userId);
+
+        // Returning all details in a Map
         Map<String, String> chatDetails = new HashMap<>();
         chatDetails.put("otherUserId", otherUserId);
         chatDetails.put("lastMessage", lastMessage);
-        
+        chatDetails.put("unreadCount", String.valueOf(unreadCount)); // New field for unread count
+        chatDetails.put("lastMessageSender", lastMessageSender); // New field
         return chatDetails;
     }
 
-     /*
+    /*
      * Helper method to update the user's profile with the new chat ID.
+     * 
      * @params
      * email: The email of the user
      * chatId: The ID of the chat to add
@@ -347,20 +417,21 @@ public class UserService {
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
                 .build();
-        
+
         GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
-        
+
         if (response.hasItem()) {
             Map<String, AttributeValue> item = response.item();
             AttributeValue chatsAttribute = item.get("chats");
 
-            List<AttributeValue> chats = (chatsAttribute != null) ? new ArrayList<>(chatsAttribute.l()) : new ArrayList<>();
+            List<AttributeValue> chats = (chatsAttribute != null) ? new ArrayList<>(chatsAttribute.l())
+                    : new ArrayList<>();
             chats.add(AttributeValue.builder().s(chatId).build());
 
             // Update the user's profile with the new chat ID
             Map<String, AttributeValue> updatedItem = new HashMap<>(item);
             updatedItem.put("chats", AttributeValue.builder().l(chats).build());
-            
+
             // Save the updated user profile back to the 'userProfiles' table
             PutItemRequest updateUserRequest = PutItemRequest.builder()
                     .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -370,31 +441,33 @@ public class UserService {
         }
     }
 
-     /*
+    /*
      * Create a new chat between two users.
+     * 
      * @params
      * email1: The email of the first user
      * email2: The email of the second user
+     * 
      * @return The ID of the created chat
      */
     public String createChat(String user1Id, String user2Id) {
         // Step 1: Generate a new chat ID (this can be a UUID or a timestamp-based ID)
         String chatId = UUID.randomUUID().toString();
-        System.out.println("Generated Chat ID: " + chatId);  // Debugging line
-    
-        // Step 2: Create a new chat item in the 'chats' table with participants and initial data
+        System.out.println("Generated Chat ID: " + chatId); // Debugging line
+
+        // Step 2: Create a new chat item in the 'chats' table with participants and
+        // initial data
         Map<String, AttributeValue> chatItem = new HashMap<>();
         chatItem.put("chatId", AttributeValue.builder().s(chatId).build());
         chatItem.put("participants", AttributeValue.builder().l(
                 Arrays.asList(
-                    AttributeValue.builder().s(user1Id).build(),
-                    AttributeValue.builder().s(user2Id).build()
-                )
-            ).build());
+                        AttributeValue.builder().s(user1Id).build(),
+                        AttributeValue.builder().s(user2Id).build()))
+                .build());
         chatItem.put("updatedAt", AttributeValue.builder().s(String.valueOf(System.currentTimeMillis())).build());
-    
-        System.out.println("Chat Item: " + chatItem);  // Debugging line
-    
+
+        System.out.println("Chat Item: " + chatItem); // Debugging line
+
         // Insert the new chat into the 'chats' table
         PutItemRequest putChatRequest = PutItemRequest.builder()
                 .tableName(dynamoDbConfig.getChatsTableName())
@@ -404,57 +477,83 @@ public class UserService {
             dynamoDbClient.putItem(putChatRequest);
             System.out.println("Chat item inserted successfully.");
         } catch (Exception e) {
-            System.err.println("Error inserting chat item: " + e.getMessage());  // Debugging error
+            System.err.println("Error inserting chat item: " + e.getMessage()); // Debugging error
             e.printStackTrace();
         }
-    
+
         // Step 3: Update both users' profiles to add this chat ID to their 'chats' list
         try {
             updateUserChats(user1Id, chatId);
             updateUserChats(user2Id, chatId);
-            System.out.println("User chats updated for: " + user1Id + " and " + user2Id);  // Debugging line
+            System.out.println("User chats updated for: " + user1Id + " and " + user2Id); // Debugging line
         } catch (Exception e) {
-            System.err.println("Error updating user chats: " + e.getMessage());  // Debugging error
+            System.err.println("Error updating user chats: " + e.getMessage()); // Debugging error
             e.printStackTrace();
         }
-    
+
         return chatId;
     }
 
-     /*
+    /*
      * Create a new message in a chat.
      */
     public void createMessage(String chatId, String createdAt, String userId, String name, String text) {
-         // Step 2: Create a new message item in the 'messages' table with participants and initial data
+        // Build the message item
         Map<String, AttributeValue> messageItem = new HashMap<>();
         messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
         messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
         messageItem.put("userId", AttributeValue.builder().s(userId).build());
         messageItem.put("name", AttributeValue.builder().s(name).build());
         messageItem.put("text", AttributeValue.builder().s(text).build());
+        messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
 
-        // Insert the new chat into the 'chats' table
+        // Insert the new message into the 'messages' table
         PutItemRequest putMessageRequest = PutItemRequest.builder()
                 .tableName(dynamoDbConfig.getMessagesTableName())
                 .item(messageItem)
                 .build();
         try {
             dynamoDbClient.putItem(putMessageRequest);
-            System.out.println("Chat item inserted successfully.");
+            System.out.println("Message item inserted successfully.");
         } catch (Exception e) {
-            System.err.println("Error inserting chat item: " + e.getMessage());  // Debugging error
+            System.err.println("Error inserting message item: " + e.getMessage());
             e.printStackTrace();
         }
 
+        // Update the corresponding chat item with the new last message and timestamp
+        Map<String, AttributeValue> chatKey = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":lastMessage", AttributeValue.builder().s(text).build(),
+                ":updatedAt", AttributeValue.builder().s(createdAt).build(),
+                ":lastMessageSender", AttributeValue.builder().s(userId).build());
+        UpdateItemRequest updateChatRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(chatKey)
+                .updateExpression(
+                        "SET lastMessage = :lastMessage, updatedAt = :updatedAt, lastMessageSender = :lastMessageSender")
+                .expressionAttributeValues(updateValues)
+                .build();
+        try {
+            dynamoDbClient.updateItem(updateChatRequest);
+            System.out.println("Chat last message updated successfully.");
+        } catch (Exception e) {
+            System.err.println("Error updating chat last message: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-
-
 
     /*
      * Retrieves a list of messages from the messages table for the given chatId,
      * sorted by the createdAt attribute in ascending order.
      */
     public List<Map<String, String>> getMessages(String chatId) {
+        if (chatId == null || chatId.trim().isEmpty()) {
+            logger.severe("getMessages called with null or empty chatId");
+            return Collections.emptyList();
+        }
+
+        logger.info("Fetching messages for chatId: " + chatId);
+
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(dynamoDbConfig.getMessagesTableName())
                 .keyConditionExpression("chatId = :chatId")
@@ -464,47 +563,50 @@ public class UserService {
 
         QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
 
+        logger.info("getMessages: " + queryResponse.items().size()
+                + " items returned for chatId " + chatId);
         return queryResponse.items().stream()
                 .map(this::convertToSimpleMap) // Convert DynamoDB response to a simple Map<String, String>
                 .toList();
     }
 
     private Map<String, String> convertToSimpleMap(Map<String, AttributeValue> item) {
-        return item.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().s() // Extract string values directly
-                ));
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<String, AttributeValue> entry : item.entrySet()) {
+            // If .s() is null, use an empty string
+            String value = (entry.getValue() != null && entry.getValue().s() != null)
+                    ? entry.getValue().s()
+                    : "";
+            result.put(entry.getKey(), value);
+        }
+        return result;
     }
-    
+
     public void doUpdateLastTimeActive(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
         GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
                 .build();
-        
+
         GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
 
         if (response.hasItem()) {
             Map<String, AttributeValue> item = response.item();
-            
+
             String timestamp = Instant.now().toString();
-            
+
             Map<String, AttributeValue> updatedItem = new HashMap<>(item);
             updatedItem.put("lastTimeActive", AttributeValue.builder().s(timestamp).build());
-            
-            try
-            {
+
+            try {
                 PutItemRequest updateUserRequest = PutItemRequest.builder()
                         .tableName(dynamoDbConfig.getUserProfilesTableName())
                         .item(updatedItem)
                         .build();
-                
+
                 dynamoDbClient.putItem(updateUserRequest);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

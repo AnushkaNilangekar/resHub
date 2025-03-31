@@ -29,7 +29,11 @@ const StackNavigator = () => {
           <Stack.Screen name="Main" component={BottomTabNavigator} />
           <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
-          <Stack.Screen name="MessageScreen" component={MessageScreen} />
+          <Stack.Screen
+            name="MessageScreen"
+            component={MessageScreen}
+            options={{ headerShown: true }}  
+          />
         </>
       )}
     </Stack.Navigator>

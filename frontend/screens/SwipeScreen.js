@@ -47,35 +47,33 @@ const SwipeScreen = () => {
         filterOutSwipedOn: true
       });
 
-    await fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${userInfo.token}`
-        }
-    })
-      .then(response => {                
-          if (!response.ok) {
-              throw new Error(`API response error: ${response.statusText}`);
-          }
+      try {
+        const response = await fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${userInfo.token}`
+            }
+        });
 
-          return response.text(); // Use text() first to see the raw response
-      })
-      .then(rawData => {
-          // Try parsing it as JSON
-          try {
-              const data = JSON.parse(rawData);
-              if (Array.isArray(data)) {
-                  setProfiles(data);
-              } else {
-                  console.error('Received data is not an array:', data);
-              }
-          } catch (parseError) {
-              console.error('Error parsing JSON:', parseError);
-          }
-      })
-      .catch(error => {
+        if (!response.ok) {
+            throw new Error(`API response error: ${response.statusText}`);
+        }
+
+        const rawData = await response.text();
+
+        try {
+            const data = JSON.parse(rawData);
+            if (Array.isArray(data)) {
+                setProfiles(data);
+            } else {
+                console.error('Received data is not an array:', data);
+            }
+        } catch (parseError) {
+            console.error('Error parsing JSON:', parseError);
+        }
+      } catch (error) {
           console.error('Error fetching profiles:', error);
-      });
+      }
     }
   };
 
@@ -95,8 +93,7 @@ const SwipeScreen = () => {
   };
 
   useEffect(() => {
-    fetchProfileCards();
-    checkIfMoreProfiles();
+    onRefresh();
   }, [userInfo, selectedGender]);
 
   // Handle a swipe on a card.
@@ -182,7 +179,7 @@ const SwipeScreen = () => {
     return (
       <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text>Loading {itemLoading}...</Text>
+          <Text style={styles.loadingText}>Loading {itemLoading}...</Text>
       </View>
     );
   });
@@ -381,9 +378,11 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     backgroundColor: colors.white,
-    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 200,
+  },
+  loadingText: {
+    fontSize: 24,
   },
   card: {
     backgroundColor: colors.pastelPink,

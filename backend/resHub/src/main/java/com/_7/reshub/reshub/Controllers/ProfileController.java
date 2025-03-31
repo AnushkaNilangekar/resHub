@@ -191,7 +191,8 @@ public class ProfileController {
     }
 
     /**
-     * GET endpoint that returns the list of all profiles filtered based on gender.
+     * GET endpoint that returns the list of all profiles filtered based on gender
+     * and sorted on if they've liked the current user (primary) and how recently active the profile is (secondary).
      * 
      * @param userId            The user currently looking at the page (will not be
      *                          included in result)
@@ -204,21 +205,22 @@ public class ProfileController {
      */
 
     @GetMapping("/getProfiles")
-    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter,
-            @RequestParam boolean filterOutSwipedOn) {
+    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
         try {
-            List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+            List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
 
             if (filterOutSwipedOn) {
                 List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
 
                 profiles = profiles.stream()
-                        .filter(profile -> {
-                            Object userIdObj = profile.get("userId");
-                            return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                .filter(profile -> {
+                                Object userIdObj = profile.getUserId();
+                                return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
                         })
                         .collect(Collectors.toList());
             }
+
+            profiles = profileService.doSortProfiles(userId, profiles);
 
             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
         } catch (Exception e) {

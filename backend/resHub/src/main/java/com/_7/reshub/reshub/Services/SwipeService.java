@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,34 @@ public class SwipeService {
         return response.hasItems() && response.items().stream()
             .anyMatch(item -> item.get("swipedOnUserId").s().equals(swipedOnUserId));
     }
+
+    /*
+     * Returns a list of userIds of users who swiped right on the given swipedOnUserId.
+     */
+    public List<String> doGetAllUsersWhoSwipedRightOn(String swipedOnUserId) {
+        QueryRequest queryRequest = QueryRequest.builder()
+            .tableName(dynamoDbConfig.getSwipeLogTableName())
+            .indexName("swipedOnUserId-index")  // GSI on swipedOnUserId
+            .keyConditionExpression("swipedOnUserId = :swipedOnUserId")
+            .filterExpression("direction = :direction")
+            .expressionAttributeValues(Map.of(
+                ":swipedOnUserId", AttributeValue.builder().s(swipedOnUserId).build(),
+                ":direction", AttributeValue.builder().s("r").build()
+            ))
+            .build();
+
+        QueryResponse response = dynamoDbClient.query(queryRequest);
+
+        List<String> usersWhoSwipedRight = new ArrayList<>();
+        if (response.hasItems()) {
+            usersWhoSwipedRight = response.items().stream()
+                .map(item -> item.get("userId").s())
+                .collect(Collectors.toList());
+        }
+
+        return usersWhoSwipedRight;
+    }
+
 
     /*
      * Handles deleting a swipe (used for swipe rollback)

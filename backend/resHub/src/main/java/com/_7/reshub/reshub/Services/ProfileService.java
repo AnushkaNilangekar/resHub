@@ -41,9 +41,9 @@ public class ProfileService {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName(dynamoDbConfig.getUserProfilesTableName())
-                .key(key)
-                .build();
+            .tableName(dynamoDbConfig.getUserProfilesTableName())
+            .key(key)
+            .build();
 
         GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
 
@@ -60,8 +60,8 @@ public class ProfileService {
     public List<Profile> doGetProfiles(String userId, String genderFilter, boolean filterOutSwipedOn) {
         // Scan request to fetch profiles from DynamoDB
         ScanRequest scanRequest = ScanRequest.builder()
-                .tableName(dynamoDbConfig.getUserProfilesTableName())
-                .build();
+            .tableName(dynamoDbConfig.getUserProfilesTableName())
+            .build();
         ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
         
         // Convert DynamoDB items to Profile object and filter by gender and exclude logged-in user
@@ -116,13 +116,13 @@ public class ProfileService {
             Integer.parseInt(item.getOrDefault("age", AttributeValue.builder().n("0").build()).n()),
             item.getOrDefault("residence", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("hobbies", AttributeValue.builder().l(Collections.emptyList()).build()).l()
-                    .stream().map(AttributeValue::s).collect(Collectors.toList()),
+                .stream().map(AttributeValue::s).collect(Collectors.toList()),
             item.getOrDefault("graduationYear", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
             Optional.ofNullable(item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s())
-                    .filter(s -> !s.isEmpty())
-                    .map(Instant::parse)
-                    .orElse(null),
+                .filter(s -> !s.isEmpty())
+                .map(Instant::parse)
+                .orElse(null),
             item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("smokingStatus", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("cleanlinessLevel", AttributeValue.builder().s("").build()).s(),

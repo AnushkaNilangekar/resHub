@@ -169,7 +169,6 @@ public class UserService {
         doAddToMatches(userId, matchUserId);
         doAddToMatches(matchUserId, userId);
         createChat(userId, matchUserId);
-
     }
 
     /*
@@ -319,19 +318,88 @@ public class UserService {
         return "No messages yet";
     }
 
+    // Method to find unread messages
+    public int getUnreadCount(String chatId, String userId) {
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .build();
+
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+        int count = 0;
+        for (Map<String, AttributeValue> item : queryResponse.items()) {
+            // Count messages that are unread and not sent by the current user
+            if (!item.get("userId").s().equals(userId)
+                    && item.containsKey("isUnread")
+                    && item.get("isUnread").bool()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // method to mark a message as read
+    public void markMessagesAsRead(String chatId, String userId) {
+        // Query the messages table for messages in the chat that are unread and not
+        // sent by userId
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .build();
+
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+
+        for (Map<String, AttributeValue> messageItem : queryResponse.items()) {
+            // If the message is unread and not sent by the current user, mark it as read
+            if (!messageItem.get("userId").s().equals(userId) &&
+                    messageItem.containsKey("isUnread") && messageItem.get("isUnread").bool()) {
+                // Update the message item to set isUnread to false
+                Map<String, AttributeValue> key = Map.of("chatId", messageItem.get("chatId"), "createdAt",
+                        messageItem.get("createdAt"));
+                Map<String, AttributeValue> updateValues = Map.of(":isUnread",
+                        AttributeValue.builder().bool(false).build());
+                UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                        .tableName(dynamoDbConfig.getMessagesTableName())
+                        .key(key)
+                        .updateExpression("SET isUnread = :isUnread")
+                        .expressionAttributeValues(updateValues)
+                        .build();
+                dynamoDbClient.updateItem(updateRequest);
+            }
+        }
+    }
+
     // Method to get other user's email and last message
     public Map<String, String> getChatDetails(String userId, String chatId) throws Exception {
         // Logic to retrieve the other user's email
         String otherUserId = getOtherUserId(chatId, userId);
 
-        // Logic to retrieve the last message in the chat
-        String lastMessage = getLastMessage(chatId);
+        // Retrieve last message details from the chat item
+        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(key)
+                .build();
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        String lastMessage = "";
+        String lastMessageSender = "";
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            lastMessage = item.get("lastMessage") != null ? item.get("lastMessage").s() : "";
+            lastMessageSender = item.get("lastMessageSender") != null ? item.get("lastMessageSender").s() : "";
+        }
 
-        // Returning both email and last message in a Map
+        // Declare and initialize unreadCount by calling the getUnreadCount method
+        int unreadCount = getUnreadCount(chatId, userId);
+
+        // Returning all details in a Map
         Map<String, String> chatDetails = new HashMap<>();
         chatDetails.put("otherUserId", otherUserId);
         chatDetails.put("lastMessage", lastMessage);
-
+        chatDetails.put("unreadCount", String.valueOf(unreadCount)); // New field for unread count
+        chatDetails.put("lastMessageSender", lastMessageSender); // New field
         return chatDetails;
     }
 
@@ -456,11 +524,13 @@ public class UserService {
         Map<String, AttributeValue> chatKey = Map.of("chatId", AttributeValue.builder().s(chatId).build());
         Map<String, AttributeValue> updateValues = Map.of(
                 ":lastMessage", AttributeValue.builder().s(text).build(),
-                ":updatedAt", AttributeValue.builder().s(createdAt).build());
+                ":updatedAt", AttributeValue.builder().s(createdAt).build(),
+                ":lastMessageSender", AttributeValue.builder().s(userId).build());
         UpdateItemRequest updateChatRequest = UpdateItemRequest.builder()
                 .tableName(dynamoDbConfig.getChatsTableName())
                 .key(chatKey)
-                .updateExpression("SET lastMessage = :lastMessage, updatedAt = :updatedAt")
+                .updateExpression(
+                        "SET lastMessage = :lastMessage, updatedAt = :updatedAt, lastMessageSender = :lastMessageSender")
                 .expressionAttributeValues(updateValues)
                 .build();
         try {

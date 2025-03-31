@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 /*
 * Chats Screen
@@ -13,6 +13,7 @@ const ChatsScreen = () => {
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   /*
   * Gets a list of the chat ids for the current user
@@ -29,7 +30,7 @@ const ChatsScreen = () => {
           'Authorization': `Bearer ${token}`,
         }
       });
-      console.log(response.data)
+      console.log("Getting chat IDs for user", userId, response.data)
 
       return response.data;
     } catch (error) {
@@ -58,7 +59,7 @@ const ChatsScreen = () => {
           }
         });
 
-        const { otherUserId, lastMessage } = response.data;
+        const { otherUserId, lastMessage, unreadCount, lastMessageSender } = response.data;
 
         // Get profile info for the other user
         const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
@@ -78,6 +79,8 @@ const ChatsScreen = () => {
           profilePicUrl,
           lastMessage,
           otherUserId,
+          unreadCount,
+          lastMessageSender,
         });
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
@@ -101,27 +104,44 @@ const ChatsScreen = () => {
     }
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem("userId").then(id => setCurrentUserId(id));
+      // Initial fetch
+      getChatInformation();
+
+      //removed to avoid exceeding AWS free tier limit
+
+      // Set up interval polling every 5000ms (5 seconds)
+      const interval = setInterval(() => {
+        getChatInformation();
+      }, 5000);
+
+      // Cleanup interval on unmount
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  const route = useRoute();
+
   useEffect(() => {
-    // Initial fetch
-    getChatInformation();
+    if (route.params?.updatedChatId) {
+      // Update the specific chat locally to remove the unread status.
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.chatId === route.params.updatedChatId ? { ...chat, unreadCount: "0" } : chat
+        )
+      );
+    }
+  }, [route.params?.updatedChatId]);
 
-    //removed to avoid exceeding AWS free tier limit
-
-    //   // Set up interval polling every 5000ms (5 seconds)
-    //   const interval = setInterval(() => {
-    //     getChatInformation();
-    //   }, 5000);
-
-    //   // Cleanup interval on unmount
-    //   return () => clearInterval(interval);
-  }, []);
 
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await getChatInformation();
     setRefreshing(false);
-  }, []);
+  }, [])
 
 
   return (
@@ -135,22 +155,31 @@ const ChatsScreen = () => {
         <FlatList
           data={chats}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.chatCard}
-              onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
-            >
-              {item.profilePicUrl ? (
-                <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-              ) : (
-                <Ionicons name="person-circle-outline" size={100} color="#ccc" />
-              )}
-              <View style={styles.textContainer}>
-                <Text style={styles.fullName}>{item.fullName}</Text>
-                <Text style={styles.bio}>{item.lastMessage}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            // Only apply grey if we have a currentUserId and there are unread messages AND the last message was not sent by the current user
+            const isUnreadForCurrentUser = currentUserId
+              ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+              : false;
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.chatCard,
+                  isUnreadForCurrentUser && styles.unreadChatCard
+                ]}
+                onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+              >
+                {item.profilePicUrl ? (
+                  <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                ) : (
+                  <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+                )}
+                <View style={styles.textContainer}>
+                  <Text style={styles.fullName}>{item.fullName}</Text>
+                  <Text style={styles.bio}>{item.lastMessage}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       )}
@@ -190,6 +219,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     height: 100,
+  },
+  unreadChatCard: {
+    backgroundColor: "#dff8ff", // a darker shade for chats with unread messages
+    borderColor: "#0B185F",
+    borderWidth: "0.5"
   },
   textContainer: {
     flex: 1,

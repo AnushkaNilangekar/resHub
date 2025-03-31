@@ -430,28 +430,46 @@ public class UserService {
      * Create a new message in a chat.
      */
     public void createMessage(String chatId, String createdAt, String userId, String name, String text) {
-        // Step 2: Create a new message item in the 'messages' table with participants
-        // and initial data
+        // Build the message item
         Map<String, AttributeValue> messageItem = new HashMap<>();
         messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
         messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
         messageItem.put("userId", AttributeValue.builder().s(userId).build());
         messageItem.put("name", AttributeValue.builder().s(name).build());
         messageItem.put("text", AttributeValue.builder().s(text).build());
+        messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
 
-        // Insert the new chat into the 'chats' table
+        // Insert the new message into the 'messages' table
         PutItemRequest putMessageRequest = PutItemRequest.builder()
                 .tableName(dynamoDbConfig.getMessagesTableName())
                 .item(messageItem)
                 .build();
         try {
             dynamoDbClient.putItem(putMessageRequest);
-            System.out.println("Chat item inserted successfully.");
+            System.out.println("Message item inserted successfully.");
         } catch (Exception e) {
-            System.err.println("Error inserting chat item: " + e.getMessage()); // Debugging error
+            System.err.println("Error inserting message item: " + e.getMessage());
             e.printStackTrace();
         }
 
+        // Update the corresponding chat item with the new last message and timestamp
+        Map<String, AttributeValue> chatKey = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":lastMessage", AttributeValue.builder().s(text).build(),
+                ":updatedAt", AttributeValue.builder().s(createdAt).build());
+        UpdateItemRequest updateChatRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(chatKey)
+                .updateExpression("SET lastMessage = :lastMessage, updatedAt = :updatedAt")
+                .expressionAttributeValues(updateValues)
+                .build();
+        try {
+            dynamoDbClient.updateItem(updateChatRequest);
+            System.out.println("Chat last message updated successfully.");
+        } catch (Exception e) {
+            System.err.println("Error updating chat last message: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /*

@@ -74,10 +74,10 @@ const SignUpScreen = ({ navigation }) => {
         // Wrap the container with TouchableWithoutFeedback to dismiss the keyboard when tapping outside
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
              <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
             <LinearGradient
                 colors={['#7B4A9E', '#6BBFBC', '#6C85FF', '#404756']}
-                style={styles.gradient}
+                style={[styles.gradient, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 locations={[0, 0.4, 0.7, 1]}
@@ -169,6 +169,7 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#4c6ef5',
     },
     gradient: {
         flex: 1,
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     keyboardAvoidingView: {
         flex: 1,
         justifyContent: "center",
-        paddingHorizontal: 25,
+        paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     },
     logoContainer: {
         alignItems: "center",

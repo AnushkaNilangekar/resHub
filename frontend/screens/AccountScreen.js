@@ -1,18 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl, Alert } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    Image, 
+    ScrollView, 
+    ActivityIndicator, 
+    TouchableOpacity, 
+    RefreshControl, 
+    StatusBar,
+    Platform,
+    Alert
+} from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 
 const AccountScreen = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -23,21 +37,6 @@ const AccountScreen = () => {
       index: 0,
       routes: [{ name: 'Login' }],
     });
-  };
-
-  const decodeToken = (token) => {
-    try {
-      if (!token) return null;
-      
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      
-      const decoded = Buffer.from(base64, 'base64').toString('utf8');
-      return JSON.parse(decoded);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
   };
 
   const fetchProfileData = async () => {
@@ -82,7 +81,17 @@ const AccountScreen = () => {
     }
   };
 
+  // Request permissions when component mounts
   useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to change your profile picture.');
+        }
+      }
+    })();
+
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
@@ -107,256 +116,534 @@ const AccountScreen = () => {
     fetchProfileData();
   };
 
+  const handleChangeProfilePicture = async () => {
+    try {
+      // Launch image picker
+       let result = await ImagePicker.launchImageLibraryAsync({
+              mediaType: 'photo',
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+        });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        uploadImage(selectedImage);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const uploadImage = async (imageData) => {
+    setUploading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userId = await AsyncStorage.getItem("userId");
+      
+      if (!token || !userId) {
+        throw new Error("No authentication token or user ID found");
+      }
+
+      // Create form data for image upload
+      const formData = new FormData();
+      const fileUri = Platform.OS === 'ios' ? imageData.uri.replace('file://', '') : imageData.uri;
+      const fileExt = fileUri.split('.').pop();
+      const fileName = `profile-pic-${userId}.${fileExt}`;
+      
+      formData.append('file', {
+        uri: imageData.uri,
+        name: fileName,
+        type: `image/${fileExt}`
+      });
+
+      // Upload to S3
+      const uploadResponse = await axios.post(
+        `${config.API_BASE_URL}/api/s3/upload`, 
+        formData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (uploadResponse.data && uploadResponse.data.url) {
+        // Update profile with new image URL
+        await updateProfilePicture(userId, uploadResponse.data.url);
+      } else {
+        throw new Error("Failed to upload image");
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Upload Failed', 'Unable to upload profile picture. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const updateProfilePicture = async (userId, profilePicUrl) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      
+      // Update profile picture URL in database
+      const updateResponse = await axios.put(
+        `${config.API_BASE_URL}/api/updateProfilePic`,
+        { userId, profilePicUrl },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      if (updateResponse.status === 200) {
+        // Update local state to show new profile picture
+        setProfileData(prev => ({
+          ...prev,
+          profilePicUrl: profilePicUrl
+        }));
+        
+        Alert.alert('Success', 'Profile picture updated successfully');
+      } else {
+        throw new Error("Failed to update profile picture");
+      }
+    } catch (error) {
+      console.error('Error updating profile picture in database:', error);
+      Alert.alert('Update Failed', 'Unable to update profile picture. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007BFF" />
+      <View style={styles.loadingContainer}>
+        <LinearGradient
+          colors={['#7B4A9E', '#9D67C1', '#9775E3', '#6152AA']}
+          style={styles.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.3, 0.6, 1]}
+        >
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.loadingText}>Loading your profile...</Text>
+        </LinearGradient>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={styles.loadingContainer}>
+        <LinearGradient
+          colors={['#7B4A9E', '#9D67C1', '#9775E3', '#6152AA']}
+          style={styles.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.3, 0.6, 1]}
+        >
+          <Ionicons name="alert-circle-outline" size={50} color="#FFFFFF" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={fetchProfileData}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1 }} 
-      contentContainerStyle={{ paddingBottom: 30 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={['#7B4A9E', '#9D67C1', '#9775E3', '#6152AA']}
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3, 0.6, 1]}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FFFFFF"]} tintColor="#FFFFFF" />}
+        >
+          {/* Header with Settings */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              style={styles.settingsButton}
+              onPress={() => navigation.navigate('Settings')}
+            >
+              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
 
-       {/* Settings Icon */}
-       <View style={styles.headerContainer}>
-                <TouchableOpacity 
-                    style={styles.settingsIcon}
-                    onPress={() => navigation.navigate('Settings')}
-                >
-                    <Ionicons name="settings-outline" size={24} color="black" />
-                </TouchableOpacity>
-            </View>
-
-      <View style={styles.container}>
-       {/* Profile Picture Section with Edit Option */}
-      <View style={styles.profileImageContainer}>
-        <Image
-          source={{ uri: profileData?.profilePicUrl || 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }}
-          style={styles.profileImage}
-          onError={() => setProfileData(prev => ({ ...prev, profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }))}
-        />
-      </View>
-  
-        {/* Name and Email Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.name}>{profileData?.fullName || 'N/A'}</Text>
-          {profileData?.email && profileData.email !== 'N/A' && (
-            <Text style={styles.email}>{profileData.email}</Text>
-          )}
-        </View>
-  
-        {/* Basic Info Section */}
-        <View style={styles.infoCard}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Basic Information</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Age:</Text>
-            <Text style={styles.value}>{profileData?.age || 'N/A'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Gender:</Text>
-            <Text style={styles.value}>{profileData?.gender || 'N/A'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Residence:</Text>
-            <Text style={styles.value}>{profileData?.residence || 'N/A'}</Text>
-          </View>
-        </View>
-  
-        {/* Academic Info Section */}
-        <View style={styles.infoCard}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Academic Information</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Major:</Text>
-            <Text style={styles.value}>{profileData?.major || 'N/A'}</Text>
-          </View>
-          {profileData?.minor && (
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Minor:</Text>
-              <Text style={styles.value}>{profileData?.minor}</Text>
-            </View>
-          )}
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Graduation Year:</Text>
-            <Text style={styles.value}>{profileData?.graduationYear || 'N/A'}</Text>
-          </View>
-        </View>
-  
-        {/* Hobbies Section */}
-        <View style={styles.infoCard}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Hobbies</Text>
-          </View>
-          <View style={styles.hobbiesContainer}>
-            {profileData?.hobbies?.length ? (
-              profileData.hobbies.map((hobby, index) => (
-                <View key={index} style={styles.hobbyTag}>
-                  <Text style={styles.hobbyText}>{hobby}</Text>
-                </View>
-              ))
+          {/* Profile Picture */}
+          <View style={styles.profileImageContainer}>
+            {uploading ? (
+              <View style={[styles.profileImage, styles.uploadingContainer]}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              </View>
             ) : (
-              <Text style={styles.placeholderText}>No hobbies listed</Text>
+              <Image
+                source={{ uri: profileData?.profilePicUrl || 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }}
+                style={styles.profileImage}
+                onError={() => setProfileData(prev => ({ ...prev, profilePicUrl: 'https://reshub-profile-pictures.s3.amazonaws.com/default-avatar.jpg' }))}
+              />
+            )}
+            <TouchableOpacity 
+              style={styles.editProfileButton}
+              onPress={handleChangeProfilePicture}
+              disabled={uploading}
+            >
+              <Ionicons name="pencil" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Name and Email */}
+          <View style={styles.nameContainer}>
+            <Text style={styles.nameText}>{profileData?.fullName || 'N/A'}</Text>
+            {profileData?.email && profileData.email !== 'N/A' && (
+              <Text style={styles.emailText}>{profileData.email}</Text>
             )}
           </View>
-        </View>
-  
-        {/* Bio Section */}
-        <View style={styles.infoCard}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Bio</Text>
-          </View>
-          <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
-        </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity 
-          style={styles.logoutButton} 
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-  );   
+          {/* Information Cards */}
+          <View style={styles.cardsContainer}>
+            {/* Basic Information */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="person" size={22} color="#7B4A9E" style={styles.cardIcon} />
+                <Text style={styles.cardTitle}>Basic Information</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Age</Text>
+                  <Text style={styles.infoValue}>{profileData?.age || 'N/A'}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Gender</Text>
+                  <Text style={styles.infoValue}>{profileData?.gender || 'N/A'}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Residence</Text>
+                  <Text style={styles.infoValue}>{profileData?.residence || 'N/A'}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Academic Information */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="school" size={22} color="#7B4A9E" style={styles.cardIcon} />
+                <Text style={styles.cardTitle}>Academic Information</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Major</Text>
+                  <Text style={styles.infoValue}>{profileData?.major || 'N/A'}</Text>
+                </View>
+                {profileData?.minor && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Minor</Text>
+                      <Text style={styles.infoValue}>{profileData.minor}</Text>
+                    </View>
+                  </>
+                )}
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Graduation</Text>
+                  <Text style={styles.infoValue}>{profileData?.graduationYear || 'N/A'}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Hobbies */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="heart" size={22} color="#7B4A9E" style={styles.cardIcon} />
+                <Text style={styles.cardTitle}>Hobbies</Text>
+              </View>
+              <View style={styles.cardContent}>
+                {profileData?.hobbies?.length ? (
+                  <View style={styles.hobbiesContainer}>
+                    {profileData.hobbies.map((hobby, index) => (
+                      <View key={index} style={styles.hobbyTag}>
+                        <Text style={styles.hobbyText}>{hobby}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.emptyText}>No hobbies listed</Text>
+                )}
+              </View>
+            </View>
+
+            {/* Bio */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="document-text" size={22} color="#7B4A9E" style={styles.cardIcon} />
+                <Text style={styles.cardTitle}>Bio</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Logout Button */}
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="log-out-outline" size={22} color="#FFFFFF" style={styles.logoutIcon} />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </LinearGradient>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#7B4A9E',
   },
-  headerContainer: {
+  gradient: {
+    flex: 1,
     position: 'absolute',
-    top: 20,            
-    right: 20,           
-    zIndex: 10,           
+    left: 0,
+    right: 0, 
+    top: 0,
+    bottom: 0,
+    height: '100%',
+    width: '100%',
   },
-  
-  settingsIcon: {
-    padding: 10,         
-    backgroundColor: '#fff', 
-    borderRadius: 50,    
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#7B4A9E',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30,
+    paddingTop: Platform.OS === 'ios' ? 50 : 70,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    position: 'relative',
+  },
+  headerTitle: {
+    alignItems: 'center',
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  settingsButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: -40,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 30,
   },
   profileImageContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginBottom: 20,
+    position: 'relative',
   },
   profileImage: {
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#000',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  uploadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(123, 74, 158, 0.7)',
+  },
+  editProfileButton: {
+    position: 'absolute',
+    bottom: 5,
+    right: '35%',
+    backgroundColor: '#7B4A9E',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
-  name: {
-    fontSize: 24,  
-    fontWeight: 'bold',  
-    color: '#fff', 
-    textAlign: 'center',  
-    marginBottom: 4, 
+  nameContainer: {
+    alignItems: 'center',
+    marginBottom: 25,
   },
-  email: {
+  nameText: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 5,
+  },
+  emailText: {
     fontSize: 16,
-    color: '#f1f1f1',
-    marginBottom: 10, 
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  infoCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16, 
-    marginBottom: 16, 
-    shadowColor: '#000',
+  cardsContainer: {
+    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowRadius: 4,
     elevation: 3,
+    marginBottom: 20,
+    overflow: 'hidden',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#404756',
-    marginBottom: 8,
-  },
-  sectionTitleContainer: {
+  cardHeader: {
+    backgroundColor: 'rgba(123, 74, 158, 0.1)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(123, 74, 158, 0.15)',
+  },
+  cardIcon: {
+    marginRight: 10,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#7B4A9E',
+  },
+  cardContent: {
+    padding: 16,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingVertical: 8,
   },
-  label: {
+  infoLabel: {
     fontSize: 16,
-    color: '#6BBFBC',
+    color: '#6B6B6B',
   },
-  value: {
+  infoValue: {
     fontSize: 16,
-    color: '#404756',
+    fontWeight: '500',
+    color: '#333333',
   },
-  bioText: {
-    fontSize: 16,
-    color: '#404756',
-    marginTop: 10,
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  hobbiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
   },
   hobbyTag: {
-    backgroundColor: '#7B4A9E',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(123, 74, 158, 0.15)',
+    borderRadius: 30,
     paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
+    paddingHorizontal: 12,
+    margin: 4,
   },
   hobbyText: {
+    color: '#7B4A9E',
+    fontWeight: '500',
     fontSize: 14,
-    color: '#fff',
   },
-  placeholderText: {
-    color: '#404756',
+  bioText: {
+    fontSize: 15,
+    color: '#333333',
+    lineHeight: 22,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: '#888888',
     fontStyle: 'italic',
   },
-  logoutButton: {
-    backgroundColor: '#d32f2f',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   errorText: {
-    color: '#d32f2f',
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 20,
+    paddingHorizontal: 30,
+  },
+  retryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 15,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  logoutButton: {
+    backgroundColor: '#E53935',
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  logoutIcon: {
+    marginRight: 8,
+  },
+  logoutText: {
     fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 30,
-  },
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  }
 });
 
 export default AccountScreen;

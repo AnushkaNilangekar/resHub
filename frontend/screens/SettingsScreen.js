@@ -7,27 +7,35 @@ import {
     TouchableOpacity, 
     Alert,
     Modal,
-    FlatList, 
+    FlatList,
+    StatusBar,
+    Platform,
+    ActivityIndicator
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TextInput } from 'react-native';
-import axios, { formToJSON } from 'axios';
+import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
+import { Ionicons } from '@expo/vector-icons';
 
-
-const CustomDropdown = ({ label, options, selectedValue, onValueChange }) => {
+const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
 
     return (
-        <View style={styles.dropdownContainer}>
+        <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{label}</Text>
             <TouchableOpacity 
                 style={styles.dropdownButton} 
                 onPress={() => setModalVisible(true)}
+                activeOpacity={0.8}
             >
-                <Text style={styles.dropdownButtonText}>
+                <Ionicons name={icon} size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                <Text style={[
+                    styles.dropdownButtonText,
+                    !selectedValue && styles.dropdownPlaceholder
+                ]}>
                     {selectedValue || `Select ${label}`}
                 </Text>
             </TouchableOpacity>
@@ -45,13 +53,24 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange }) => {
                             data={options}
                             renderItem={({ item }) => (
                                 <TouchableOpacity 
-                                    style={styles.modalOption}
+                                    style={[
+                                        styles.modalOption,
+                                        selectedValue === item && styles.modalOptionSelected
+                                    ]}
                                     onPress={() => {
                                         onValueChange(item);
                                         setModalVisible(false);
                                     }}
                                 >
-                                    <Text style={styles.modalOptionText}>{item}</Text>
+                                    <Text style={[
+                                        styles.modalOptionText,
+                                        selectedValue === item && styles.modalOptionTextSelected
+                                    ]}>
+                                        {item}
+                                    </Text>
+                                    {selectedValue === item && (
+                                        <Ionicons name="checkmark" size={20} color="#7B4A9E" />
+                                    )}
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item) => item}
@@ -69,9 +88,8 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange }) => {
     );
 };
 
-
-
 const SettingsScreen = ({ navigation }) => {
+    const [loading, setLoading] = useState(true);
     // Personal Info States
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
@@ -82,6 +100,7 @@ const SettingsScreen = ({ navigation }) => {
     const [residence, setResidence] = useState('');
     const [bio, setBio] = useState('');
     const [hobbies, setHobbies] = useState([]);
+    const [saving, setSaving] = useState(false);
     const commonHobbies = [
         "Reading", "Hiking", "Gaming", "Cooking", 
         "Traveling", "Sports", "Music", "Art", "Working Out"
@@ -120,24 +139,28 @@ const SettingsScreen = ({ navigation }) => {
         fetchUserProfile();
     }, []);
 
-    const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false }) => (
+    const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false, icon }) => (
         <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{label}</Text>
-            <TextInput 
-                style={[
-                    styles.input, 
-                    multiline && styles.multilineInput
-                ]} 
-                value={value} 
-                onChangeText={onChangeText} 
-                keyboardType={keyboardType}
-                multiline={multiline}
-                placeholderTextColor="#999"
-            />
+            <View style={styles.inputWrapper}>
+                <Ionicons name={icon || "create-outline"} size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                <TextInput 
+                    style={[
+                        styles.input, 
+                        multiline && styles.multilineInput
+                    ]} 
+                    value={value} 
+                    onChangeText={onChangeText} 
+                    keyboardType={keyboardType}
+                    multiline={multiline}
+                    placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                />
+            </View>
         </View>
     );
 
     const fetchUserProfile = async () => {
+        setLoading(true);
         try {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('token');
@@ -182,11 +205,14 @@ const SettingsScreen = ({ navigation }) => {
         } catch (error) {
             console.error('Error fetching profile:', error);
             Alert.alert('Error', 'Could not fetch profile details');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleSaveProfile = async () => {
         try {
+            setSaving(true);
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('token');
             const formattedHobbies = hobbies.join(', '); 
@@ -232,154 +258,229 @@ const SettingsScreen = ({ navigation }) => {
         } catch (error) {
             console.error('Error updating profile:', error);
             Alert.alert('Error', 'Could not update profile');
+        }  finally {
+            setSaving(false);
         }
     };
 
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <LinearGradient
+                    colors={['#7B4A9E', '#9D67C1', '#9775E3', '#6152AA']}
+                    style={styles.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    locations={[0, 0.3, 0.6, 1]}
+                >
+                    <ActivityIndicator size="large" color="#FFFFFF" />
+                    <Text style={styles.loadingText}>Loading your profile...</Text>
+                </LinearGradient>
+            </View>
+        );
+    }
    
     return (
         <GestureHandlerRootView style={styles.rootContainer}>
-             <LinearGradient
-                colors={['#7B4A9E', '#6BBFBC', '#6C85FF', '#404756']}
-                style={styles.gradientBackground}
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+            <LinearGradient
+                colors={['#7B4A9E', '#9D67C1', '#9775E3', '#6152AA']}
+                style={styles.gradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
-                locations={[0, 0.4, 0.7, 1]}
-            ></LinearGradient>
-            <ScrollView 
-                style={styles.container}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={true}
-                contentContainerStyle={styles.scrollViewContent}
+                locations={[0, 0.3, 0.6, 1]}
             >
-                <Text style={styles.pageTitle}>Profile Settings</Text>
-
-                {/* Personal Information Section */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Personal Information</Text>
-                    <ProfileInput 
-                        label="Full Name" 
-                        value={fullName} 
-                        onChangeText={setFullName} 
-                    />
-                    <ProfileInput 
-                        label="Age" 
-                        value={age} 
-                        onChangeText={setAge} 
-                        keyboardType="numeric"
-                    />
-                    <CustomDropdown 
-                        label="Gender"
-                        selectedValue={gender}
-                        onValueChange={setGender}
-                        options={['Female', 'Male', 'Non-Binary', 'Prefer Not to Say']}
-                    />
-                </View>
-
-                {/* Additional Sections */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Academic Details</Text>
-                    <ProfileInput 
-                        label="Major" 
-                        value={major} 
-                        onChangeText={setMajor} 
-                    />
-                    <CustomDropdown 
-                        label="Graduation Year"
-                        selectedValue={graduationYear}
-                        onValueChange={setGraduationYear}
-                        options={['2025', '2026', '2027', '2028', '2029', '2030', 'n/a']}
-                    />
-                </View>
-
-                {/* Additional Sections (you can uncomment and add more as needed) */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Additional Information</Text>
-                    <ProfileInput 
-                        label="Bio" 
-                        value={bio} 
-                        onChangeText={setBio} 
-                        multiline={true}
-                    />
-                    <Text style={styles.label}>Select Your Hobbies:</Text>
-                    <View style={styles.hobbiesContainer}>
-                {commonHobbies.map((hobby) => (
-                    <TouchableOpacity
-                        key={hobby}
-                        style={[
-                            styles.hobbyItem,
-                            hobbies.includes(hobby) && styles.hobbySelected,
-                        ]}
-                        onPress={() => toggleHobby(hobby)}
+                <View style={styles.header}>
+                    <TouchableOpacity 
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
                     >
-                        <Text style={[styles.hobbyText, hobbies.includes(hobby) && styles.hobbyTextSelected]}>
-                            {hobby}
-                        </Text>
+                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-                ))}
-            </View>
+                    <Text style={styles.headerTitle}>Edit Profile</Text>
+                    <View style={{ width: 24 }} />
                 </View>
 
-                {/* Personal Traits Section */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Personal Traits</Text>
-                    <CustomDropdown 
-                        label="Smoking Status"
-                        selectedValue={smokingStatus}
-                        onValueChange={setSmokingStatus}
-                        options={['Non-Smoker', 'Smoker']}
-                    />
-                    <CustomDropdown 
-                        label="Cleanliness Level"
-                        selectedValue={cleanlinessLevel}
-                        onValueChange={setCleanlinessLevel}
-                        options={['Very Clean', 'Moderate', 'Messy']}
-                    />
-                    <CustomDropdown 
-                        label="Sleep Schedule"
-                        selectedValue={sleepSchedule}
-                        onValueChange={setSleepSchedule}
-                        options={['Early Bird', 'Night Owl', 'Flexible']}
-                    />
-                    <CustomDropdown 
-                        label="Guest Frequency"
-                        selectedValue={guestFrequency}
-                        onValueChange={setGuestFrequency}
-                        options={['Rarely', 'Occasionally', 'Frequently']}
-                    />
-                    <CustomDropdown 
-                        label="Do you own pets?"
-                        selectedValue={hasPets}
-                        onValueChange={setHasPets}
-                        options={['Yes', 'No', 'Might']}
-                    />
-                    <CustomDropdown 
-                        label="Noise Level"
-                        selectedValue={noiseLevel}
-                        onValueChange={setNoiseLevel}
-                        options={['Quiet', 'Moderate Noise', 'Loud Environment']}
-                    />
-                    <CustomDropdown 
-                        label="Sharing Common Items"
-                        selectedValue={sharingCommonItems}
-                        onValueChange={setSharingCommonItems}
-                        options={['Strictly Separate', 'Willing to Share', 'Flexible']}
-                    />
-                    <CustomDropdown 
-                        label="Dietary Preference"
-                        selectedValue={dietaryPreference}
-                        onValueChange={setDietaryPreference}
-                        options={['Vegetarian', 'Vegan', 'Allergies', 'No Restrictions', 'Other']}
-                    />
-                    <ProfileInput 
-                        label="Allergies" 
-                        value={allergies} 
-                        onChangeText={setAllergies} 
-                        placeholder="Enter allergies if any"
-                    />
+                <ScrollView 
+                    style={styles.container}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollViewContent}
+                >
+                    {/* Personal Information Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="person" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Personal Information</Text>
+                        </View>
+                        <ProfileInput 
+                            label="Full Name" 
+                            value={fullName} 
+                            onChangeText={setFullName} 
+                            icon="person-outline"
+                        />
+                        <ProfileInput 
+                            label="Age" 
+                            value={age} 
+                            onChangeText={setAge} 
+                            keyboardType="numeric"
+                            icon="calendar-outline"
+                        />
+                        <CustomDropdown 
+                            label="Gender"
+                            selectedValue={gender}
+                            onValueChange={setGender}
+                            options={['Female', 'Male', 'Non-Binary', 'Prefer Not to Say']}
+                            icon="person-outline"
+                        />
+                        <ProfileInput 
+                            label="Residence" 
+                            value={residence} 
+                            onChangeText={setResidence} 
+                            icon="home-outline"
+                        />
                     </View>
-                     {/* Roommate Preferences Section */}
-                     <View style={styles.sectionContainer}>
-                        <Text style={styles.sectionTitle}>Roommate Preferences</Text>
+
+                    {/* Academic Details */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="school" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Academic Details</Text>
+                        </View>
+                        <ProfileInput 
+                            label="Major" 
+                            value={major} 
+                            onChangeText={setMajor} 
+                            icon="book-outline"
+                        />
+                        <ProfileInput 
+                            label="Minor" 
+                            value={minor} 
+                            onChangeText={setMinor} 
+                            icon="bookmark-outline"
+                        />
+                        <CustomDropdown 
+                            label="Graduation Year"
+                            selectedValue={graduationYear}
+                            onValueChange={setGraduationYear}
+                            options={['2025', '2026', '2027', '2028', '2029', '2030', 'n/a']}
+                            icon="calendar-outline"
+                        />
+                    </View>
+
+                    {/* Bio & Hobbies */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="heart" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Bio & Interests</Text>
+                        </View>
+                        <ProfileInput 
+                            label="Bio" 
+                            value={bio} 
+                            onChangeText={setBio} 
+                            multiline={true}
+                            icon="document-text-outline"
+                        />
+                        <Text style={styles.inputLabel}>Select Your Hobbies:</Text>
+                        <View style={styles.hobbiesContainer}>
+                            {commonHobbies.map((hobby) => (
+                                <TouchableOpacity
+                                    key={hobby}
+                                    style={[
+                                        styles.hobbyItem,
+                                        hobbies.includes(hobby) && styles.hobbySelected,
+                                    ]}
+                                    onPress={() => toggleHobby(hobby)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.hobbyText, 
+                                        hobbies.includes(hobby) && styles.hobbyTextSelected
+                                    ]}>
+                                        {hobby}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Personal Traits Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="options" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Personal Traits</Text>
+                        </View>
+                        <CustomDropdown 
+                            label="Smoking Status"
+                            selectedValue={smokingStatus}
+                            onValueChange={setSmokingStatus}
+                            options={['Non-Smoker', 'Smoker']}
+                            icon="flame-outline"
+                        />
+                        <CustomDropdown 
+                            label="Cleanliness Level"
+                            selectedValue={cleanlinessLevel}
+                            onValueChange={setCleanlinessLevel}
+                            options={['Very Clean', 'Moderate', 'Messy']}
+                            icon="sparkles-outline"
+                        />
+                        <CustomDropdown 
+                            label="Sleep Schedule"
+                            selectedValue={sleepSchedule}
+                            onValueChange={setSleepSchedule}
+                            options={['Early Bird', 'Night Owl', 'Flexible']}
+                            icon="moon-outline"
+                        />
+                        <CustomDropdown 
+                            label="Guest Frequency"
+                            selectedValue={guestFrequency}
+                            onValueChange={setGuestFrequency}
+                            options={['Rarely', 'Occasionally', 'Frequently']}
+                            icon="people-outline"
+                        />
+                        <CustomDropdown 
+                            label="Do you own pets?"
+                            selectedValue={hasPets}
+                            onValueChange={setHasPets}
+                            options={['Yes', 'No', 'Might']}
+                            icon="paw-outline"
+                        />
+                        <CustomDropdown 
+                            label="Noise Level"
+                            selectedValue={noiseLevel}
+                            onValueChange={setNoiseLevel}
+                            options={['Quiet', 'Moderate Noise', 'Loud Environment']}
+                            icon="volume-high-outline"
+                        />
+                        <CustomDropdown 
+                            label="Sharing Common Items"
+                            selectedValue={sharingCommonItems}
+                            onValueChange={setSharingCommonItems}
+                            options={['Strictly Separate', 'Willing to Share', 'Flexible']}
+                            icon="share-outline"
+                        />
+                        <CustomDropdown 
+                            label="Dietary Preference"
+                            selectedValue={dietaryPreference}
+                            onValueChange={setDietaryPreference}
+                            options={['Vegetarian', 'Vegan', 'Allergies', 'No Restrictions', 'Other']}
+                            icon="restaurant-outline"
+                        />
+                        <ProfileInput 
+                            label="Allergies" 
+                            value={allergies} 
+                            onChangeText={setAllergies} 
+                            placeholder="Enter allergies if any"
+                            icon="alert-circle-outline"
+                        />
+                    </View>
+
+                    {/* Roommate Preferences Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="people" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Roommate Preferences</Text>
+                        </View>
                         <CustomDropdown 
                             label="Roommate Smoking Preference"
                             selectedValue={roommateSmokingPreference}
@@ -389,58 +490,77 @@ const SettingsScreen = ({ navigation }) => {
                                 'Smoker', 
                                 'Only when I\'m not around'
                             ]}
+                            icon="flame-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Cleanliness Level"
                             selectedValue={roommateCleanlinessLevel}
                             onValueChange={setRoommateCleanlinessLevel}
                             options={['Very Clean', 'Moderate', 'Messy']}
+                            icon="sparkles-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Sleep Schedule"
                             selectedValue={roommateSleepSchedule}
                             onValueChange={setRoommateSleepSchedule}
                             options={['Early Bird', 'Night Owl', 'Flexible']}
+                            icon="moon-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Guest Frequency"
                             selectedValue={roommateGuestFrequency}
                             onValueChange={setRoommateGuestFrequency}
                             options={['Rarely', 'Occasionally', 'Frequently']}
+                            icon="people-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Pet Preference"
                             selectedValue={roommatePetPreference}
                             onValueChange={setRoommatePetPreference}
                             options={['No Pets', 'Okay with Pets']}
+                            icon="paw-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Noise Tolerance"
                             selectedValue={roommateNoiseTolerance}
-                            onValueChange={setRoommateSleepSchedule}
+                            onValueChange={setRoommateNoiseTolerance}
                             options={['Quiet', 'Moderate Noise', 'Loud Environment']}
+                            icon="volume-high-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Sharing Common Items"
                             selectedValue={roommateSharingCommonItems}
                             onValueChange={setRoommateSharingCommonItems}
                             options={['Strictly Separate', 'Willing to Share', 'Flexible']}
+                            icon="share-outline"
                         />
                         <CustomDropdown 
                             label="Roommate Dietary Preference"
                             selectedValue={roommateDietaryPreference}
                             onValueChange={setRoommateDietaryPreference}
                             options={['Vegetarian', 'Vegan', 'No Restrictions']}
+                            icon="restaurant-outline"
                         />
-                </View>
-                {/* Save Button */}
-                <TouchableOpacity 
-                    style={styles.saveButton} 
-                    onPress={handleSaveProfile}
-                >
-                    <Text style={styles.saveButtonText}>Save Profile</Text>
-                </TouchableOpacity>
-            </ScrollView>
+                    </View>
+
+                    {/* Save Button */}
+                    <TouchableOpacity 
+                        style={styles.saveButton} 
+                        onPress={handleSaveProfile}
+                        activeOpacity={0.8}
+                        disabled={saving}
+                    >
+                        {saving ? (
+                            <ActivityIndicator color="#FFFFFF" size="small" />
+                        ) : (
+                            <>
+                                <Ionicons name="save-outline" size={20} color="#FFFFFF" style={styles.saveButtonIcon} />
+                                <Text style={styles.saveButtonText}>Save Changes</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </ScrollView>
+            </LinearGradient>
         </GestureHandlerRootView>
     );
 };
@@ -448,198 +568,238 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     rootContainer: {
         flex: 1,
-        //backgroundColor: '#f5f5f5'
+        backgroundColor: '#7B4A9E',
     },
-    gradientBackground: {
-        ...StyleSheet.absoluteFillObject,
-        zIndex: -1,
+    gradient: {
+        flex: 1,
+        position: 'absolute',
+        left: 0,
+        right: 0, 
+        top: 0,
+        bottom: 0,
+        height: '100%',
+        width: '100%',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? 50 : 40,
+        paddingBottom: 10,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
     },
     container: {
         flex: 1,
-        paddingHorizontal: 20,
     },
-    pageTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 20,
-        marginTop: 50,
-        color: '#333'
+    scrollViewContent: {
+        paddingHorizontal: 20,
+        paddingBottom: 50,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        marginTop: 15,
     },
     sectionContainer: {
-        backgroundColor: 'white',
-        borderRadius: 20, // More rounded corners for a modern look
-        padding: 20,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 5,
-        // Optional gradient background inside the section container for more integration
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        marginBottom: 25,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
-
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+    },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#333'
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginLeft: 10,
     },
     inputContainer: {
-        marginBottom: 15
+        marginHorizontal: 16,
+        marginVertical: 10,
+    },
+    inputLabel: {
+        fontSize: 14,
+        color: 'rgba(255, 255, 255, 0.8)',
+        marginBottom: 8,
+        fontWeight: '500',
+    },
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        overflow: 'hidden',
+    },
+    inputIcon: {
+        marginLeft: 12,
+        marginRight: 5,
     },
     input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        padding: 12,
-        fontSize: 24,
-        backgroundColor: '#fafafa',  
-        shadowColor: '#ddd',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 2,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
+        flex: 1,
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        color: '#FFFFFF',
         fontSize: 16,
-        backgroundColor: '#f9f9f9',
-        transition: 'background-color 0.3s ease',
     },
     multilineInput: {
         minHeight: 100,
-        textAlignVertical: 'top'
+        textAlignVertical: 'top',
     },
-    saveButton: {
-        backgroundColor: '#007bff',
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 30,  // Rounded button
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',  // To add an icon inside the button
-        marginTop: 30,
-        elevation: 5,
-    },
-    saveButtonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginRight: 10,  // Space between text and icon
-    },
-    scrollViewContent: {
-        paddingBottom: 100 
-    },
-    dropdownContainer: {
-        marginBottom: 15
-    },
-    dropdownContainer: {
-        marginBottom: 15,
-    },
-    
     dropdownButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
-        backgroundColor: '#f9f9f9'
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        paddingVertical: 12,
+        paddingHorizontal: 12,
     },
-    
     dropdownButtonText: {
+        flex: 1,
         fontSize: 16,
-        fontWeight: '500', 
-        color: '#333', 
-        textAlign: 'center',
+        color: '#FFFFFF',
+        paddingHorizontal: 10,
     },
-    
+    dropdownPlaceholder: {
+        color: 'rgba(255, 255, 255, 0.5)',
+    },
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.4)', 
-        paddingHorizontal: 20, 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        paddingHorizontal: 20,
     },
-    
     modalContent: {
-        width: '85%',
-        backgroundColor: '#fff',
-        borderRadius: 16, 
+        width: '90%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
         paddingVertical: 20,
-        paddingHorizontal: 25,
         maxHeight: '70%',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
         elevation: 10,
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
     },
-    
     modalTitle: {
-        fontSize: 20, 
-        fontWeight: '600', 
-        marginBottom: 20,
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#7B4A9E',
+        marginBottom: 15,
         textAlign: 'center',
-        color: '#333', 
     },
-    
     modalOption: {
-        paddingVertical: 18,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb', 
+        borderBottomColor: '#F0F0F0',
     },
-    
+    modalOptionSelected: {
+        backgroundColor: 'rgba(123, 74, 158, 0.1)',
+    },
     modalOptionText: {
         fontSize: 16,
-        color: '#444', 
-        fontWeight: '400', 
+        color: '#333333',
     },
-    
+    modalOptionTextSelected: {
+        color: '#7B4A9E',
+        fontWeight: '600',
+    },
     modalCancelButton: {
-        marginTop: 20,
+        marginTop: 15,
+        marginHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: '#efefef', 
+        backgroundColor: '#F0F0F0',
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ddd', 
+        alignItems: 'center',
     },
-    
     modalCancelButtonText: {
-        textAlign: 'center',
+        color: '#7B4A9E',
         fontSize: 16,
-        fontWeight: '600', 
-        color: '#555', 
+        fontWeight: '600',
     },
     hobbiesContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginVertical: 10,
+        marginHorizontal: 10,
+        marginBottom: 10,
     },
     hobbyItem: {
         paddingVertical: 8,
-        paddingHorizontal: 18,
+        paddingHorizontal: 16,
         margin: 6,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 30,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     hobbySelected: {
-        backgroundColor: '#6C85FF', 
-        borderColor: '#6C85FF',
+        backgroundColor: '#9775E3',
+        borderColor: '#9775E3',
     },
     hobbyText: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 14,
+        color: '#FFFFFF',
     },
     hobbyTextSelected: {
-        color: '#fff',
+        fontWeight: '600',
     },
+    saveButton: {
+        backgroundColor: '#4ade80',
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        marginBottom: 30,
+        flexDirection: 'row',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    saveButtonText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    saveButtonIcon: {
+        marginRight: 10,
+    }
 });
-
 
 export default SettingsScreen;

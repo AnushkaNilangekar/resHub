@@ -79,15 +79,24 @@ const SwipeScreen = () => {
     }
   };
 
+  const checkIfMoreProfiles = () => {
+    if (profiles.length > 0)
+    {
+      setIsSwipedAll(false);
+    }
+  }
+
   const onRefresh = async () => {
     setRefreshing(true);
     setProfiles([]);
     await fetchProfileCards();
+    checkIfMoreProfiles();
     setRefreshing(false);
   };
 
   useEffect(() => {
     fetchProfileCards();
+    checkIfMoreProfiles();
   }, [userInfo, selectedGender]);
 
   // Handle a swipe on a card.

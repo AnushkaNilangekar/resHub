@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated } from 'react-native';
+import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors } from '../styles/colors';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+
+const { height, width } = Dimensions.get('window');
 
 const SwipeScreen = () => {
   const [profiles, setProfiles] = useState([]);
@@ -139,139 +143,178 @@ const SwipeScreen = () => {
       });
     };
 
-    const header = (() => {
-      return (
-        <View>
-          <View style={styles.buttonContainer}>
-            <Button title="Logout" onPress={() => logout()} />
-            <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
-            <Button title="Refresh" onPress={() => onRefresh()} />
-          </View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Profiles for You</Text>
-          </View>
-          <View style={styles.filterContainer}>
-            {["All", "Male", "Female", "Non-binary"].map((gender) => (
-              <TouchableOpacity
-                key={gender}
-                style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
-                onPress={() => setSelectedGender(gender)}
-              >
-                <Text style={styles.filterText}>{gender}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+  const header = (() => {
+    return (
+      <View>
+        <View style={styles.buttonContainer}>
+          <Button title="Logout" onPress={() => logout()} />
+          <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
+          <Button title="Refresh" onPress={() => onRefresh()} />
         </View>
-      );
-    });
-  
-    const loadingItem = ((itemLoading) => {
-      return (
-        <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text>Loading {itemLoading}...</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Profiles for You</Text>
         </View>
-      );
-    });
-  
-    if (!userInfo || !userInfo.userId) {
-      {loadingItem("user information")}
-    };
-  
-    if (refreshing) {
-      return (
-        <View style={styles.container}>
-          {header()}
-          {loadingItem("profile cards")}
+        <View style={styles.filterContainer}>
+          {["All", "Male", "Female", "Non-binary"].map((gender) => (
+            <TouchableOpacity
+              key={gender}
+              style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
+              onPress={() => setSelectedGender(gender)}
+            >
+              <Text style={styles.filterText}>{gender}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      );
-    }
-  
-    if (profiles.length === 0 && !refreshing) {
-      return (
-        <View style={styles.container}>
-          {header()}
-      
-          {/* Display a message when no profiles match the filters */}
-          <View style={styles.noProfilesContainer}>
-            <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
-          </View>
-        </View>
-      );
-    }
-    
+      </View>
+    );
+  });
+
+  const loadingItem = ((itemLoading) => {
+    return (
+      <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text>Loading {itemLoading}...</Text>
+      </View>
+    );
+  });
+
+  if (!userInfo || !userInfo.userId) {
+    {loadingItem("user information")}
+  };
+
+  if (refreshing) {
     return (
       <View style={styles.container}>
         {header()}
-        {swipeFeedback && (
-          <Animated.View style={[
-              styles.swipeFeedback,
-              { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.7, 1],
-              }) }] },
-              swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
-          ]}>
-              <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
-          </Animated.View>
-        )}
-        {/* Profile swiper or loading */}
-        {isSwipedAll ? (
-          <View style={styles.endCard}>
-            <Text style={styles.endCardText}>No more cards</Text>
-          </View>
-        ) : (
-          <View style={{ flex: 1, width: "100%"}}>
-            <Swiper
-              cards={profiles}
-              renderCard={(card) => {
-                if (!card) return null;
-                return (
-                  <View style={[styles.card, { backgroundColor: card.backgroundColor || "#F5E6F7" }]}>
-                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
-                    <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
-                    <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Major: {card.major || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Minor: {card.minor || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Residence: {card.residence || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Graduation Year: {card.graduationYear || "N/A"}</Text>
-                    <Text style={styles.cardSubtitle}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
-                    <Text style={styles.cardSubtitle}>Bio: {card.bio || "No Bio available"}</Text>
-                  </View>
-                );
-              }}
-              onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
-              onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
-              onSwipedAll={() => setIsSwipedAll(true)}
-              disableTopSwipe
-              disableBottomSwipe
-              cardIndex={0}
-              backgroundColor={'#f0f0f0'}
-              stackSize={3}
-            />
-          </View>
-        )}
+        {loadingItem("profile cards")}
       </View>
     );
-        
+  }
+
+  if (profiles.length === 0 && !refreshing) {
+    return (
+      <View style={styles.container}>
+        {header()}
+    
+        {/* Display a message when no profiles match the filters */}
+        <View style={styles.noProfilesContainer}>
+          <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
+        </View>
+      </View>
+    );
+  }
+  
+  return (
+    <View style={styles.container}>
+      {header()}
+
+      {swipeFeedback && (
+        <Animated.View style={[
+            styles.swipeFeedback,
+            { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.7, 1],
+            }) }] },
+            swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
+        ]}>
+            <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
+        </Animated.View>
+      )}
+
+      {/* Profile swiper or loading */}
+      {isSwipedAll ? (
+        <View style={styles.endCard}>
+          <Text style={styles.endCardText}>No more cards</Text>
+        </View>
+      ) : (
+        <View style={{ flex: 1, width: "100%"}}>
+          <Swiper
+            cards={profiles}
+            renderCard={(card) => {
+              if (!card) return null;
+              return (
+                <View style={styles.card}>
+                  <View style={styles.rowContainer}>
+                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
+                    <View stylele={styles.columnContainer}>
+                      <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
+                      <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
+                      <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
+                    </View>
+                  </View>
+
+                  <View stylele={styles.columnContainer}>
+                    <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
+                    <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
+                    <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
+                    <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
+                    <Text style={styles.cardText}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
+                    <Text style={styles.cardText}>Bio: {card.bio || "No bio available"}</Text>
+                  </View>
+
+                  <View style={styles.cardFooter}>
+                    <View style={styles.rowContainerBody}>
+                      <View stylele={styles.columnContainer}>
+                        <Text style={styles.footerText}>Smoking: {card.smokingStatus || "N/A"}</Text>
+                        <Text style={styles.footerText}>Cleanliness: {card.cleanlinessLevel || "N/A"}</Text>
+                        <Text style={styles.footerText}>Noise: {card.noiseLevel || "N/A"}</Text>
+                        <Text style={styles.footerText}>Sharing: {card.sharingCommonItems || "N/A"}</Text>
+                        <Text style={styles.footerText}>Diet: {card.dietaryPreference || "N/A"}</Text>
+                      </View>
+                      <View style={styles.columnContainer}>
+                        <Text style={styles.footerText}>Sleep: {card.sleepSchedule || "N/A"}</Text>
+                        <Text style={styles.footerText}>Pets: {card.hasPets || "N/A"}</Text>
+                        <Text style={styles.footerText}>Guests: {card.guestFrequency || "N/A"}</Text>
+                        <Text style={styles.footerText}>Allergies: {card.allergies || "N/A"}</Text>
+                        <Text style={styles.footerText}></Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              );
+            }}
+            onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
+            onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
+            onSwipedAll={() => setIsSwipedAll(true)}
+            disableTopSwipe
+            disableBottomSwipe
+            cardIndex={0}
+            backgroundColor={colors.white}
+            stackSize={3}
+          />
+        </View>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 15,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.white,
     justifyContent: 'flex-start',
     paddingTop: 40,
   },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,  
+  },
+  rowContainerBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  columnContainer: {
+    flexDirection: 'column',
+  },
   titleContainer: {
-    marginTop: 15,
     width: "100%", 
     alignItems: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -279,6 +322,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 15,
+    marginBottom: -50,
     zIndex: 5,
   },
   filterButton: {
@@ -286,18 +330,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: "#FFC0CB", // Pastel Pink
+    backgroundColor: colors.pastelPink,
   },
   selectedFilter: {
-    backgroundColor: "#1E90FF", // Blue
+    backgroundColor: colors.blue,
   },
   filterText: {
-    color: "#fff",
+    color: colors.white,
     fontWeight: "bold",
   },
   swipeFeedback: {
     position: 'absolute',
-    top: '40%',
+    top: '36%',
     zIndex: 100,
     width: 70, 
     height: 70, 
@@ -327,29 +371,76 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.white,
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 40,
   },
   card: {
-    flex: 0.65,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    justifyContent: 'center',
-    padding: 10,
-    marginHorizontal: 20,
+    backgroundColor: colors.pastelPink,
+    borderRadius: 25,
+    borderWidth: 5,
+    borderColor: colors.lightPastelPink,
+    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    width: '100%',
+    height: height * 0.60,
+    alignSelf: 'center',
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    // For Apple
+    shadowColor: '#000',
+    shadowOffset: { width: 10, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    // For Android
+    elevation: 5,
+  },
+  cardFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    backgroundColor: colors.white,
+    borderRadius: 15,
+    borderTopWidth: 5,
+    borderLeftWidth: 2,
+    borderRightWidth: 2,
+    borderColor: colors.lightPastelPink,
   },
   cardTitle: {
-    fontSize: 22,
-    marginBottom: 10,
+    fontSize: RFPercentage(3.3),
     fontWeight: 'bold',
-    color: '#333',
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '85%',
   },
   cardSubtitle: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: RFPercentage(2.3),
+    fontWeight: 'bold',
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 2,
+  },
+  cardText: {
+    fontSize: RFPercentage(2),
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '85%',
+  },
+  footerText: {
+    fontSize: RFPercentage(1.8),
+    flexWrap: 'wrap',
+    color: colors.cardTextColor,
+    marginBottom: 5,
+    width: '100%',
   },
   noProfilesContainer: {
     flex: 1,
@@ -359,7 +450,7 @@ const styles = StyleSheet.create({
   noProfilesText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#555',
+    color: colors.cardTextColor,
     textAlign: 'center',
     marginTop: 20,
   },
@@ -372,22 +463,24 @@ const styles = StyleSheet.create({
   endCardText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.cardTextColor,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    marginBottom: 5,
     width: "100%",
     paddingHorizontal: 10,
     rowGap: 10,
     columnGap: 15,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: width * 0.23,
+    height: width * 0.23,
+    borderRadius: (width * 0.23) / 2,
     borderWidth: 2,
-    borderColor: "#ddd",
+    borderColor: colors.profilePicBorder,
+    marginRight: 15,
   },
 });
 

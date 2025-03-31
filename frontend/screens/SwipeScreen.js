@@ -249,7 +249,7 @@ const SwipeScreen = () => {
                     <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
                     <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
                     <Text style={styles.cardText}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
-                    <Text style={styles.cardText}>Bio: {card.bio || "No Bio available"}</Text>
+                    <Text style={styles.cardText}>Bio: {card.bio || "No bio available"}</Text>
                   </View>
 
                   <View style={styles.cardFooter}>

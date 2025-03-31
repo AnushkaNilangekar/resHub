@@ -3,7 +3,7 @@ import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpaci
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 /*
@@ -71,7 +71,7 @@ const ChatsScreen = () => {
         });
 
         const { fullName, profilePicUrl } = profileResponse.data;
-        
+
         chatDetails.push({
           chatId,
           fullName,
@@ -102,15 +102,27 @@ const ChatsScreen = () => {
   }
 
   useEffect(() => {
+    // Initial fetch
     getChatInformation();
-  },[]);
+
+    //removed to avoid exceeding AWS free tier limit
+
+    //   // Set up interval polling every 5000ms (5 seconds)
+    //   const interval = setInterval(() => {
+    //     getChatInformation();
+    //   }, 5000);
+
+    //   // Cleanup interval on unmount
+    //   return () => clearInterval(interval);
+  }, []);
+
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await getChatInformation();
     setRefreshing(false);
   }, []);
-  
+
 
   return (
     <View style={styles.container}>
@@ -124,14 +136,14 @@ const ChatsScreen = () => {
           data={chats}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.chatCard} 
+            <TouchableOpacity
+              style={styles.chatCard}
               onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
             >
               {item.profilePicUrl ? (
                 <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
               ) : (
-                <Ionicons name="person-circle-outline" size={100} color="#ccc"/>
+                <Ionicons name="person-circle-outline" size={100} color="#ccc" />
               )}
               <View style={styles.textContainer}>
                 <Text style={styles.fullName}>{item.fullName}</Text>

@@ -59,9 +59,9 @@ public class ProfileService {
                     item.getOrDefault("graduationYear", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("bio", AttributeValue.builder().s("").build()).s(),
                     Optional.ofNullable(item.getOrDefault("lastTimeActive", AttributeValue.builder().s("").build()).s())
-                        .filter(s -> !s.isEmpty())
-                        .map(Instant::parse)
-                        .orElse(null),
+                            .filter(s -> !s.isEmpty())
+                            .map(Instant::parse)
+                            .orElse(null),
                     item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s(),
                     // New fields for user's own traits:
                     item.getOrDefault("smokingStatus", AttributeValue.builder().s("").build()).s(),
@@ -81,8 +81,7 @@ public class ProfileService {
                     item.getOrDefault("roommatePetPreference", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
                     item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
-                    item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s()
-            );
+                    item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s());
 
             return profile;
         }

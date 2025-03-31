@@ -100,13 +100,31 @@ const MessageScreen = ({ route }) => {
   };
 
   useEffect(() => {
+    // Mark messages as read when the screen loads
+    async function markMessagesRead() {
+      const userId = await AsyncStorage.getItem("userId");
+      const token = await AsyncStorage.getItem("token");
+      await axios.post(`${config.API_BASE_URL}/api/users/markMessagesAsRead`, {
+        chatId: chatId,
+        userId: userId,
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    }
+    markMessagesRead();
+
     fetchMessages(); // Initial fetch
 
     const interval = setInterval(() => {
       fetchMessages(); // Fetch messages every 5 seconds
-    }, 1000);
+    }, 5000);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => {
+      clearInterval(interval);
+      if (route.params?.onGoBack) {
+        route.params.onGoBack(chatId);
+      }
+    };
   }, [chatId]);
 
   return (

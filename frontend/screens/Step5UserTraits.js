@@ -27,9 +27,7 @@ export default function Step5UserTraits({
 }) {
     const [focusedInput, setFocusedInput] = useState(null);
 
-    // Custom picker component to match design
     const CustomPicker = ({ label, value, onValueChange, options }) => {
-        // Available options to display as separate "buttons"
         const renderOptions = () => {
             return (
                 <View style={styles.optionsContainer}>

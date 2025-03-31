@@ -20,6 +20,7 @@ import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
+import AccountService from '../screens/AccountService';
 
 const AccountScreen = () => {
   const [profileData, setProfileData] = useState(null);
@@ -27,6 +28,7 @@ const AccountScreen = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
@@ -37,6 +39,75 @@ const AccountScreen = () => {
       index: 0,
       routes: [{ name: 'Login' }],
     });
+  };
+  
+  const handleDeleteAccount = () => {
+    // First confirmation alert
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: () => confirmDeleteAccount()
+        }
+      ]
+    );
+  };
+
+  const confirmDeleteAccount = () => {
+    // Second confirmation alert
+    Alert.alert(
+      "Confirm Deletion",
+      "All your profile data, matches, and messages will be permanently deleted. This cannot be undone. Are you absolutely sure?",
+      [
+        { text: "No, Keep My Account", style: "cancel" },
+        { 
+          text: "Yes, Delete My Account", 
+          style: "destructive",
+          onPress: () => performDeleteAccount()
+        }
+      ]
+    );
+  };
+
+  const performDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const result = await AccountService.deleteAccount();
+      
+      if (result.success) {
+        await logout();
+        Alert.alert(
+          "Account Deleted",
+          "Your account has been successfully deleted.",
+          [
+            { 
+              text: "OK", 
+              onPress: () => {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              }
+            }
+          ]
+        );
+      } else {
+        throw new Error(result.error || "Failed to delete account");
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      Alert.alert(
+        "Error",
+        "Failed to delete your account. Please try again later.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const fetchProfileData = async () => {
@@ -81,7 +152,6 @@ const AccountScreen = () => {
     }
   };
 
-  // Request permissions when component mounts
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
@@ -280,6 +350,7 @@ const AccountScreen = () => {
             <TouchableOpacity 
               style={styles.settingsButton}
               onPress={() => navigation.navigate('Settings')}
+              activeOpacity={0.7}
             >
               <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
@@ -400,6 +471,30 @@ const AccountScreen = () => {
                 <Text style={styles.bioText}>{profileData?.bio || 'No bio available'}</Text>
               </View>
             </View>
+          </View>
+
+          {/* Danger Zone */}
+          <View style={styles.dangerSection}>
+            <Text style={styles.dangerTitle}>Danger Zone</Text>
+            
+            <TouchableOpacity 
+              style={styles.deleteButton}
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={20} color="#FFFFFF" style={styles.deleteIcon} />
+                  <Text style={styles.deleteButtonText}>Delete Account</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            
+            <Text style={styles.dangerDescription}>
+              This action permanently removes your account, profile, matches, and all associated data.
+            </Text>
           </View>
 
           {/* Logout Button */}
@@ -643,6 +738,45 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  dangerSection: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(229, 57, 53, 0.15)',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E53935',
+  },
+  dangerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 15,
+  },
+  deleteButton: {
+    backgroundColor: '#E53935',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  deleteIcon: {
+    marginRight: 10,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  dangerDescription: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.8,
+    lineHeight: 20,
   }
 });
 

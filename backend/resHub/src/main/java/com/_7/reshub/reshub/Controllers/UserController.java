@@ -181,9 +181,13 @@ public class UserController {
     }
 
     @PostMapping("/unMatch")
-    public ResponseEntity<?> unMatch(@RequestParam String userId, @RequestParam String matchUserId, @RequestParam String chatId) {
+    public ResponseEntity<?> unMatch(@RequestBody Map<String, String> request) {
         try {
-            userService.unMatch(userId, matchUserId, chatId);
+            String userId = request.get("userId");
+            String matchUserId = request.get("matchUserId");
+            String chatId = request.get("chatId");
+
+            userService.unmatch(userId, matchUserId, chatId);
             return ResponseEntity.ok("Unmatched successfully");
         } catch (Exception e) {
             e.printStackTrace();

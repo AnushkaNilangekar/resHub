@@ -5,6 +5,7 @@ import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 /*
 * Chats Screen
@@ -104,6 +105,23 @@ const ChatsScreen = () => {
     }
   }
 
+  const handleUnmatch = async (chatId, otherUserId) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      await axios.post(`${config.API_BASE_URL}/api/users/unMatch`, {
+        userId: currentUserId,
+        matchUserId: otherUserId,
+        chatId: chatId,
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+  
+      setChats(prevChats => prevChats.filter(chat => chat.chatId !== chatId));
+    } catch (error) {
+      console.error("Error unmatching:", error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       AsyncStorage.getItem("userId").then(id => setCurrentUserId(id));
@@ -152,14 +170,22 @@ const ChatsScreen = () => {
           <Text style={styles.noMatchesText}>No chats yet</Text>
         </ScrollView>
       ) : (
-        <FlatList
-          data={chats}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => {
-            // Only apply grey if we have a currentUserId and there are unread messages AND the last message was not sent by the current user
-            const isUnreadForCurrentUser = currentUserId
-              ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-              : false;
+        // <FlatList
+        //   data={chats}
+        //   keyExtractor={(item, index) => index.toString()}
+        //   renderItem={({ item }) => {
+        //     // Only apply grey if we have a currentUserId and there are unread messages AND the last message was not sent by the current user
+        //     const isUnreadForCurrentUser = currentUserId
+        //       ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+        //       : false;
+        //     return (
+          <SwipeListView
+            data={chats}
+            keyExtractor={(item) => item.chatId.toString()}
+            renderItem={({ item }) => {
+              const isUnreadForCurrentUser = currentUserId
+                ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+                : false;
             return (
               <TouchableOpacity
                 style={[
@@ -180,6 +206,19 @@ const ChatsScreen = () => {
               </TouchableOpacity>
             );
           }}
+          renderHiddenItem={({ item }) => (
+            <View style={styles.hiddenItemContainer}>
+              <TouchableOpacity
+                style={styles.unmatchButton}
+                onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
+              >
+                <Text style={styles.unmatchText}>Unmatch</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          leftOpenValue={0}
+          rightOpenValue={-100} // Swipe left to reveal unmatch button
+          disableRightSwipe={true} // Prevent swiping right
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       )}
@@ -248,5 +287,27 @@ const styles = StyleSheet.create({
   chatIcon: {
     fontSize: 45,
     color: "#555",
-  }
+  },
+  hiddenItemContainer: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    height: 100,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    marginBottom: 10,
+    paddingRight: 15,
+  },
+  unmatchButton: {
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 100,
+    height: "100%",
+    borderRadius: 20,
+  },
+  unmatchText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });

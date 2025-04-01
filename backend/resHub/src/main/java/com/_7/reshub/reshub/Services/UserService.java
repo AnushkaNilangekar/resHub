@@ -17,7 +17,10 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
-
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -733,35 +736,34 @@ public class UserService {
     }
 
     private void deleteMessagesByChatId(String chatId) {
-        // Query the messages table for all messages in this chatId
-        Map<String, AttributeValue> keyCondition = Map.of(
-                "chatId", AttributeValue.builder().s(chatId).build());
-    
         QueryRequest queryRequest = QueryRequest.builder()
-                .tableName(dynamoDbConfig.getMessagesTableName())
-                .keyConditionExpression("chatId = :chatId")
-                .expressionAttributeValues(keyCondition)
-                .build();
+            .tableName(dynamoDbConfig.getMessagesTableName())
+            .keyConditionExpression("chatId = :chatId")
+            .expressionAttributeValues(Map.of(
+                ":chatId", AttributeValue.builder().s(chatId).build()
+            ))
+            .build();
     
         QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
     
-        // Loop through the results and delete each message by chatId
+        // Iterate through the results and delete each message
         for (Map<String, AttributeValue> message : queryResponse.items()) {
-            // Since we don't have messageId, we will use chatId as the identifier
-            Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("chatId", message.get("chatId"));  // Partition key
+            key.put("createdAt", message.get("createdAt"));  // Sort key (required)
     
             DeleteItemRequest deleteMessageRequest = DeleteItemRequest.builder()
-                    .tableName(dynamoDbConfig.getMessagesTableName())
-                    .key(key)
-                    .build();
+                .tableName(dynamoDbConfig.getMessagesTableName())
+                .key(key)
+                .build();
     
             try {
                 dynamoDbClient.deleteItem(deleteMessageRequest);
-                System.out.println("Message deleted for chatId: " + chatId);
+                System.out.println("Deleted message with chatId: " + chatId + " and createdAt: " + message.get("createdAt").s());
             } catch (Exception e) {
-                System.err.println("Error deleting message for chatId " + chatId + ": " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("Failed to delete message: " + e.getMessage());
             }
         }
     }
+    
 }

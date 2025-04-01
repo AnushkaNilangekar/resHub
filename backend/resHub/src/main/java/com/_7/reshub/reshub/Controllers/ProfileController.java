@@ -192,7 +192,8 @@ public class ProfileController {
     }
 
     /**
-     * GET endpoint that returns the list of all profiles filtered based on gender.
+     * GET endpoint that returns the list of all profiles filtered based on gender
+     * and sorted on if they've liked the current user (primary) and how recently active the profile is (secondary).
      * 
      * @param userId            The user currently looking at the page (will not be
      *                          included in result)

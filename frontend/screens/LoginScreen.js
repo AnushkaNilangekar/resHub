@@ -91,16 +91,16 @@ const LoginScreen = () => {
         const response = await axios.post(`${config.API_BASE_URL}/api/login`, requestData);
   
         if (response.status === 200) {
-            await AsyncStorage.setItem("token", response.data.token);
-            await AsyncStorage.setItem("userId", response.data.userId);
-            await AsyncStorage.setItem("userEmail", email);
-            await login(response.data.token);
-            Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
-            checkFirstLogin();
-          } else {
-            setError("Login failed");
-            Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
-          }
+          await AsyncStorage.setItem("token", response.data.token);
+          await AsyncStorage.setItem("userId", response.data.userId);
+          await AsyncStorage.setItem("userEmail", email);
+          await login(response.data.token);
+          Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
+          checkFirstLogin();
+        } else {
+          setError("Login failed");
+          Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);
+        }
       } catch (error) {
         setError("Login Failed. Please try again.")     
         Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);

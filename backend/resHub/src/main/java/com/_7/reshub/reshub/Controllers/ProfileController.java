@@ -206,21 +206,22 @@ public class ProfileController {
      */
 
      @GetMapping("/getProfiles")
-     public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter,
-             @RequestParam boolean filterOutSwipedOn) {
+     public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
          try {
-             List<Map<String, Object>> profiles = profileService.doGetProfiles(userId, genderFilter);
+             List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
  
              if (filterOutSwipedOn) {
                  List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
  
                  profiles = profiles.stream()
-                         .filter(profile -> {
-                             Object userIdObj = profile.get("userId");
-                             return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                 .filter(profile -> {
+                                 Object userIdObj = profile.getUserId();
+                                 return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
                          })
                          .collect(Collectors.toList());
              }
+ 
+             profiles = profileService.doSortProfiles(userId, profiles);
  
              return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
          } catch (Exception e) {
@@ -229,8 +230,6 @@ public class ProfileController {
                      .body(Map.of("error", e.getMessage()));
          }
      }
-
-
      /**
       * PUT endpoint that updates a user's profile information.
       * 

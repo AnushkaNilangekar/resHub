@@ -204,10 +204,13 @@ const SwipeScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}
         >
-          <View style={styles.contentContainer}>
+
+        <View style={styles.contentContainer}>
+          {/* Container for filters and refresh button */}
+          <View style={styles.filterRow}>
             {/* Filter buttons */}
             <View style={styles.filterContainer}>
-              {["All", "Male", "Female", "Non-binary"].map((gender) => (
+              {["All", "Male", "Female", "Non-Binary"].map((gender) => (
                 <TouchableOpacity
                   key={gender}
                   style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
@@ -218,17 +221,15 @@ const SwipeScreen = () => {
               ))}
             </View>
 
-            {/* Modified action buttons - only keeping Refresh */}
-            <View style={styles.actionButtonsContainer}>              
-              <TouchableOpacity 
-                style={styles.refreshButton}
-                onPress={onRefresh}
-              >
-                <Ionicons name="refresh-outline" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>Refresh</Text>
-              </TouchableOpacity>
-            </View>
-
+            {/* Refresh button */}
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={onRefresh}
+            >
+              <Ionicons name="refresh-outline" style={styles.refreshIcon} size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
             {swipeFeedback && (
               <Animated.View style={[
                   styles.swipeFeedback,
@@ -432,7 +433,6 @@ const SwipeScreen = () => {
                 />
               </View>
             )}
-          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 120, // Reduced from 180 to move content up
-    paddingTop: 10, // Added a small top padding
+    paddingBottom: 160, 
+    paddingTop: 10,
   },
   gradientContainer: {
     flex: 1,
@@ -456,21 +456,29 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: 0,
-    paddingBottom: 20,
+    paddingBottom: 0,
     alignItems: 'center',
-    marginTop: 10, // Added margin to move everything up a bit
+    marginTop: 2,
   },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap', 
+    width: '100%',
+  }, 
   filterContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 10,
-    marginTop: 0, // Removed top margin
-  },
+    flex: 1, 
+    alignItems: "center",
+    flexWrap: "wrap",
+    paddingLeft: 15,
+    gap: 8
+  },  
   filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginHorizontal: 5,
-    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginHorizontal: 4,
+    borderRadius: 15,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
@@ -490,17 +498,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '100%',
   },
+  refreshIcon: {
+    fontSize: 19
+  },
   refreshButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    padding: 4,
+    paddingHorizontal: 8,
     borderRadius: 20,
+    marginRight: 32,
+    marginLeft: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
-    width: '50%',
+    alignSelf: 'center',
   },
   refreshButtonEmpty: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
@@ -548,11 +560,11 @@ const styles = StyleSheet.create({
   },
   swiperContainer: {
     width: '100%',
-    height: height * 0.75, // Increased from 0.7 to fill more of the screen
+    height: height * 0.75,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -5,
-    marginTop: -50, // Increased negative margin to move it higher
+    marginTop: -50, 
   },
   swipeFeedback: {
     position: 'absolute',
@@ -587,7 +599,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 15,
-    height: height * 0.75,
+    height: height * 0.76,
     width: width * 0.9,
     alignSelf: 'center',
     shadowColor: '#000',
@@ -617,7 +629,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: RFPercentage(2.6),
+    fontSize: RFPercentage(2.3),
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 3,
@@ -670,6 +682,7 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(1.8),
     color: '#444',
     lineHeight: 20,
+
   },
   bioContainer: {
     marginBottom: 5,

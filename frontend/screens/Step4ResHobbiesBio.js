@@ -115,6 +115,7 @@ export default function Step4ResHobbiesBio({
                                     multiline
                                     numberOfLines={4}
                                     textAlignVertical="top"
+                                    maxLength={40} 
                                     onFocus={() => setFocusedInput('bio')}
                                     onBlur={() => setFocusedInput(null)}
                                 />

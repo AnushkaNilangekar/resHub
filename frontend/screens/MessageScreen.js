@@ -232,7 +232,7 @@ const MessageScreen = ({ route }) => {
                 textLeft={{ color: '#fff' }}
                 textRight={{ color: '#fff' }}
                 showEmoji={false}
-                showAttachment={true}
+                showAttachment={false}
                 onPressAttachment={() => console.log("Attachment Button Pressed..")}
                 timeContainerColor="rgba(0, 0, 0, 0.2)"
                 timeContainerTextColor="rgba(255, 255, 255, 0.8)"

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, Button, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Dimensions, SafeAreaView, StatusBar, Platform, ScrollView} from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
 import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../context/AuthContext'; // Import AuthContext
+import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { colors } from '../styles/colors';
-import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const { height, width } = Dimensions.get('window');
 
@@ -78,8 +79,7 @@ const SwipeScreen = () => {
   };
 
   const checkIfMoreProfiles = () => {
-    if (profiles.length > 0)
-    {
+    if (profiles.length > 0) {
       setIsSwipedAll(false);
     }
   }
@@ -109,11 +109,11 @@ const SwipeScreen = () => {
 
         axios.post(endpoint, null, {
             params: {
-                userId: userInfo.userId,        // Access userId from userInfo
+                userId: userInfo.userId,
                 swipedOnUserId,
             },
             headers: {
-                'Authorization': `Bearer ${userInfo.token}`,   // Access token from userInfo
+                'Authorization': `Bearer ${userInfo.token}`,
             }
         })
         .catch(error => {
@@ -149,201 +149,410 @@ const SwipeScreen = () => {
       });
     };
 
-  const header = (() => {
-    return (
-      <View>
-        <View style={styles.buttonContainer}>
-          <Button title="Logout" onPress={() => logout()} />
-          <Button title="Go to Profile set up" onPress={() => navigation.navigate("ProfileSetupScreen")} />
-          <Button title="Refresh" onPress={() => onRefresh()} />
-        </View>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Profiles for You</Text>
-        </View>
-        <View style={styles.filterContainer}>
-          {["All", "Male", "Female", "Non-binary"].map((gender) => (
-            <TouchableOpacity
-              key={gender}
-              style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
-              onPress={() => setSelectedGender(gender)}
-            >
-              <Text style={styles.filterText}>{gender}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  });
-
-  const loadingItem = ((itemLoading) => {
+  const LoadingItem = ({ itemLoading }) => {
     return (
       <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Loading {itemLoading}...</Text>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading {itemLoading}...</Text>
       </View>
     );
-  });
+  };
 
   if (!userInfo || !userInfo.userId) {
-    {loadingItem("user information")}
-  };
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={['#6C5CE7', '#45aaf2', '#2d98da', '#3867d6']}
+          style={styles.gradientContainer}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.4, 0.7, 1]}
+        >
+          <LoadingItem itemLoading="user information" />
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
 
   if (refreshing) {
     return (
-      <View style={styles.container}>
-        {header()}
-        {loadingItem("profile cards")}
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={['#6C5CE7', '#45aaf2', '#2d98da', '#3867d6']}
+          style={styles.gradientContainer}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.4, 0.7, 1]}
+        >
+          <LoadingItem itemLoading="profile cards" />
+        </LinearGradient>
+      </SafeAreaView>
     );
   }
 
-  if (profiles.length === 0 && !refreshing) {
-    return (
-      <View style={styles.container}>
-        {header()}
-    
-        {/* Display a message when no profiles match the filters */}
-        <View style={styles.noProfilesContainer}>
-          <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
-        </View>
-      </View>
-    );
-  }
-  
   return (
-    <View style={styles.container}>
-      {header()}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <LinearGradient
+        colors={['#6C5CE7', '#45aaf2', '#2d98da', '#3867d6']}
+        style={styles.gradientContainer}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.contentContainer}>
+            {/* Filter buttons */}
+            <View style={styles.filterContainer}>
+              {["All", "Male", "Female", "Non-binary"].map((gender) => (
+                <TouchableOpacity
+                  key={gender}
+                  style={[styles.filterButton, selectedGender === gender && styles.selectedFilter]}
+                  onPress={() => setSelectedGender(gender)}
+                >
+                  <Text style={styles.filterText}>{gender}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-      {swipeFeedback && (
-        <Animated.View style={[
-            styles.swipeFeedback,
-            { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.7, 1],
-            }) }] },
-            swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
-        ]}>
-            <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
-        </Animated.View>
-      )}
+            {/* Modified action buttons - only keeping Refresh */}
+            <View style={styles.actionButtonsContainer}>              
+              <TouchableOpacity 
+                style={styles.refreshButton}
+                onPress={onRefresh}
+              >
+                <Ionicons name="refresh-outline" size={20} color="#fff" />
+                <Text style={styles.actionButtonText}>Refresh</Text>
+              </TouchableOpacity>
+            </View>
 
-      {/* Profile swiper or loading */}
-      {isSwipedAll ? (
-        <View style={styles.endCard}>
-          <Text style={styles.endCardText}>No more cards</Text>
-        </View>
-      ) : (
-        <View style={{ flex: 1, width: "100%"}}>
-          <Swiper
-            cards={profiles}
-            renderCard={(card) => {
-              if (!card) return null;
-              return (
-                <View style={styles.card}>
-                  <View style={styles.rowContainer}>
-                    <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
-                    <View stylele={styles.columnContainer}>
-                      <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
-                      <Text style={styles.cardSubtitle}>Age: {card.age || "N/A"}</Text>
-                      <Text style={styles.cardSubtitle}>Gender: {card.gender || "N/A"}</Text>
-                    </View>
-                  </View>
+            {swipeFeedback && (
+              <Animated.View style={[
+                  styles.swipeFeedback,
+                  { opacity: fadeAnim, transform: [{ translateY: -50 }, { scale: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.7, 1],
+                  }) }] },
+                  swipeFeedback === 'right' ? styles.rightSwipeFeedback : styles.leftSwipeFeedback
+              ]}>
+                  <Text style={styles.swipeIcon}>{swipeFeedback === 'right' ? '✅' : '❌'}</Text>
+              </Animated.View>
+            )}
 
-                  <View stylele={styles.columnContainer}>
-                    <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
-                    <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
-                    <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
-                    <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
-                    <Text style={styles.cardText}>Hobbies: {card.hobbies?.join(", ") || "None listed"}</Text>
-                    <Text style={styles.cardText}>Bio: {card.bio || "No bio available"}</Text>
-                  </View>
+            {/* Profile swiper or empty state */}
+            {profiles.length === 0 && !refreshing ? (
+              <View style={styles.noProfilesContainer}>
+                <Ionicons name="search-outline" size={60} color="rgba(255,255,255,0.7)" />
+                <Text style={styles.noProfilesText}>We couldn't find any profiles that matched your filters.</Text>
+                <TouchableOpacity style={styles.refreshButtonEmpty} onPress={onRefresh}>
+                  <Text style={styles.refreshButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : isSwipedAll ? (
+              <View style={styles.noProfilesContainer}>
+                <Ionicons name="checkmark-done-outline" size={60} color="rgba(255,255,255,0.7)" />
+                <Text style={styles.noProfilesText}>No more profiles available</Text>
+                <TouchableOpacity style={styles.refreshButtonEmpty} onPress={onRefresh}>
+                  <Text style={styles.refreshButtonText}>Refresh</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.swiperContainer}>
+                <Swiper
+                  cards={profiles}
+                  renderCard={(card) => {
+                    if (!card) return null;
+                    return (
+                      <View style={styles.card}>
+                        <View style={styles.cardHeader}>
+                          <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
+                          <View style={styles.headerInfo}>
+                            <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
+                            <View style={styles.basicInfo}>
+                              <View style={styles.infoItem}>
+                                <Ionicons name="calendar-outline" size={16} color="#444" />
+                                <Text style={styles.infoText}>{card.age || "N/A"}</Text>
+                              </View>
+                              <View style={styles.infoItem}>
+                                <Ionicons name="person-outline" size={16} color="#444" />
+                                <Text style={styles.infoText}> {card.gender || "N/A"}</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
 
-                  <View style={styles.cardFooter}>
-                    <View style={styles.rowContainerBody}>
-                      <View stylele={styles.columnContainer}>
-                        <Text style={styles.footerText}>Smoking: {card.smokingStatus || "N/A"}</Text>
-                        <Text style={styles.footerText}>Cleanliness: {card.cleanlinessLevel || "N/A"}</Text>
-                        <Text style={styles.footerText}>Noise: {card.noiseLevel || "N/A"}</Text>
-                        <Text style={styles.footerText}>Sharing: {card.sharingCommonItems || "N/A"}</Text>
-                        <Text style={styles.footerText}>Diet: {card.dietaryPreference || "N/A"}</Text>
+                        <View style={styles.cardBody}>
+                          <View style={styles.infoRow}>
+                            <View style={styles.infoColumn}>
+                              <Ionicons name="school-outline" size={16} color="#444" />
+                              <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
+                            </View>
+                            <View style={styles.infoColumn}>
+                              <Ionicons name="calendar-number-outline" size={16} color="#444" />
+                              <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
+                            </View>
+                          </View>
+                          
+                          <View style={styles.infoRow}>
+                            <View style={styles.infoColumn}>
+                              <Ionicons name="bookmark-outline" size={16} color="#444" />
+                              <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
+                            </View>
+                            <View style={styles.infoColumn}>
+                              <Ionicons name="home-outline" size={16} color="#444" />
+                              <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
+                            </View>
+                          </View>
+                          
+                          <View style={styles.bioSection}>
+                            <View style={styles.hobbiesContainer}>
+                              <Text style={styles.sectionTitle}>Hobbies:</Text>
+                              <Text style={styles.hobbiesText}>{card.hobbies?.join(", ") || "None listed"}</Text>
+                            </View>
+                            
+                            <View style={styles.bioContainer}>
+                              <Text style={styles.sectionTitle}>Bio:</Text>
+                              <Text style={styles.bioText}>{card.bio || "No bio available"}</Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        <View style={styles.cardFooter}>
+                          <Text style={styles.preferencesTitle}>Living Preferences</Text>
+                          <View style={styles.preferencesGrid}>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="flame-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Smoking:</Text>
+                              <Text style={styles.preferenceValue}>{card.smokingStatus || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="sparkles-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Cleanliness:</Text>
+                              <Text style={styles.preferenceValue}>{card.cleanlinessLevel || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="volume-high-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Noise:</Text>
+                              <Text style={styles.preferenceValue}>{card.noiseLevel || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="people-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Sharing:</Text>
+                              <Text style={styles.preferenceValue}>{card.sharingCommonItems || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="restaurant-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Diet:</Text>
+                              <Text style={styles.preferenceValue}>{card.dietaryPreference || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="moon-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Sleep:</Text>
+                              <Text style={styles.preferenceValue}>{card.sleepSchedule || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="paw-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Pets:</Text>
+                              <Text style={styles.preferenceValue}>{card.hasPets || "N/A"}</Text>
+                            </View>
+                            <View style={styles.preferenceItem}>
+                              <Ionicons name="person-add-outline" size={18} color="#444" />
+                              <Text style={styles.preferenceLabel}>Guests:</Text>
+                              <Text style={styles.preferenceValue}>{card.guestFrequency || "N/A"}</Text>
+                            </View>
+                          </View>
+                        </View>
+                        
+                        <View style={styles.swipeHints}>
+                          <View style={styles.swipeHintLeft}>
+                            <Ionicons name="close-circle" size={24} color="#ff6b6b" />
+                            <Text style={styles.swipeHintTextLeft}>Swipe left to pass</Text>
+                          </View>
+                          <View style={styles.swipeHintRight}>
+                            <Text style={styles.swipeHintTextRight}>Swipe right to match</Text>
+                            <Ionicons name="checkmark-circle" size={24} color="#20bf6b" />
+                          </View>
+                        </View>
                       </View>
-                      <View style={styles.columnContainer}>
-                        <Text style={styles.footerText}>Sleep: {card.sleepSchedule || "N/A"}</Text>
-                        <Text style={styles.footerText}>Pets: {card.hasPets || "N/A"}</Text>
-                        <Text style={styles.footerText}>Guests: {card.guestFrequency || "N/A"}</Text>
-                        <Text style={styles.footerText}>Allergies: {card.allergies || "N/A"}</Text>
-                        <Text style={styles.footerText}></Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              );
-            }}
-            onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
-            onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
-            onSwipedAll={() => setIsSwipedAll(true)}
-            disableTopSwipe
-            disableBottomSwipe
-            cardIndex={0}
-            backgroundColor={colors.white}
-            stackSize={3}
-          />
-        </View>
-      )}
-    </View>
+                    );
+                  }}
+                  onSwipedLeft={(cardIndex) => handleSwiped(cardIndex, 'left')}
+                  onSwipedRight={(cardIndex) => handleSwiped(cardIndex, 'right')}
+                  onSwipedAll={() => setIsSwipedAll(true)}
+                  disableTopSwipe
+                  disableBottomSwipe
+                  cardIndex={0}
+                  backgroundColor="transparent"
+                  stackSize={3}
+                  stackSeparation={15}
+                  animateOverlayLabelsOpacity
+                  overlayLabels={{
+                    left: {
+                      title: 'PASS',
+                      style: {
+                        label: {
+                          backgroundColor: 'rgba(255, 107, 107, 0.8)',
+                          color: '#fff',
+                          fontSize: 24,
+                          borderRadius: 10,
+                          padding: 10,
+                        },
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          justifyContent: 'flex-start',
+                          marginLeft: 30,
+                          marginTop: 30
+                        }
+                      }
+                    },
+                    right: {
+                      title: 'MATCH',
+                      style: {
+                        label: {
+                          backgroundColor: 'rgba(32, 191, 107, 0.8)',
+                          color: '#fff',
+                          fontSize: 24,
+                          borderRadius: 10,
+                          padding: 10,
+                        },
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'flex-end',
+                          justifyContent: 'flex-start',
+                          marginRight: 30,
+                          marginTop: 30
+                        }
+                      }
+                    }
+                  }}
+                />
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    marginTop: 15,
-    backgroundColor: colors.white,
-    justifyContent: 'flex-start',
-    paddingTop: 40,
+    backgroundColor: '#6C5CE7', 
   },
-  rowContainer: {
-    flexDirection: 'row',
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 120, // Reduced from 180 to move content up
+    paddingTop: 10, // Added a small top padding
+  },
+  gradientContainer: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 0,
+    paddingBottom: 20,
     alignItems: 'center',
-    marginBottom: 15,  
-  },
-  rowContainerBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  columnContainer: {
-    flexDirection: 'column',
-  },
-  titleContainer: {
-    width: "100%", 
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    textAlign: "center",
+    marginTop: 10, // Added margin to move everything up a bit
   },
   filterContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 15,
-    marginBottom: -50,
-    zIndex: 5,
+    marginBottom: 10,
+    marginTop: 0, // Removed top margin
   },
   filterButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: colors.pastelPink,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   selectedFilter: {
-    backgroundColor: colors.blue,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "#fff",
   },
   filterText: {
-    color: colors.white,
-    fontWeight: "bold",
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 10,
+    width: '100%',
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    width: '50%',
+  },
+  refreshButtonEmpty: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#fff",
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+    marginLeft: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#fff",
+    marginTop: 10,
+  },
+  noProfilesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    minHeight: height * 0.5,
+  },
+  noProfilesText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: "#fff",
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  refreshButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  swiperContainer: {
+    width: '100%',
+    height: height * 0.75, // Increased from 0.7 to fill more of the screen
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -5,
+    marginTop: -50, // Increased negative margin to move it higher
   },
   swipeFeedback: {
     position: 'absolute',
@@ -354,7 +563,7 @@ const styles = StyleSheet.create({
     borderRadius: 35, 
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -363,132 +572,179 @@ const styles = StyleSheet.create({
   },
   rightSwipeFeedback: {
     right: 20, 
-    borderColor: 'rgba(0, 255, 0, 0.5)',
+    borderColor: 'rgba(32, 191, 107, 0.8)',
     borderWidth: 3,
   },
   leftSwipeFeedback: {
     left: 20, 
-    borderColor: 'rgba(255, 0, 0, 0.5)',
+    borderColor: 'rgba(255, 107, 107, 0.8)',
     borderWidth: 3,
   },
   swipeIcon: {
     fontSize: 30, 
     fontWeight: 'bold',
   },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    paddingTop: 200,
-  },
-  loadingText: {
-    fontSize: 24,
-  },
   card: {
-    backgroundColor: colors.pastelPink,
-    borderRadius: 25,
-    borderWidth: 5,
-    borderColor: colors.lightPastelPink,
-    justifyContent: 'flex-start',
-    flexDirection: 'column',
-    width: '100%',
-    height: height * 0.60,
-    alignSelf: 'center',
-    padding: 20,
-    marginTop: 20,
-    marginBottom: 20,
-    // For Apple
-    shadowColor: '#000',
-    shadowOffset: { width: 10, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    // For Android
-    elevation: 5,
-  },
-  cardFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingLeft: 20,
-    paddingRight: 20,
-    paddingTop: 15,
-    paddingBottom: 15,
-    backgroundColor: colors.white,
+    backgroundColor: "#fff",
     borderRadius: 15,
-    borderTopWidth: 5,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderColor: colors.lightPastelPink,
+    height: height * 0.75,
+    width: width * 0.9,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 7,
+    elevation: 10,
+    overflow: 'hidden',
   },
-  cardTitle: {
-    fontSize: RFPercentage(3.3),
-    fontWeight: 'bold',
-    flexWrap: 'wrap',
-    color: colors.cardTextColor,
-    marginBottom: 5,
-    width: '85%',
-  },
-  cardSubtitle: {
-    fontSize: RFPercentage(2.3),
-    fontWeight: 'bold',
-    flexWrap: 'wrap',
-    color: colors.cardTextColor,
-    marginBottom: 2,
-  },
-  cardText: {
-    fontSize: RFPercentage(2),
-    flexWrap: 'wrap',
-    color: colors.cardTextColor,
-    marginBottom: 5,
-    width: '85%',
-  },
-  footerText: {
-    fontSize: RFPercentage(1.8),
-    flexWrap: 'wrap',
-    color: colors.cardTextColor,
-    marginBottom: 5,
-    width: '100%',
-  },
-  noProfilesContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noProfilesText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.cardTextColor,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  endCard: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  endCardText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.cardTextColor,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 5,
-    width: "100%",
-    paddingHorizontal: 10,
-    rowGap: 10,
-    columnGap: 15,
+  cardHeader: {
+    flexDirection: 'row',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    backgroundColor: 'rgba(108, 92, 231, 0.05)',
   },
   profileImage: {
-    width: width * 0.23,
-    height: width * 0.23,
-    borderRadius: (width * 0.23) / 2,
-    borderWidth: 2,
-    borderColor: colors.profilePicBorder,
+    width: width * 0.16,
+    height: width * 0.16,
+    borderRadius: (width * 0.16) / 2,
+    borderWidth: 3,
+    borderColor: '#6C5CE7',
+  },
+  headerInfo: {
+    marginLeft: 12,
+    justifyContent: 'center',
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: RFPercentage(2.6),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 3,
+  },
+  basicInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginRight: 15,
+    marginBottom: 3,
+  },
+  infoText: {
+    fontSize: RFPercentage(1.8),
+    color: '#555',
+    marginLeft: 5,
+  },
+  cardBody: {
+    padding: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  infoColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardText: {
+    fontSize: RFPercentage(1.8),
+    color: '#444',
+    marginLeft: 5,
+  },
+  bioSection: {
+    marginTop: 5,
+  },
+  sectionTitle: {
+    fontSize: RFPercentage(1.9),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 3,
+  },
+  hobbiesContainer: {
+    marginBottom: 8,
+  },
+  hobbiesText: {
+    fontSize: RFPercentage(1.8),
+    color: '#444',
+    lineHeight: 20,
+  },
+  bioContainer: {
+    marginBottom: 5,
+  },
+  bioText: {
+    fontSize: RFPercentage(1.8),
+    color: '#444',
+    lineHeight: 20,
+  },
+  cardFooter: {
+    padding: 12,
+    backgroundColor: 'rgba(69, 170, 242, 0.05)',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    paddingBottom: 0,
+  },
+  preferencesTitle: {
+    fontSize: RFPercentage(2),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  preferencesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 0,
+  },
+  preferenceItem: {
+    width: '48%',
+    flexDirection: 'column',
+    marginBottom: 6,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  preferenceLabel: {
+    fontSize: RFPercentage(1.6),
+    color: '#666',
+    marginTop: 2,
+  },
+  preferenceValue: {
+    fontSize: RFPercentage(1.7),
+    color: '#333',
+    fontWeight: '500',
+  },
+  swipeHints: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    marginTop: 0,
+  },
+  swipeHintLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  swipeHintRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  swipeHintTextLeft: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 5,
+  },
+  swipeHintTextRight: {
+    fontSize: 12,
+    color: '#666',
+    marginRight: 5,
   },
 });
 

@@ -146,8 +146,8 @@ const MessageScreen = ({ route }) => {
               setMessages={(val) => onSendMessage(val)}
               themeColor="blue"
               themeTextColor="white"
-              showSenderAvatar={true}
-              showReceiverAvatar={true}
+              showSenderAvatar={false}
+              showReceiverAvatar={false}
               inputBorderColor="black"
               user={{
                 _id: userId,
@@ -159,7 +159,7 @@ const MessageScreen = ({ route }) => {
               placeholderColor="gray"
               showEmoji={false}
               onPressEmoji={() => console.log("Emoji Button Pressed..")}
-              showAttachment={true}
+              showAttachment={false}
               onPressAttachment={() => console.log("Attachment Button Pressed..")}
               timeContainerColor="red"
               timeContainerTextColor="white"

@@ -35,7 +35,7 @@ const AccountScreen = () => {
   const handleLogout = async () => {
     setProfileData(null); 
     await logout();
-    navigation.reset({
+    navigation.navigate({
       index: 0,
       routes: [{ name: 'Login' }],
     });
@@ -87,7 +87,7 @@ const AccountScreen = () => {
             { 
               text: "OK", 
               onPress: () => {
-                navigation.reset({
+                navigation.navigate({
                   index: 0,
                   routes: [{ name: 'Login' }],
                 });
@@ -165,7 +165,7 @@ const AccountScreen = () => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
-        navigation.reset({
+        navigation.navigate({
           index: 0,
           routes: [{ name: 'Login' }],
         });
@@ -473,10 +473,18 @@ const AccountScreen = () => {
             </View>
           </View>
 
+             {/* Logout Button */}
+             <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="log-out-outline" size={22} color="#FFFFFF" style={styles.logoutIcon} />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+
           {/* Danger Zone */}
           <View style={styles.dangerSection}>
-            <Text style={styles.dangerTitle}>Danger Zone</Text>
-            
             <TouchableOpacity 
               style={styles.deleteButton}
               onPress={handleDeleteAccount}
@@ -493,19 +501,10 @@ const AccountScreen = () => {
             </TouchableOpacity>
             
             <Text style={styles.dangerDescription}>
-              This action permanently removes your account, profile, matches, and all associated data.
+              This action will permanently remove your account, profile, matches, and all associated data.
             </Text>
           </View>
 
-          {/* Logout Button */}
-          <TouchableOpacity 
-            style={styles.logoutButton} 
-            onPress={handleLogout}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="log-out-outline" size={22} color="#FFFFFF" style={styles.logoutIcon} />
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
     </View>
@@ -541,7 +540,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 30,
+    paddingBottom: 80,
     paddingTop: Platform.OS === 'ios' ? 50 : 70,
   },
   header: {
@@ -748,12 +747,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderLeftWidth: 4,
     borderLeftColor: '#E53935',
-  },
-  dangerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 15,
   },
   deleteButton: {
     backgroundColor: '#E53935',

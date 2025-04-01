@@ -90,6 +90,7 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) 
 
 const SettingsScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
+    const [focusedInput, setFocusedInput] = useState(null);
     // Personal Info States
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
@@ -211,6 +212,10 @@ const SettingsScreen = ({ navigation }) => {
     };
 
     const handleSaveProfile = async () => {
+        if (!fullName.trim() || !age.trim() || !gender.trim() || !major.trim() || !graduationYear.trim()) {
+            Alert.alert('Error', 'Please fill out all required fields: Name, Age, Gender, Major, and Graduation Year.');
+            return;
+        }    
         try {
             setSaving(true);
             const userId = await AsyncStorage.getItem('userId');
@@ -319,13 +324,30 @@ const SettingsScreen = ({ navigation }) => {
                             onChangeText={setFullName} 
                             icon="person-outline"
                         />
-                        <ProfileInput 
-                            label="Age" 
-                            value={age} 
-                            onChangeText={setAge} 
-                            keyboardType="numeric"
-                            icon="calendar-outline"
-                        />
+                          <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Age</Text>
+                            <View style={[
+                                styles.inputWrapper,
+                                focusedInput === 'age' && styles.inputWrapperFocused
+                            ]}>
+                                <Ionicons 
+                                    name="calendar-outline" 
+                                    size={20} 
+                                    color="rgba(255, 255, 255, 0.8)" 
+                                    style={styles.inputIcon} 
+                                />
+                                <TextInput
+                                    style={styles.input}
+                                    value={age}
+                                    onChangeText={setAge}
+                                    keyboardType="numeric"
+                                    placeholder="Enter your age"
+                                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                    onFocus={() => setFocusedInput('age')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                            </View>
+                        </View>
                         <CustomDropdown 
                             label="Gender"
                             selectedValue={gender}
@@ -333,12 +355,29 @@ const SettingsScreen = ({ navigation }) => {
                             options={['Female', 'Male', 'Non-Binary', 'Prefer Not to Say']}
                             icon="person-outline"
                         />
-                        <ProfileInput 
-                            label="Residence" 
-                            value={residence} 
-                            onChangeText={setResidence} 
-                            icon="home-outline"
-                        />
+                        <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Residence</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'residence' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="home-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={residence}
+                                onChangeText={setResidence}
+                                placeholder="Enter your residence"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('residence')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
                     </View>
 
                     {/* Academic Details */}
@@ -347,19 +386,53 @@ const SettingsScreen = ({ navigation }) => {
                             <Ionicons name="school" size={22} color="#FFFFFF" />
                             <Text style={styles.sectionTitle}>Academic Details</Text>
                         </View>
-                        <ProfileInput 
-                            label="Major" 
-                            value={major} 
-                            onChangeText={setMajor} 
-                            icon="book-outline"
-                        />
-                        <ProfileInput 
-                            label="Minor" 
-                            value={minor} 
-                            onChangeText={setMinor} 
-                            icon="bookmark-outline"
-                        />
-                        <CustomDropdown 
+                        <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Major</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'major' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="book-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={major}
+                                onChangeText={setMajor}
+                                placeholder="Enter your major"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('major')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Minor</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'minor' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="bookmark-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={minor}
+                                onChangeText={setMinor}
+                                placeholder="Enter your minor"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('minor')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
+                    <CustomDropdown 
                             label="Graduation Year"
                             selectedValue={graduationYear}
                             onValueChange={setGraduationYear}
@@ -374,13 +447,30 @@ const SettingsScreen = ({ navigation }) => {
                             <Ionicons name="heart" size={22} color="#FFFFFF" />
                             <Text style={styles.sectionTitle}>Bio & Interests</Text>
                         </View>
-                        <ProfileInput 
-                            label="Bio" 
-                            value={bio} 
-                            onChangeText={setBio} 
-                            multiline={true}
-                            icon="document-text-outline"
-                        />
+                        <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Bio</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'bio' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="document-text-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={[styles.input, styles.multilineInput]}
+                                value={bio}
+                                onChangeText={setBio}
+                                placeholder="Tell us about yourself"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                multiline={true}
+                                onFocus={() => setFocusedInput('bio')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
                         <Text style={styles.inputLabel}>Select Your Hobbies:</Text>
                         <View style={styles.hobbiesContainer}>
                             {commonHobbies.map((hobby) => (
@@ -466,13 +556,29 @@ const SettingsScreen = ({ navigation }) => {
                             options={['Vegetarian', 'Vegan', 'Allergies', 'No Restrictions', 'Other']}
                             icon="restaurant-outline"
                         />
-                        <ProfileInput 
-                            label="Allergies" 
-                            value={allergies} 
-                            onChangeText={setAllergies} 
-                            placeholder="Enter allergies if any"
-                            icon="alert-circle-outline"
-                        />
+                        <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Allergies</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'allergies' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="alert-circle-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={allergies}
+                                onChangeText={setAllergies}
+                                placeholder="Enter allergies if any"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('allergies')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
                     </View>
 
                     {/* Roommate Preferences Section */}

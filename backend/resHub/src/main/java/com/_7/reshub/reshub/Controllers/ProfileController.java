@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -204,30 +205,218 @@ public class ProfileController {
      *         or an empty list if no profiles match the filter.
      */
 
-    @GetMapping("/getProfiles")
-    public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
-        try {
-            List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
-
-            if (filterOutSwipedOn) {
-                List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
-
-                profiles = profiles.stream()
-                .filter(profile -> {
-                                Object userIdObj = profile.getUserId();
-                                return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
-                        })
-                        .collect(Collectors.toList());
-            }
-
-            profiles = profileService.doSortProfiles(userId, profiles);
-
-            return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
+     @GetMapping("/getProfiles")
+     public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
+         try {
+             List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
+ 
+             if (filterOutSwipedOn) {
+                 List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
+ 
+                 profiles = profiles.stream()
+                 .filter(profile -> {
+                                 Object userIdObj = profile.getUserId();
+                                 return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                         })
+                         .collect(Collectors.toList());
+             }
+ 
+             profiles = profileService.doSortProfiles(userId, profiles);
+ 
+             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
+         } catch (Exception e) {
+             e.printStackTrace();
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                     .body(Map.of("error", e.getMessage()));
+         }
+     }
+     /**
+      * PUT endpoint that updates a user's profile information.
+      * 
+      * @param request The request body containing updated profile details.
+      * @return A ResponseEntity with HTTP 200 if the update is successful,
+      *         HTTP 400 if the request is invalid, or HTTP 404 if the user profile is not found.
+      */
+@PutMapping("/updateProfile")
+public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request) {
+    try {
+        if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("User ID is required");
         }
-    }
 
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("userId", AttributeValue.builder().s(request.getUserId()).build());
+
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName("profiles")
+            .key(key)
+            .build();
+        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+        if (!getItemResponse.hasItem()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
+        }
+
+        Map<String, AttributeValue> attributeValues = new HashMap<>();
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        StringBuilder updateExpression = new StringBuilder("SET ");
+        List<String> updateList = new ArrayList<>();
+
+        // Basic Profile Info
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "fullName", request.getFullName());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "email", request.getEmail());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "age", request.getAge());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "gender", request.getGender());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "major", request.getMajor());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "minor", request.getMinor());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "graduationYear", request.getGraduationYear());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "residence", request.getResidence());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "bio", request.getBio());
+        
+        // Hobbies 
+        if (request.getHobbies() != null && !request.getHobbies().isEmpty()) {
+            String attributeKey = ":hobbiesValue";
+            String expressionField = "#hobbies";
+            
+            expressionAttributeNames.put(expressionField, "hobbies");
+            
+            updateList.add(expressionField + " = " + attributeKey);
+            attributeValues.put(attributeKey, AttributeValue.builder()
+                .l(request.getHobbies().stream()
+                    .map(hobby -> AttributeValue.builder().s(hobby).build())
+                    .collect(Collectors.toList()))
+                .build());
+        }
+
+        // Personal Traits
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "smokingStatus", request.getSmokingStatus());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "cleanlinessLevel", request.getCleanlinessLevel());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "sleepSchedule", request.getSleepSchedule());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "guestFrequency", request.getGuestFrequency());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "hasPets", request.getHasPets());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "noiseLevel", request.getNoiseLevel());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "sharingCommonItems", request.getSharingCommonItems());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "dietaryPreference", request.getDietaryPreference());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "allergies", request.getAllergies());
+
+        // Roommate Preferences
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSmokingPreference", request.getRoommateSmokingPreference());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateCleanlinessLevel", request.getRoommateCleanlinessLevel());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSleepSchedule", request.getRoommateSleepSchedule());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateGuestFrequency", request.getRoommateGuestFrequency());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommatePetPreference", request.getRoommatePetPreference());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateNoiseTolerance", request.getRoommateNoiseTolerance());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSharingCommonItems", request.getRoommateSharingCommonItems());
+        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
+
+        if (updateList.isEmpty()) {
+            return ResponseEntity.badRequest().body("No fields to update");
+        }
+
+        updateExpression.append(String.join(", ", updateList));
+
+        // Complete request
+        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+            .tableName("profiles")
+            .key(key)
+            .updateExpression(updateExpression.toString())
+            .expressionAttributeNames(expressionAttributeNames)
+            .expressionAttributeValues(attributeValues)
+            .build();
+
+        dynamoDbClient.updateItem(updateItemRequest);
+
+        return ResponseEntity.ok("Profile updated successfully");
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", e.getMessage()));
+    }
 }
+     
+        //helper methods
+        private void addAttribute(
+        List<String> updateList, 
+        Map<String, AttributeValue> attributeValues, 
+        Map<String, String> expressionAttributeNames,
+        String fieldName, 
+        String value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+                
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().s(value).build());
+        }
+        }
+
+        private void addAttribute(
+        List<String> updateList, 
+        Map<String, AttributeValue> attributeValues, 
+        Map<String, String> expressionAttributeNames,
+        String fieldName, 
+        Integer value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+                
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+        }
+        }
+
+        @PutMapping("/updateProfilePic")
+        public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {
+        try {
+                String userId = payload.get("userId");
+                String profilePicUrl = payload.get("profilePicUrl");
+
+                if (userId == null || userId.trim().isEmpty() || profilePicUrl == null || profilePicUrl.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("User ID and Profile Picture URL are required");
+                }
+
+                Map<String, AttributeValue> key = new HashMap<>();
+                key.put("userId", AttributeValue.builder().s(userId).build());
+
+                GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .build();
+                GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+                if (!getItemResponse.hasItem()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
+                }
+
+                Map<String, AttributeValue> attributeValues = new HashMap<>();
+                attributeValues.put(":profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
+
+                UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .updateExpression("SET profilePicUrl = :profilePicUrl")
+                .expressionAttributeValues(attributeValues)
+                .build();
+
+                dynamoDbClient.updateItem(updateItemRequest);
+
+                return ResponseEntity.ok("Profile picture updated successfully");
+        } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+        }
+     
+}
+        

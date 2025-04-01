@@ -80,6 +80,7 @@ public class S3Controller {
         }
     }
 
+
     private String getFileExtension(String fileName) {
         int lastDot = fileName.lastIndexOf(".");
         return lastDot == -1 ? "" : fileName.substring(lastDot + 1);

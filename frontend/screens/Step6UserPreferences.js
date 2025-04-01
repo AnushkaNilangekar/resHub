@@ -139,7 +139,7 @@ export default function Step6RoommatePreferences({
                             label="NOISE TOLERANCE"
                             value={roommateNoiseTolerance}
                             onValueChange={setRoommateNoiseTolerance}
-                            options={["Quiet", "Moderate Noise", "Loud Environment"]}
+                            options={["Quiet", "Moderate", "Loud Environment"]}
                         />
 
                         <CustomPicker 

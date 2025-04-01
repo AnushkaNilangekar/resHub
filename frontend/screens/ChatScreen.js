@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   unreadChatCard: {
     backgroundColor: "#dff8ff", // a darker shade for chats with unread messages
     borderColor: "#0B185F",
-    borderWidth: "0.5"
+    borderWidth: 0.5,
   },
   textContainer: {
     flex: 1,

@@ -146,8 +146,8 @@ const MessageScreen = ({ route }) => {
               setMessages={(val) => onSendMessage(val)}
               themeColor="blue"
               themeTextColor="white"
-              showSenderAvatar={true}
-              showReceiverAvatar={true}
+              showSenderAvatar={false}
+              showReceiverAvatar={false}
               inputBorderColor="black"
               user={{
                 _id: userId,

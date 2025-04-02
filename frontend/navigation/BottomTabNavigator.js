@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderTopWidth: 0,
     elevation: 0,
+    // Reduced height
     height: Platform.OS === 'ios' ? 70 : 55,
     paddingBottom: Platform.OS === 'ios' ? 20 : 5,
     paddingTop: 5,
@@ -90,23 +91,24 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15, 
+    borderTopLeftRadius: 15, 
+    borderTopRightRadius: 15,
     overflow: 'hidden',
-    elevation: 8,
+    elevation: 8, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowRadius: 4, 
   },
   tabBarGradient: {
     flex: 1,
     borderTopLeftRadius: 15, 
     borderTopRightRadius: 15, 
+  },
   tabBarLabel: {
     fontWeight: '500', 
-    fontSize: 10,
-    marginBottom: Platform.OS === 'ios' ? 0 : -2, 
+    fontSize: 10, 
+    marginBottom: Platform.OS === 'ios' ? 0 : -2, ion
   },
   tabBarItem: {
     paddingTop: 3,

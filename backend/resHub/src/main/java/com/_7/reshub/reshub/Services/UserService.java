@@ -765,5 +765,132 @@ public class UserService {
             }
         }
     }
-    
+
+      /**
+ * Delete all chat records associated with a user.
+ * 
+ * @param userId The ID of the user whose chats should be deleted
+ */
+public void deleteUserChats(String userId) {
+    try {
+        // Get all chats involving the user
+        List<String> chatIds = retrieveUserChats(userId);
+        
+        // Delete each chat
+        for (String chatId : chatIds) {
+            // Delete the chat messages
+            QueryRequest queryMessages = QueryRequest.builder()
+                .tableName("messages")
+                .keyConditionExpression("chatId = :chatId")
+                .expressionAttributeValues(Map.of(":chatId", AttributeValue.builder().s(chatId).build()))
+                .build();
+            
+            QueryResponse messagesResponse = dynamoDbClient.query(queryMessages);
+            
+            for (Map<String, AttributeValue> message : messagesResponse.items()) {
+                Map<String, AttributeValue> messageKey = new HashMap<>();
+                messageKey.put("chatId", message.get("chatId"));
+                messageKey.put("createdAt", message.get("createdAt"));
+                
+                DeleteItemRequest deleteMessageRequest = DeleteItemRequest.builder()
+                    .tableName("messages")
+                    .key(messageKey)
+                    .build();
+                
+                dynamoDbClient.deleteItem(deleteMessageRequest);
+            }
+            
+            // Delete the chat record
+            Map<String, AttributeValue> chatKey = new HashMap<>();
+            chatKey.put("chatId", AttributeValue.builder().s(chatId).build());
+            
+            DeleteItemRequest deleteChatRequest = DeleteItemRequest.builder()
+                .tableName("chats")
+                .key(chatKey)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteChatRequest);
+        }
+        
+        // Delete chat entries from user_chats table
+        QueryRequest queryUserChats = QueryRequest.builder()
+            .tableName("user_chats")
+            .keyConditionExpression("userId = :userId")
+            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
+            .build();
+        
+        QueryResponse userChatsResponse = dynamoDbClient.query(queryUserChats);
+        
+        for (Map<String, AttributeValue> userChat : userChatsResponse.items()) {
+            Map<String, AttributeValue> userChatKey = new HashMap<>();
+            userChatKey.put("userId", userChat.get("userId"));
+            userChatKey.put("chatId", userChat.get("chatId"));
+            
+            DeleteItemRequest deleteUserChatRequest = DeleteItemRequest.builder()
+                .tableName("user_chats")
+                .key(userChatKey)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteUserChatRequest);
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to delete user chats: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Delete all match records associated with a user.
+ * 
+ * @param userId The ID of the user whose matches should be deleted
+ */
+public void deleteUserMatches(String userId) {
+    try {
+        // Get all matches involving the user
+        List<String> matches = doGetUserMatches(userId);
+        
+        for (String matchUserId : matches) {
+            // Delete the match from the user's perspective
+            Map<String, AttributeValue> userMatchKey = new HashMap<>();
+            userMatchKey.put("userId", AttributeValue.builder().s(userId).build());
+            userMatchKey.put("matchUserId", AttributeValue.builder().s(matchUserId).build());
+            
+            DeleteItemRequest deleteUserMatchRequest = DeleteItemRequest.builder()
+                .tableName("matches")
+                .key(userMatchKey)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteUserMatchRequest);
+            
+            // Delete the match from the matched user's perspective
+            Map<String, AttributeValue> matchUserKey = new HashMap<>();
+            matchUserKey.put("userId", AttributeValue.builder().s(matchUserId).build());
+            matchUserKey.put("matchUserId", AttributeValue.builder().s(userId).build());
+            
+            DeleteItemRequest deleteMatchUserRequest = DeleteItemRequest.builder()
+                .tableName("matches")
+                .key(matchUserKey)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteMatchUserRequest);
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to delete user matches: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Check if a user exists in the database
+ * 
+ * @param userId The ID of the user to check
+ * @return true if the user exists, false otherwise
+ */
+public boolean userExists(String userId) {
+    Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+    GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName(dynamoDbConfig.getUserProfilesTableName())
+            .key(key)
+            .build();
+    GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+    return response.hasItem();
+}   
 }

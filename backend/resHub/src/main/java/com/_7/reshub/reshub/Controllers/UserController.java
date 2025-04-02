@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import com._7.reshub.reshub.Services.UserService;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -195,4 +197,10 @@ public class UserController {
         }
     }
 
+    @GetMapping("/checkUserExists")
+    public ResponseEntity<?> checkUserExists(@RequestParam String userId) {
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", userService.userExists(userId));
+        return ResponseEntity.ok(response);
+    }
 }

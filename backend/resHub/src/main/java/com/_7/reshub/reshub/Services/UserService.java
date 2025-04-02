@@ -877,5 +877,20 @@ public void deleteUserMatches(String userId) {
         throw new RuntimeException("Failed to delete user matches: " + e.getMessage(), e);
     }
 }
-    
+
+/**
+ * Check if a user exists in the database
+ * 
+ * @param userId The ID of the user to check
+ * @return true if the user exists, false otherwise
+ */
+public boolean userExists(String userId) {
+    Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+    GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName(dynamoDbConfig.getUserProfilesTableName())
+            .key(key)
+            .build();
+    GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+    return response.hasItem();
+}   
 }

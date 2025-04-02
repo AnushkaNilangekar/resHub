@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { 
   View, 
   StyleSheet, 
@@ -23,6 +23,7 @@ const MessageScreen = ({ route }) => {
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [token, setToken] = useState("");
+  const [otherUserExists, setOtherUserExists] = useState(true);
   const navigation = useNavigation();
   const [error, setError] = useState('');
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -52,6 +53,23 @@ const MessageScreen = ({ route }) => {
       headerShown: false, // Hide the default header
     });
   }, [navigation]);
+
+  // Check if the other user still exists
+  const checkUserExists = useCallback(async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("token");
+      const response = await axios.get(`${config.API_BASE_URL}/api/users/checkUserExists`, {
+        params: { userId: otherUserId },
+        headers: {
+          'Authorization': `Bearer ${storedToken}`,
+        },
+      });
+      setOtherUserExists(response.data.exists);
+    } catch (error) {
+      console.error("Error checking if user exists:", error);
+      setOtherUserExists(false);
+    }
+  }, [otherUserId]);
 
   const fetchMessages = async () => {
     const storedUserId = await AsyncStorage.getItem("userId");
@@ -92,6 +110,11 @@ const MessageScreen = ({ route }) => {
 
   // Handle sending a new message
   const onSendMessage = async (text) => {
+    if (!otherUserExists) {
+      setError('Cannot send message. The other user has deleted their account.');
+      return;
+    }
+    
     if (text.trim()) {
       const requestData = {
         chatId: chatId,
@@ -127,6 +150,9 @@ const MessageScreen = ({ route }) => {
   };
 
   useEffect(() => {
+    // Check if the other user exists
+    checkUserExists();
+    
     // Mark messages as read when the screen loads
     async function markMessagesRead() {
       const userId = await AsyncStorage.getItem("userId");
@@ -156,7 +182,7 @@ const MessageScreen = ({ route }) => {
         route.params.onGoBack(chatId);
       }
     };
-  }, [chatId]);
+  }, [chatId, checkUserExists]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -182,6 +208,15 @@ const MessageScreen = ({ route }) => {
             <Text style={styles.headerTitle}>{name}</Text>
           </View>
         </View>
+        
+        {!otherUserExists && (
+          <View style={styles.accountDeletedContainer}>
+            <Ionicons name="information-circle-outline" size={18} color="#fff" />
+            <Text style={styles.accountDeletedText}>
+              This user has deleted their account. You can't send new messages.
+            </Text>
+          </View>
+        )}
         
         {error ? (
           <Animated.View 
@@ -209,13 +244,14 @@ const MessageScreen = ({ route }) => {
               showSenderAvatar={false}
               showReceiverAvatar={false}
               inputBorderColor="rgba(255, 255, 255, 0.3)"
+              disabled={!otherUserExists}
+              inputBackgroundColor={otherUserExists ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
+              placeholder={otherUserExists ? "Type a message..." : "User has deleted their account"}
               user={{
                 _id: userId,
                 name: name,
               }}
               backgroundColor="transparent"
-              inputBackgroundColor="rgba(255, 255, 255, 0.2)"
-              placeholder="Type a message..."
               placeholderColor="rgba(255, 255, 255, 0.7)"
               showEmoji={false}
               onPressEmoji={() => console.log("Emoji Button Pressed..")}
@@ -233,7 +269,7 @@ const MessageScreen = ({ route }) => {
               inputHeight={50}
               inputTextColor="white"
               inputTextSize={15}
-              sendButtonBackgroundColor="rgba(255, 255, 255, 0.3)"
+              sendButtonBackgroundColor={otherUserExists ? "rgba(255, 255, 255, 0.3)" : "rgba(100, 100, 100, 0.3)"}
               sendButtonIconColor="white"
             />
           </View>
@@ -298,6 +334,23 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
+  },
+  accountDeletedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    borderRadius: 10,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderLeftWidth: 3,
+    borderLeftColor: "#fff",
+  },
+  accountDeletedText: {
+    color: "#fff",
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
   },
   errorContainer: {
     flexDirection: 'row',

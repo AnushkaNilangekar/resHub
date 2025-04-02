@@ -21,15 +21,17 @@ import { SwipeListView } from 'react-native-swipe-list-view';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /*
-* Chats Screen
+* Chat Screen
 */
-const ChatsScreen = () => {
+const ChatScreen = () => {
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState(null);
   const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const MAX_MESSAGE_LENGTH = 25;
 
   useEffect(() => {
     if (error) {
@@ -192,6 +194,14 @@ const ChatsScreen = () => {
     await getChatInformation();
     setRefreshing(false);
   }, []);
+  
+  // Helper function to truncate message text
+  const truncateMessage = (message) => {
+    if (!message) return "";
+    return message.length > MAX_MESSAGE_LENGTH 
+      ? `${message.substring(0, MAX_MESSAGE_LENGTH)}...` 
+      : message;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -254,24 +264,28 @@ const ChatsScreen = () => {
                     ]}
                     onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
                   >
-                    {item.profilePicUrl ? (
-                      <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-                    ) : (
-                      <View style={styles.profilePlaceholder}>
-                        <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
-                      </View>
-                    )}
+                    <View style={styles.profileContainer}>
+                      {item.profilePicUrl ? (
+                        <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                      ) : (
+                        <View style={styles.profilePlaceholder}>
+                          <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                        </View>
+                      )}
+                      {isUnreadForCurrentUser && (
+                        <View style={styles.unreadBadge}>
+                          <Text style={styles.unreadBadgeText}>
+                            {parseInt(item.unreadCount)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <View style={styles.textContainer}>
                       <Text style={styles.fullName}>{item.fullName}</Text>
-                      <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
+                      <Text style={styles.lastMessage} numberOfLines={1}>
+                        {truncateMessage(item.lastMessage)}
+                      </Text>
                     </View>
-                    {isUnreadForCurrentUser && (
-                      <View style={styles.unreadBadge}>
-                        <Text style={styles.unreadBadgeText}>
-                          {parseInt(item.unreadCount)}
-                        </Text>
-                      </View>
-                    )}
                   </TouchableOpacity>
                 );
               }}
@@ -281,13 +295,15 @@ const ChatsScreen = () => {
                     style={styles.unmatchButton}
                     onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
                   >
-                    <Ionicons name="trash-outline" size={24} color="#fff" />
+                    <View style={styles.unmatchIconContainer}>
+                      <Ionicons name="trash-outline" size={24} color="#fff" />
+                    </View>
                     <Text style={styles.unmatchText}>Unmatch</Text>
                   </TouchableOpacity>
                 </View>
               )}
               leftOpenValue={0}
-              rightOpenValue={-100}
+              rightOpenValue={-110}
               disableRightSwipe={true}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
               contentContainerStyle={styles.listContent}
@@ -308,9 +324,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 10,
-    paddingBottom: 15,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 20 : 20,
+    paddingBottom: 10,
     paddingHorizontal: 20,
+    marginBottom: 30,
+    marginTop: 50,
   },
   headerContent: {
     flexDirection: 'row',
@@ -423,6 +441,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.25)",
     borderColor: "rgba(255, 255, 255, 0.4)",
   },
+  profileContainer: {
+    position: 'relative',
+  },
   textContainer: {
     flex: 1,
     marginLeft: 12,
@@ -458,18 +479,23 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.9)",
   },
   unreadBadge: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
     backgroundColor: "#ff6b6b",
     width: 24,
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.7)",
+    zIndex: 1,
   },
   unreadBadgeText: {
     color: "#fff",
@@ -482,27 +508,39 @@ const styles = StyleSheet.create({
     height: 85,
     marginBottom: 10,
     borderRadius: 12,
-    paddingRight: 15,
+    paddingRight: 0,
+  },
+  unmatchIconContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 4,
   },
   unmatchButton: {
     backgroundColor: "#ff6b6b",
     justifyContent: "center",
     alignItems: "center",
-    width: 100,
+    width: 80,
     height: "100%",
     borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   unmatchText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 14,
-    marginTop: 4,
+    marginTop: 6,
+    letterSpacing: 0.5,
   }
 });
 
-export default ChatsScreen;
+export default ChatScreen;

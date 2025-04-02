@@ -28,6 +28,7 @@ const AccountService = {
       }
       
       // Step 2: Delete authentication account
+      // Note: The backend now handles deleting swipes, chats, and matches as part of this endpoint
       const authResponse = await axios.delete(`${config.API_BASE_URL}/api/deleteAccount`, {
         params: { userId },
         headers: { 'Authorization': `Bearer ${token}` }
@@ -40,9 +41,79 @@ const AccountService = {
       return { success: true };
     } catch (error) {
       console.error('Error in account deletion:', error);
-      return { 
-        success: false, 
-        error: error.message || 'An unexpected error occurred' 
+      return {
+        success: false,
+        error: error.message || 'An unexpected error occurred'
+      };
+    }
+  },
+
+  /**
+   * Manually delete a user's swipe history if needed
+   * Note: This is usually handled by the backend deleteAccount endpoint
+   * 
+   * @returns {Promise} with result of the operation
+   */
+  deleteSwipeData: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        throw new Error('No authentication token or user ID found');
+      }
+      
+      // This endpoint would need to be implemented on backend if needed separately
+      const response = await axios.delete(`${config.API_BASE_URL}/api/swipes/deleteUserSwipes`, {
+        params: { userId },
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to delete swipe data');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting swipe data:', error);
+      return {
+        success: false,
+        error: error.message || 'An unexpected error occurred'
+      };
+    }
+  },
+  
+  /**
+   * Manually delete a user's chat history if needed
+   * Note: This is usually handled by the backend deleteAccount endpoint
+   * 
+   * @returns {Promise} with result of the operation
+   */
+  deleteChatData: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        throw new Error('No authentication token or user ID found');
+      }
+      
+      // This endpoint would need to be implemented on backend if needed separately
+      const response = await axios.delete(`${config.API_BASE_URL}/api/users/deleteUserChats`, {
+        params: { userId },
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to delete chat data');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting chat data:', error);
+      return {
+        success: false,
+        error: error.message || 'An unexpected error occurred'
       };
     }
   }

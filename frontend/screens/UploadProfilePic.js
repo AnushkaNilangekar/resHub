@@ -107,18 +107,43 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   };
 
   // Determine if the DONE button should be disabled
-  const isDoneButtonDisabled = selectedImage && !uploadSuccess && !skipped;
+  // User must either have successfully uploaded a picture OR skipped
+  const isDoneButtonDisabled = (selectedImage && !uploadSuccess) || (!selectedImage && !skipped);
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <>
+      {/* First, fill the screen with solid color to avoid any white gaps */}
+      <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: '#4d6ef5',
+          zIndex: 0
+      }} />
+      
+      {/* Then add the gradient that will extend beyond screen edges */}
       <LinearGradient
-        colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        locations={[0, 0.4, 0.7, 1]}
-      >
+          colors={['#4d6ef5', '#70b2d0', '#6BBFBC', '#4d6ef5']}
+          style={{
+              position: 'absolute',
+              top: -5,
+              left: -5,
+              right: -5,
+              bottom: -5,
+              zIndex: 1
+          }}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          locations={[0, 0.45, 0.65, 1]}
+      />
+      
+      {/* Make sure status bar is properly handled */}
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      
+      {/* Main content */}
+      <View style={[styles.container, { zIndex: 2 }]}>
         <ScrollView contentContainerStyle={styles.contentWrapper}>
           <View style={styles.headerContainer}>
             <View style={styles.stepIndicator}>
@@ -245,26 +270,15 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
             </View>
           </View>
         </ScrollView>
-      </LinearGradient>
-    </View>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  // Core styles remain the same
   container: {
     flex: 1,
-    backgroundColor: '#4c6ef5',
-  },
-  gradient: {
-    flex: 1,
-    position: 'absolute',
-    left: 0,
-    right: 0, 
-    top: 0,
-    bottom: 0,
-    height: '100%',
-    width: '100%',
+    position: 'relative',
   },
   contentWrapper: {
     flexGrow: 1,

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 const { height, width } = Dimensions.get('window');
 
 const SwipeScreen = () => {
+  // State variables remain the same...
   const [profiles, setProfiles] = useState([]);
   const [isSwipedAll, setIsSwipedAll] = useState(false);
   const [selectedGender, setSelectedGender] = useState("All");
@@ -268,7 +269,7 @@ const SwipeScreen = () => {
                         <View style={styles.cardHeader}>
                           <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
                           <View style={styles.headerInfo}>
-                            <Text style={styles.cardTitle}>{card.fullName || "No Name"}</Text>
+                            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{card.fullName || "No Name"}</Text>
                             <View style={styles.basicInfo}>
                               <View style={styles.infoItem}>
                                 <Ionicons name="calendar-outline" size={16} color="#444" />
@@ -276,7 +277,11 @@ const SwipeScreen = () => {
                               </View>
                               <View style={styles.infoItem}>
                                 <Ionicons name="person-outline" size={16} color="#444" />
-                                <Text style={styles.infoText}> {card.gender || "N/A"}</Text>
+                                <Text style={styles.infoText}>{card.gender || "N/A"}</Text>
+                              </View>
+                              <View style={styles.infoItem}>
+                                <Ionicons name="calendar-number-outline" size={16} color="#444" />
+                                <Text style={styles.infoText}>{card.graduationYear || "N/A"}</Text>
                               </View>
                             </View>
                           </View>
@@ -288,22 +293,23 @@ const SwipeScreen = () => {
                             <View style={styles.infoRow}>
                               <View style={styles.infoColumn}>
                                 <Ionicons name="school-outline" size={16} color="#444" />
-                                <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
-                              </View>
-                              <View style={styles.infoColumn}>
-                                <Ionicons name="calendar-number-outline" size={16} color="#444" />
-                                <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
+                                <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">Major: {card.major || "N/A"}</Text>
                               </View>
                             </View>
                             
+
+
                             <View style={styles.infoRow}>
                               <View style={styles.infoColumn}>
                                 <Ionicons name="bookmark-outline" size={16} color="#444" />
-                                <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
+                                <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">Minor: {card.minor || "N/A"}</Text>
                               </View>
+                            </View>
+
+                            <View style={styles.infoRow}>  
                               <View style={styles.infoColumn}>
                                 <Ionicons name="home-outline" size={16} color="#444" />
-                                <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
+                                <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">Residence: {card.residence || "N/A"}</Text>
                               </View>
                             </View>
                             
@@ -321,48 +327,47 @@ const SwipeScreen = () => {
                           </View>
 
                           <View style={styles.cardFooter}>
-                          <View style={styles.preferencesContainer}></View>
                             <Text style={styles.preferencesTitle}>Living Preferences</Text>
                             <View style={styles.preferencesGrid}>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="flame-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Smoking:</Text>
-                                <Text style={styles.preferenceValue}>{card.smokingStatus || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.smokingStatus || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="sparkles-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Cleanliness:</Text>
-                                <Text style={styles.preferenceValue}>{card.cleanlinessLevel || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.cleanlinessLevel || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="volume-high-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Noise:</Text>
-                                <Text style={styles.preferenceValue}>{card.noiseLevel || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.noiseLevel || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="people-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Sharing:</Text>
-                                <Text style={styles.preferenceValue}>{card.sharingCommonItems || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sharingCommonItems || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="restaurant-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Diet:</Text>
-                                <Text style={styles.preferenceValue}>{card.dietaryPreference || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.dietaryPreference || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="moon-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Sleep:</Text>
-                                <Text style={styles.preferenceValue}>{card.sleepSchedule || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sleepSchedule || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="paw-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Pets:</Text>
-                                <Text style={styles.preferenceValue}>{card.hasPets || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.hasPets || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <Ionicons name="person-add-outline" size={18} color="#444" />
                                 <Text style={styles.preferenceLabel}>Guests:</Text>
-                                <Text style={styles.preferenceValue}>{card.guestFrequency || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.guestFrequency || "N/A"}</Text>
                               </View>
                             </View>
                           </View>
@@ -372,10 +377,10 @@ const SwipeScreen = () => {
                         <View style={styles.swipeHints}>
                           <View style={styles.swipeHintLeft}>
                             <Ionicons name="close-circle" size={24} color="#ff6b6b" />
-                            <Text style={styles.swipeHintTextLeft}>Swipe right to match</Text>
+                            <Text style={styles.swipeHintTextLeft}>Swipe left to pass</Text>
                           </View>
                           <View style={styles.swipeHintRight}>
-                            <Text style={styles.swipeHintTextRight}>Swipe left to pass</Text>
+                            <Text style={styles.swipeHintTextRight}>Swipe right to match</Text>
                             <Ionicons name="checkmark-circle" size={24} color="#20bf6b" />
                           </View>
                         </View>
@@ -556,11 +561,11 @@ const styles = StyleSheet.create({
   },
   swiperContainer: {
     width: '100%',
-    height: height * 0.75,
+    height: height * 0.8,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -5,
-    marginTop: -50, 
+    marginTop: -10, 
   },
   swipeFeedback: {
     position: 'absolute',
@@ -595,9 +600,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 15,
-    height: height * 0.79,
+    height: height * 0.75, 
     width: width * 0.9,
-    marginTop: -140,
+    marginTop: -80,
     marginLeft: 10,
     alignSelf: 'center',
     shadowColor: '#000',
@@ -606,7 +611,6 @@ const styles = StyleSheet.create({
     shadowRadius: 7,
     elevation: 10,
     overflow: 'hidden',
-    // Remove fixed height to allow content to determine size
     display: 'flex',
     flexDirection: 'column',
   },
@@ -669,15 +673,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardText: {
-    fontSize: RFPercentage(1.8),
+    fontSize: RFPercentage(1.6),
     color: '#444',
     marginLeft: 5,
+    flex: 1, 
   },
   bioSection: {
     marginTop: 5,
   },
   sectionTitle: {
-    fontSize: RFPercentage(1.9),
+    fontSize: RFPercentage(1.6),
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 3,
@@ -686,7 +691,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   hobbiesText: {
-    fontSize: RFPercentage(1.8),
+    fontSize: RFPercentage(1.6),
     color: '#444',
     lineHeight: 20,
   },
@@ -694,18 +699,19 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   bioText: {
-    fontSize: RFPercentage(1.8),
+    fontSize: RFPercentage(1.6),
     color: '#444',
     lineHeight: 20,
   },
   cardFooter: {
-    padding: 12,
+    padding: 10, 
+    paddingBottom: 16,
     backgroundColor: 'rgba(69, 170, 242, 0.05)',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
   preferencesTitle: {
-    fontSize: RFPercentage(2),
+    fontSize: RFPercentage(1.8),
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
@@ -715,29 +721,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 1,
+    marginBottom: 10, 
   },
   preferencesContainer: {
-    marginBottom: 0, // Reduce or eliminate bottom margin
-    paddingBottom: 14, // Small padding just for visual separation
+    marginBottom: 0,
+    paddingBottom: 10,
   },  
   preferenceItem: {
     width: '48%',
     flexDirection: 'column',
-    marginBottom: 6,
-    padding: 6,
+    marginBottom: 8,
+    padding: 5, 
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
   preferenceLabel: {
-    fontSize: RFPercentage(1.6),
+    fontSize: RFPercentage(1.5), 
     color: '#666',
-    marginTop: 2,
+    marginTop: 1, 
   },
   preferenceValue: {
-    fontSize: RFPercentage(1.7),
+    fontSize: RFPercentage(1.6),
     color: '#333',
     fontWeight: '500',
   },

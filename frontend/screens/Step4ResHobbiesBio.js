@@ -26,144 +26,168 @@ export default function Step4ResHobbiesBio({
     const [focusedInput, setFocusedInput] = useState(null);
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-            <LinearGradient
-                colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-                style={[styles.gradient, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                locations={[0, 0.4, 0.7, 1]}
-            >
-                <ScrollView contentContainerStyle={styles.contentWrapper}>
-                    <View style={styles.headerContainer}>
-                        <View style={styles.stepIndicator}>
-                            <Text style={styles.stepNumber}>4</Text>
-                        </View>
-                        <Text style={styles.title}>Personal Details</Text>
-                        <Text style={styles.subtitle}>Tell us more about yourself</Text>
+        <>
+        {/* First, fill the screen with solid color to avoid any white gaps */}
+        <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#4d6ef5',
+            zIndex: 0
+        }} />
+        
+        {/* Then add the gradient that will extend beyond screen edges */}
+        <LinearGradient
+            colors={['#4d6ef5', '#70b2d0', '#6BBFBC', '#4d6ef5']}
+            style={{
+                position: 'absolute',
+                top: -5,
+                left: -5,
+                right: -5,
+                bottom: -5,
+                zIndex: 1
+            }}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            locations={[0, 0.45, 0.65, 1]}
+        />
+        
+        {/* Make sure status bar is properly handled */}
+        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        
+        {/* Main content */}
+        <View style={[styles.container, { zIndex: 2 }]}>
+            <ScrollView contentContainerStyle={styles.contentWrapper}>
+                <View style={styles.headerContainer}>
+                    <View style={styles.stepIndicator}>
+                        <Text style={styles.stepNumber}>4</Text>
                     </View>
+                    <Text style={styles.title}>Personal Details</Text>
+                    <Text style={styles.subtitle}>Tell us more about yourself</Text>
+                </View>
 
-                    <View style={styles.formContainer}>
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>RESIDENCE</Text>
-                            <View style={[
-                                styles.inputWrapper,
-                                focusedInput === 'residence' && styles.inputWrapperFocused
-                            ]}>
-                                <Ionicons 
-                                    name="home-outline" 
-                                    size={20} 
-                                    color="rgba(255, 255, 255, 0.8)" 
-                                    style={styles.inputIcon} 
-                                />
-                                <TextInput
-                                    style={styles.input}
-                                    value={residence}
-                                    onChangeText={setResidence}
-                                    placeholder="Enter your residence details"
-                                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                    onFocus={() => setFocusedInput('residence')}
-                                    onBlur={() => setFocusedInput(null)}
-                                />
-                            </View>
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>HOBBIES</Text>
-                            <View style={styles.hobbiesContainer}>
-                                {commonHobbies.map((hobby) => (
-                                    <TouchableOpacity
-                                        key={hobby}
-                                        style={[
-                                            styles.hobbyItem,
-                                            hobbies.includes(hobby) && styles.hobbySelected,
-                                        ]}
-                                        onPress={() => toggleHobby(hobby)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={[
-                                            styles.hobbyText, 
-                                            hobbies.includes(hobby) && styles.hobbyTextSelected
-                                        ]}>
-                                            {hobby}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>BIO</Text>
-                            <View style={[
-                                styles.inputWrapper,
-                                styles.bioInputWrapper,
-                                focusedInput === 'bio' && styles.inputWrapperFocused
-                            ]}>
-                                <Ionicons 
-                                    name="person-outline" 
-                                    size={20} 
-                                    color="rgba(255, 255, 255, 0.8)" 
-                                    style={[styles.inputIcon, styles.bioIcon]} 
-                                />
-                                <TextInput
-                                    style={[styles.input, styles.bioInput]}
-                                    value={bio}
-                                    onChangeText={setBio}
-                                    placeholder="Tell us about yourself"
-                                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                    multiline
-                                    numberOfLines={4}
-                                    textAlignVertical="top"
-                                    maxLength={40} 
-                                    onFocus={() => setFocusedInput('bio')}
-                                    onBlur={() => setFocusedInput(null)}
-                                />
-                            </View>
-                        </View>
-                        
-                        <View style={styles.progressIndicator}>
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={styles.progressDotInner} />
-                            </View>
+                <View style={styles.formContainer}>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>RESIDENCE</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'residence' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="home-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={residence}
+                                onChangeText={setResidence}
+                                placeholder="Enter your residence details"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('residence')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
                         </View>
                     </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity 
-                            style={styles.backButton}
-                            onPress={handleBack}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="arrow-back" size={20} color="#fff" style={styles.buttonIcon} />
-                            <Text style={styles.backButtonText}>BACK</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            style={styles.nextButton}
-                            onPress={handleNext}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.nextButtonText}>CONTINUE</Text>
-                            <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.buttonIcon} />
-                        </TouchableOpacity>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>HOBBIES</Text>
+                        <View style={styles.hobbiesContainer}>
+                            {commonHobbies.map((hobby) => (
+                                <TouchableOpacity
+                                    key={hobby}
+                                    style={[
+                                        styles.hobbyItem,
+                                        hobbies.includes(hobby) && styles.hobbySelected,
+                                    ]}
+                                    onPress={() => toggleHobby(hobby)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.hobbyText, 
+                                        hobbies.includes(hobby) && styles.hobbyTextSelected
+                                    ]}>
+                                        {hobby}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
-                </ScrollView>
-            </LinearGradient>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>BIO</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            styles.bioInputWrapper,
+                            focusedInput === 'bio' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="person-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={[styles.inputIcon, styles.bioIcon]} 
+                            />
+                            <TextInput
+                                style={[styles.input, styles.bioInput]}
+                                value={bio}
+                                onChangeText={setBio}
+                                placeholder="Tell us about yourself"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                multiline
+                                numberOfLines={4}
+                                textAlignVertical="top"
+                                maxLength={40} 
+                                onFocus={() => setFocusedInput('bio')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
+                    
+                    <View style={styles.progressIndicator}>
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={styles.progressDotInner} />
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity 
+                        style={styles.backButton}
+                        onPress={handleBack}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="arrow-back" size={20} color="#fff" style={styles.buttonIcon} />
+                        <Text style={styles.backButtonText}>BACK</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={styles.nextButton}
+                        onPress={handleNext}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.nextButtonText}>CONTINUE</Text>
+                        <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.buttonIcon} />
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </View>
-    );
+    </>
+);
 }
 
 const styles = StyleSheet.create({

@@ -119,15 +119,39 @@ export default function Step3AcademicInfo({
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <>
+            {/* First, fill the screen with solid color to avoid any white gaps */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#4d6ef5',
+                zIndex: 0
+            }} />
+            
+            {/* Then add the gradient that will extend beyond screen edges */}
             <LinearGradient
-                colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-                style={[styles.gradient, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                locations={[0, 0.4, 0.7, 1]}
-            >
+                colors={['#4d6ef5', '#70b2d0', '#6BBFBC', '#4d6ef5']}
+                style={{
+                    position: 'absolute',
+                    top: -5,
+                    left: -5,
+                    right: -5,
+                    bottom: -5,
+                    zIndex: 1
+                }}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                locations={[0, 0.45, 0.65, 1]}
+            />
+            
+            {/* Make sure status bar is properly handled */}
+            <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+            
+            {/* Main content */}
+            <View style={[styles.container, { zIndex: 2 }]}>
                 <View style={styles.contentWrapper}>
                     <View style={styles.headerContainer}>
                         <View style={styles.stepIndicator}>
@@ -226,18 +250,15 @@ export default function Step3AcademicInfo({
                         </TouchableOpacity>
                     </View>
                 </View>
-            </LinearGradient>
-        </View>
+            </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#4c6ef5',
-    },
-    gradient: {
-        flex: 1,
+        position: 'relative',
     },
     contentWrapper: {
         flex: 1,
@@ -333,9 +354,6 @@ const styles = StyleSheet.create({
         height: 55,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
     },
     pickerText: {
         flex: 1,

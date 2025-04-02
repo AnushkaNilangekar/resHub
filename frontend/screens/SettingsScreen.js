@@ -318,12 +318,29 @@ const SettingsScreen = ({ navigation }) => {
                             <Ionicons name="person" size={22} color="#FFFFFF" />
                             <Text style={styles.sectionTitle}>Personal Information</Text>
                         </View>
-                        <ProfileInput 
-                            label="Full Name" 
-                            value={fullName} 
-                            onChangeText={setFullName} 
-                            icon="person-outline"
-                        />
+                        <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Full Name</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            focusedInput === 'fullName' && styles.inputWrapperFocused
+                        ]}>
+                            <Ionicons 
+                                name="person-outline" 
+                                size={20} 
+                                color="rgba(255, 255, 255, 0.8)" 
+                                style={styles.inputIcon} 
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={fullName}
+                                onChangeText={setFullName}
+                                placeholder="Enter your full name"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                onFocus={() => setFocusedInput('fullName')}
+                                onBlur={() => setFocusedInput(null)}
+                            />
+                        </View>
+                    </View>
                           <View style={styles.inputContainer}>
                             <Text style={styles.inputLabel}>Age</Text>
                             <View style={[

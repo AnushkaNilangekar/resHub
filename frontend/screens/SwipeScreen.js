@@ -321,6 +321,7 @@ const SwipeScreen = () => {
                           </View>
 
                           <View style={styles.cardFooter}>
+                          <View style={styles.preferencesContainer}></View>
                             <Text style={styles.preferencesTitle}>Living Preferences</Text>
                             <View style={styles.preferencesGrid}>
                               <View style={styles.preferenceItem}>
@@ -714,8 +715,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 1,
   },
+  preferencesContainer: {
+    marginBottom: 0, // Reduce or eliminate bottom margin
+    paddingBottom: 14, // Small padding just for visual separation
+  },  
   preferenceItem: {
     width: '48%',
     flexDirection: 'column',

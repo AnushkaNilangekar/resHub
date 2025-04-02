@@ -155,11 +155,11 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
                 style={[styles.uploadButton, styles.confirmButton]}
                 onPress={uploadImage}
                 activeOpacity={0.8}
-                disabled={uploading}
+                disabled={uploading === true}
               >
                 <Ionicons name="cloud-upload-outline" size={22} color="#fff" style={styles.buttonIcon} />
                 <Text style={styles.uploadButtonText}>
-                  {uploading ? "Uploading..." : "Upload Photo"}
+                  {uploading === true ? "Uploading..." : "Upload Photo"}
                 </Text>
               </TouchableOpacity>
             )}
@@ -223,7 +223,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
                 ]}
                 onPress={handleSubmit}
                 activeOpacity={0.8}
-                disabled={!uploadSuccess && selectedImage}
+                disabled={!uploadSuccess && selectedImage ? true : false}
               >
                 <Text style={styles.submitButtonText}>DONE</Text>
                 <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.buttonIcon} />
@@ -237,6 +237,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
 };
 
 const styles = StyleSheet.create({
+  // All styles remain the same, no changes needed here
   container: {
     flex: 1,
     backgroundColor: '#4c6ef5',

@@ -16,6 +16,9 @@ const BottomTabNavigator = () => {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           
+          // Reduce icon size
+          const iconSize = size * 0.8;
+          
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Chats') {
@@ -24,7 +27,7 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'person' : 'person-outline';
           }
           
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={iconSize} color={color} />;
         },
         tabBarActiveTintColor: '#FFFFFF',
         tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
@@ -57,7 +60,7 @@ const BottomTabNavigator = () => {
         component={ChatScreen}
         options={{
           tabBarLabel: 'Chats',
-          tabBarBadge: null, // Set to a number for notification count
+          tabBarBadge: null, 
         }}
       />
       <Tab.Screen
@@ -76,9 +79,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderTopWidth: 0,
     elevation: 0,
-    height: Platform.OS === 'ios' ? 90 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 10,
-    paddingTop: 10,
+    height: Platform.OS === 'ios' ? 70 : 55,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 5,
+    paddingTop: 5,
     backgroundColor: 'transparent',
   },
   tabBarBackground: {
@@ -87,26 +90,27 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15, 
     overflow: 'hidden',
-    elevation: 10,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.15,
-    shadowRadius: 5,
+    shadowRadius: 4,
   },
   tabBarGradient: {
     flex: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
+    borderTopLeftRadius: 15, 
+    borderTopRightRadius: 15, 
   tabBarLabel: {
-    fontWeight: '600',
-    fontSize: 12,
+    fontWeight: '500', 
+    fontSize: 10,
+    marginBottom: Platform.OS === 'ios' ? 0 : -2, 
   },
   tabBarItem: {
-    paddingTop: 5,
+    paddingTop: 3,
+    height: Platform.OS === 'ios' ? 45 : 40, 
   }
 });
 

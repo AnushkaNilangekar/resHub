@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
-    height: height * 0.73,
+    height: height * 0.78,
     width: width * 0.88,  
     marginTop: -100,
     marginLeft: 8,

@@ -417,6 +417,45 @@ public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request) {
                 .body(Map.of("error", e.getMessage()));
         }
         }
-     
-}
+
+        /**
+ * DELETE endpoint to remove a user's profile from the database.
+ * 
+ * @param userId The ID of the user whose profile should be deleted
+ * @return HTTP 200 if deletion is successful, HTTP 404 if profile not found, or HTTP 500 if an error occurs
+ */
+@DeleteMapping("/deleteProfile")
+public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
+    try {
+        // Build the key for the DynamoDB query
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("userId", AttributeValue.builder().s(userId).build());
+
+        // Check if the profile exists
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName("profiles")
+            .key(key)
+            .build();
+        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+        if (!getItemResponse.hasItem()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Profile not found for userId: " + userId));
+        }
+
+        // Delete the profile
+        DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
+            .tableName("profiles")
+            .key(key)
+            .build();
         
+        dynamoDbClient.deleteItem(deleteItemRequest);
+
+        return ResponseEntity.ok(Map.of("message", "Profile deleted successfully"));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+    }
+}
+}

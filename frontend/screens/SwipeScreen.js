@@ -287,7 +287,16 @@ const SwipeScreen = () => {
                           </View>
                         </LinearGradient>
 
-                        <ScrollView style={styles.scrollableContent} contentContainerStyle={styles.scrollContentContainer}>
+                        <ScrollView 
+                          style={styles.scrollableContent} 
+                          contentContainerStyle={[
+                            styles.scrollContentContainer,
+                            // Conditionally adjust based on hobby count
+                            card.hobbies && card.hobbies.length > 4 ? 
+                              { justifyContent: 'flex-start' } : 
+                              { justifyContent: 'space-between' }
+                          ]}
+                        >
                           <View style={styles.cardBody}>
                             <View style={styles.infoRow}>
                               <View style={styles.infoColumn}>
@@ -314,10 +323,14 @@ const SwipeScreen = () => {
                             <View style={styles.bioSection}>
                               <Text style={styles.sectionTitle}>Bio:</Text>
                               <Text style={styles.bioText}>{card.bio || "No bio available"}</Text>
-                          </View>
+                            </View>
 
                             {/* Hobbies as Tags */}
-                            <View style={styles.bioSection}>
+                            <View style={[
+                              styles.bioSection,
+                              // Dynamic margin adjustment based on hobbies
+                              { marginBottom: card.hobbies && card.hobbies.length > 4 ? 8 : 4 }
+                            ]}>
                               <Text style={styles.sectionTitle}>Hobbies:</Text>
                               <View style={styles.tagContainer}>
                                 {card.hobbies?.map((hobby, index) => {
@@ -421,15 +434,6 @@ const SwipeScreen = () => {
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.guestFrequency || "N/A"}</Text>
                               </View>
                             </View>
-
-                            {/* Add Action Button */}
-                            <TouchableOpacity 
-                              style={[styles.cardAction, styles.cardActionAccent3]}
-                              onPress={() => handleViewProfile(card.id)}
-                            >
-                              <Ionicons name="information-circle-outline" size={20} color="#fff" />
-                              <Text style={styles.cardActionText}>View Full Profile</Text>
-                            </TouchableOpacity>
                           </View>
                         </ScrollView>
                         
@@ -761,6 +765,8 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     flexGrow: 1,
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   profileImage: {
     width: width * 0.14,
@@ -798,6 +804,7 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     padding: 10,
+    flex: 1,
   },
   infoRow: {
     flexDirection: 'row',
@@ -816,8 +823,9 @@ const styles = StyleSheet.create({
   },
   bioSection: {
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 4,
     paddingBottom: 0,
+    flex: 0,
   },
   sectionTitle: {
     fontSize: RFPercentage(1.7),
@@ -843,10 +851,12 @@ const styles = StyleSheet.create({
   },
   cardFooter: {
     padding: 8,
+    paddingTop: 4,
     paddingBottom: 8,
     backgroundColor: 'rgba(69, 170, 242, 0.05)',
     borderTopWidth: 1,
     borderTopColor: COLORS.border.card,
+    marginTop: 'auto',
   },
   preferenceHeader: {
     flexDirection: 'row',
@@ -865,6 +875,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 4,
+    gap: 6,
   },
   preferencesContainer: {
     marginBottom: 0,
@@ -873,7 +884,7 @@ const styles = StyleSheet.create({
   preferenceItem: {
     width: '48%',
     flexDirection: 'column',
-    marginBottom: 15,
+    marginBottom: 8,
     padding: 4,
     borderRadius: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -890,6 +901,8 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
     fontWeight: '500',
     marginLeft: 18,
+    marginTop: 1,
+    marginBottom: 1,
   },
   swipeHints: {
     flexDirection: 'row',
@@ -921,7 +934,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 5,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tag: {
     paddingVertical: 3,
@@ -974,12 +987,12 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   progressBarContainer: {
-    height: 6,
+    height: 4,
     width: '100%',
     backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 3,
     overflow: 'hidden',
-    marginVertical: 4,
+    marginVertical: 2,
   },
   progressBar: {
     height: '100%',

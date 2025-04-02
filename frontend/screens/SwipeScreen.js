@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { View, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Dimensions, SafeAreaView, StatusBar, Platform, ScrollView} from 'react-native';
+import { View, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Dimensions, SafeAreaView, StatusBar, Platform, ScrollView } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import axios from 'axios';
 import config from '../config';
@@ -200,10 +200,6 @@ const SwipeScreen = () => {
         end={{ x: 0, y: 1 }}
         locations={[0, 0.4, 0.7, 1]}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={true}
-        >
 
         <View style={styles.contentContainer}>
           {/* Container for filters and refresh button */}
@@ -268,6 +264,7 @@ const SwipeScreen = () => {
                     if (!card) return null;
                     return (
                       <View style={styles.card}>
+                        {/* Card Header - Fixed height */}
                         <View style={styles.cardHeader}>
                           <Image source={{ uri: card.profilePicUrl }} style={styles.profileImage} />
                           <View style={styles.headerInfo}>
@@ -285,88 +282,92 @@ const SwipeScreen = () => {
                           </View>
                         </View>
 
-                        <View style={styles.cardBody}>
-                          <View style={styles.infoRow}>
-                            <View style={styles.infoColumn}>
-                              <Ionicons name="school-outline" size={16} color="#444" />
-                              <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
-                            </View>
-                            <View style={styles.infoColumn}>
-                              <Ionicons name="calendar-number-outline" size={16} color="#444" />
-                              <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
-                            </View>
-                          </View>
-                          
-                          <View style={styles.infoRow}>
-                            <View style={styles.infoColumn}>
-                              <Ionicons name="bookmark-outline" size={16} color="#444" />
-                              <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
-                            </View>
-                            <View style={styles.infoColumn}>
-                              <Ionicons name="home-outline" size={16} color="#444" />
-                              <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
-                            </View>
-                          </View>
-                          
-                          <View style={styles.bioSection}>
-                            <View style={styles.hobbiesContainer}>
-                              <Text style={styles.sectionTitle}>Hobbies:</Text>
-                              <Text style={styles.hobbiesText}>{card.hobbies?.join(", ") || "None listed"}</Text>
+                        {/* Scrollable content area that will adjust to content size */}
+                        <ScrollView style={styles.scrollableContent} contentContainerStyle={styles.scrollContentContainer}>
+                          <View style={styles.cardBody}>
+                            <View style={styles.infoRow}>
+                              <View style={styles.infoColumn}>
+                                <Ionicons name="school-outline" size={16} color="#444" />
+                                <Text style={styles.cardText}>Major: {card.major || "N/A"}</Text>
+                              </View>
+                              <View style={styles.infoColumn}>
+                                <Ionicons name="calendar-number-outline" size={16} color="#444" />
+                                <Text style={styles.cardText}>Grad. Year: {card.graduationYear || "N/A"}</Text>
+                              </View>
                             </View>
                             
-                            <View style={styles.bioContainer}>
-                              <Text style={styles.sectionTitle}>Bio:</Text>
-                              <Text style={styles.bioText}>{card.bio || "No bio available"}</Text>
+                            <View style={styles.infoRow}>
+                              <View style={styles.infoColumn}>
+                                <Ionicons name="bookmark-outline" size={16} color="#444" />
+                                <Text style={styles.cardText}>Minor: {card.minor || "N/A"}</Text>
+                              </View>
+                              <View style={styles.infoColumn}>
+                                <Ionicons name="home-outline" size={16} color="#444" />
+                                <Text style={styles.cardText}>Residence: {card.residence || "N/A"}</Text>
+                              </View>
+                            </View>
+                            
+                            <View style={styles.bioSection}>
+                              <View style={styles.hobbiesContainer}>
+                                <Text style={styles.sectionTitle}>Hobbies:</Text>
+                                <Text style={styles.hobbiesText}>{card.hobbies?.join(", ") || "None listed"}</Text>
+                              </View>
+                              
+                              <View style={styles.bioContainer}>
+                                <Text style={styles.sectionTitle}>Bio:</Text>
+                                <Text style={styles.bioText}>{card.bio || "No bio available"}</Text>
+                              </View>
                             </View>
                           </View>
-                        </View>
 
-                        <View style={styles.cardFooter}>
-                          <Text style={styles.preferencesTitle}>Living Preferences</Text>
-                          <View style={styles.preferencesGrid}>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="flame-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Smoking:</Text>
-                              <Text style={styles.preferenceValue}>{card.smokingStatus || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="sparkles-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Cleanliness:</Text>
-                              <Text style={styles.preferenceValue}>{card.cleanlinessLevel || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="volume-high-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Noise:</Text>
-                              <Text style={styles.preferenceValue}>{card.noiseLevel || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="people-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Sharing:</Text>
-                              <Text style={styles.preferenceValue}>{card.sharingCommonItems || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="restaurant-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Diet:</Text>
-                              <Text style={styles.preferenceValue}>{card.dietaryPreference || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="moon-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Sleep:</Text>
-                              <Text style={styles.preferenceValue}>{card.sleepSchedule || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="paw-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Pets:</Text>
-                              <Text style={styles.preferenceValue}>{card.hasPets || "N/A"}</Text>
-                            </View>
-                            <View style={styles.preferenceItem}>
-                              <Ionicons name="person-add-outline" size={18} color="#444" />
-                              <Text style={styles.preferenceLabel}>Guests:</Text>
-                              <Text style={styles.preferenceValue}>{card.guestFrequency || "N/A"}</Text>
+                          <View style={styles.cardFooter}>
+                            <Text style={styles.preferencesTitle}>Living Preferences</Text>
+                            <View style={styles.preferencesGrid}>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="flame-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Smoking:</Text>
+                                <Text style={styles.preferenceValue}>{card.smokingStatus || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="sparkles-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Cleanliness:</Text>
+                                <Text style={styles.preferenceValue}>{card.cleanlinessLevel || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="volume-high-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Noise:</Text>
+                                <Text style={styles.preferenceValue}>{card.noiseLevel || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="people-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Sharing:</Text>
+                                <Text style={styles.preferenceValue}>{card.sharingCommonItems || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="restaurant-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Diet:</Text>
+                                <Text style={styles.preferenceValue}>{card.dietaryPreference || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="moon-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Sleep:</Text>
+                                <Text style={styles.preferenceValue}>{card.sleepSchedule || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="paw-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Pets:</Text>
+                                <Text style={styles.preferenceValue}>{card.hasPets || "N/A"}</Text>
+                              </View>
+                              <View style={styles.preferenceItem}>
+                                <Ionicons name="person-add-outline" size={18} color="#444" />
+                                <Text style={styles.preferenceLabel}>Guests:</Text>
+                                <Text style={styles.preferenceValue}>{card.guestFrequency || "N/A"}</Text>
+                              </View>
                             </View>
                           </View>
-                        </View>
+                        </ScrollView>
                         
+                        {/* Fixed swipe hints at bottom */}
                         <View style={styles.swipeHints}>
                           <View style={styles.swipeHintLeft}>
                             <Ionicons name="close-circle" size={24} color="#ff6b6b" />
@@ -433,7 +434,6 @@ const SwipeScreen = () => {
                 />
               </View>
             )}
-        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -443,11 +443,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#6C5CE7', 
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 160, 
-    paddingTop: 10,
   },
   gradientContainer: {
     flex: 1,
@@ -599,8 +594,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 15,
-    height: height * 0.76,
+    height: height * 0.79,
     width: width * 0.9,
+    marginTop: -140,
+    marginLeft: 10,
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
@@ -608,6 +605,9 @@ const styles = StyleSheet.create({
     shadowRadius: 7,
     elevation: 10,
     overflow: 'hidden',
+    // Remove fixed height to allow content to determine size
+    display: 'flex',
+    flexDirection: 'column',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -615,6 +615,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     backgroundColor: 'rgba(108, 92, 231, 0.05)',
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
   },
   profileImage: {
     width: width * 0.16,
@@ -682,7 +688,6 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(1.8),
     color: '#444',
     lineHeight: 20,
-
   },
   bioContainer: {
     marginBottom: 5,
@@ -697,7 +702,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(69, 170, 242, 0.05)',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingBottom: 0,
   },
   preferencesTitle: {
     fontSize: RFPercentage(2),
@@ -710,7 +714,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 0,
+    marginBottom: 8,
   },
   preferenceItem: {
     width: '48%',
@@ -739,7 +743,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderTopWidth: 1,
     borderTopColor: '#eee',
-    marginTop: 0,
   },
   swipeHintLeft: {
     flexDirection: 'row',

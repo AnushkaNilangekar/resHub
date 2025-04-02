@@ -12,6 +12,7 @@ import {
     Platform,
     Alert
 } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -73,12 +74,11 @@ const AccountScreen = () => {
     );
   };
 
+  // Inside your component:
   const performDeleteAccount = async () => {
     setDeleting(true);
     try {
-      console.log("Starting account deletion process...");
       const result = await AccountService.deleteAccount();
-      console.log("Delete account result:", result);
       
       if (result.success) {
         await logout();
@@ -89,11 +89,12 @@ const AccountScreen = () => {
             { 
               text: "OK", 
               onPress: () => {
-                // Force navigation to login screen
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                  })
+                );
               }
             }
           ]

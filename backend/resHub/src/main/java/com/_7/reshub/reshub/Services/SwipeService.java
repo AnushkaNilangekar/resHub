@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -169,4 +170,65 @@ public class SwipeService {
             System.out.println("No matching swipe found for the given parameters.");
         }
     }    
+
+    /**
+ * Delete all swipe logs associated with a user.
+ * Deletes both swipes made by the user and swipes made on the user.
+ * 
+ * @param userId The ID of the user whose swipe logs should be deleted
+ */
+public void deleteUserSwipes(String userId) {
+    try {
+        // Query swipes where userId is the swiping user
+        QueryRequest querySwipesBy = QueryRequest.builder()
+            .tableName("swipe_logs")
+            .keyConditionExpression("userId = :userId")
+            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
+            .build();
+        
+        QueryResponse swipesByResponse = dynamoDbClient.query(querySwipesBy);
+        
+        // Delete each swipe made by the user
+        for (Map<String, AttributeValue> item : swipesByResponse.items()) {
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("userId", item.get("userId"));
+            key.put("swipedOnUserId", item.get("swipedOnUserId"));
+            
+            DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                .tableName("swipe_logs")
+                .key(key)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteRequest);
+        }
+        
+        // Query swipes where userId is the user being swiped on
+        // Note: You may need a GSI for this query to be efficient
+        // This example assumes there's a GSI on swipedOnUserId
+        QueryRequest querySwipesOn = QueryRequest.builder()
+            .tableName("swipe_logs")
+            .indexName("swipedOnUserId-index")
+            .keyConditionExpression("swipedOnUserId = :userId")
+            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
+            .build();
+        
+        QueryResponse swipesOnResponse = dynamoDbClient.query(querySwipesOn);
+        
+        // Delete each swipe made on the user
+        for (Map<String, AttributeValue> item : swipesOnResponse.items()) {
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("userId", item.get("userId"));
+            key.put("swipedOnUserId", item.get("swipedOnUserId"));
+            
+            DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                .tableName("swipe_logs")
+                .key(key)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteRequest);
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to delete user swipe logs: " + e.getMessage(), e);
+    }
+}
 }

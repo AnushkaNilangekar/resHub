@@ -12,7 +12,7 @@ import java.util.Map;
 import com._7.reshub.reshub.Utils.JwtUtil;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
 import com._7.reshub.reshub.Services.UserService;
-import com._7.reshub.reshub.Services.AccountService;
+import com._7.reshub.reshub.Services.SwipeService;
 
 @RestController
 @RequestMapping("/api")
@@ -22,13 +22,13 @@ public class AuthController {
     private DynamoDbClient dynamoDbClient;
 
     @Autowired
+    private SwipeService swipeService;
+
+    @Autowired
     private JwtUtil jwtUtil;  // Utility class for JWT generation
 
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private AccountService accountService;
 
     private static final String TABLE_NAME = "accounts"; 
 
@@ -94,32 +94,61 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token or expired.");
         }
     }
-    
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteAccount(@RequestBody Map<String, String> requestBody) {
-        try {
-            String userId = requestBody.get("userId");
-            
-            if (userId == null || userId.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(
-                    Map.of("success", false, "error", "User ID is required")
-                );
-            }
-            
-            Map<String, Object> result = accountService.deleteAccount(userId);
-            
-            if ((boolean) result.get("success")) {
-                return ResponseEntity.ok(result);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "success", false, 
-                    "error", "Failed to delete account: " + e.getMessage()
-                ));
+
+    /**
+ * DELETE endpoint to remove a user's authentication account from the database.
+ * This should only be called after the profile has been successfully deleted.
+ * 
+ * @param userId The ID of the user whose account should be deleted
+ * @return HTTP 200 if deletion is successful, HTTP 404 if account not found, or HTTP 500 if an error occurs
+ */
+@DeleteMapping("/deleteAccount")
+public ResponseEntity<?> deleteAccount(@RequestParam String userId) {
+    try {
+        // Build the key for the DynamoDB query
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("userId", AttributeValue.builder().s(userId).build());
+
+        // Check if the account exists
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName(TABLE_NAME) // Using the TABLE_NAME constant "accounts"
+            .key(key)
+            .build();
+        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+        if (!getItemResponse.hasItem()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Account not found for userId: " + userId));
         }
+
+        // Delete user's matches, chats, and swipe history
+        try {
+            // Delete swipe logs related to the user
+            swipeService.deleteUserSwipes(userId);
+            
+            // Delete chat history
+            userService.deleteUserChats(userId);
+            
+            // Delete matches
+            userService.deleteUserMatches(userId);
+        } catch (Exception e) {
+            // Log but continue with account deletion
+            System.err.println("Error cleaning up user data: " + e.getMessage());
+        }
+
+        // Delete the account
+        DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
+            .tableName(TABLE_NAME)
+            .key(key)
+            .build();
+        
+        dynamoDbClient.deleteItem(deleteItemRequest);
+
+        return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
     }
+}
 }

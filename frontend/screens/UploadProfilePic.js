@@ -22,6 +22,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [skipped, setSkipped] = useState(false);
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -37,6 +38,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   const handleSkip = () => {
     const defaultAvatarUrl = "https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg";
     onPictureUploaded(defaultAvatarUrl);
+    setSkipped(true);
     handleSubmit();
   };
 
@@ -53,6 +55,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
         const { uri } = result.assets[0];
         setSelectedImage(uri);
         setUploadSuccess(false);
+        setSkipped(false);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -102,6 +105,9 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
       setUploading(false);
     }
   };
+
+  // Determine if the DONE button should be disabled
+  const isDoneButtonDisabled = selectedImage && !uploadSuccess && !skipped;
 
   return (
     <View style={styles.container}>
@@ -155,11 +161,11 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
                 style={[styles.uploadButton, styles.confirmButton]}
                 onPress={uploadImage}
                 activeOpacity={0.8}
-                disabled={uploading === true}
+                disabled={uploading}
               >
                 <Ionicons name="cloud-upload-outline" size={22} color="#fff" style={styles.buttonIcon} />
                 <Text style={styles.uploadButtonText}>
-                  {uploading === true ? "Uploading..." : "Upload Photo"}
+                  {uploading ? "Uploading..." : "Upload Photo"}
                 </Text>
               </TouchableOpacity>
             )}
@@ -219,14 +225,22 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
               <TouchableOpacity 
                 style={[
                   styles.submitButton,
-                  (!uploadSuccess && selectedImage) && styles.submitButtonDisabled
+                  isDoneButtonDisabled && styles.submitButtonDisabled
                 ]}
                 onPress={handleSubmit}
                 activeOpacity={0.8}
-                disabled={!uploadSuccess && selectedImage ? true : false}
+                disabled={isDoneButtonDisabled}
               >
-                <Text style={styles.submitButtonText}>DONE</Text>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.buttonIcon} />
+                <Text style={[
+                  styles.submitButtonText,
+                  isDoneButtonDisabled && styles.disabledButtonText
+                ]}>DONE</Text>
+                <Ionicons 
+                  name="checkmark-circle" 
+                  size={20} 
+                  color={isDoneButtonDisabled ? "rgba(255, 255, 255, 0.5)" : "#fff"} 
+                  style={styles.buttonIcon} 
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -237,7 +251,7 @@ const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
 };
 
 const styles = StyleSheet.create({
-  // All styles remain the same, no changes needed here
+  // Core styles remain the same
   container: {
     flex: 1,
     backgroundColor: '#4c6ef5',
@@ -460,12 +474,17 @@ const styles = StyleSheet.create({
   submitButtonDisabled: {
     backgroundColor: 'rgba(74, 222, 128, 0.4)',
     shadowOpacity: 0.1,
+    opacity: 0.6,
+    borderColor: 'rgba(74, 222, 128, 0.3)',
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1,
+  },
+  disabledButtonText: {
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   buttonIcon: {
     marginLeft: 8,

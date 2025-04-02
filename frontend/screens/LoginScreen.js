@@ -228,6 +228,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#4c6ef5',
+    paddingTop: 40,
   },
   gradient: {
     flex: 1,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginTop: 150,
+    marginTop: 100,
   },
   iconContainer: {
     width: 70,
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 30,
     paddingBottom: 50,
-    marginTop: 20,
+    marginTop: 50,
     flex: 1,
   },
   welcomeText: {

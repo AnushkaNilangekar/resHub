@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         alignItems: "center",
-        marginTop: 50,
+        marginTop: 80,
       },
       iconContainer: {
         width: 70,
@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
         color: "#fff",
     },
     contentContainer: {
+        paddingHorizontal: 40,
         paddingTop: 30,
         paddingBottom: 50,
         marginTop: 20,
@@ -218,6 +219,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: "rgba(255, 255, 255, 0.25)",
+        width: '110%',
+        alignSelf: 'center',
     },
     signupButton: {
         backgroundColor: "#7B4A9E",
@@ -225,6 +228,8 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         alignItems: "center",
         marginBottom: 20,
+        width: '110%',
+        alignSelf: 'center',
     },
     buttonText: {
         color: "#fff",

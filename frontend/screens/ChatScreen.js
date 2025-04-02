@@ -1,11 +1,24 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { View, Image, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { 
+  View, 
+  Image, 
+  Text, 
+  StyleSheet, 
+  RefreshControl, 
+  TouchableOpacity, 
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+  Animated
+} from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import { LinearGradient } from 'expo-linear-gradient';
 
 /*
 * Chats Screen
@@ -15,6 +28,26 @@ const ChatsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [error, setError] = useState('');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (error) {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(5000),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setError(''));
+    }
+  }, [error, fadeAnim]);
 
   /*
   * Gets a list of the chat ids for the current user
@@ -36,6 +69,7 @@ const ChatsScreen = () => {
       return response.data;
     } catch (error) {
       console.error('Error fetching chats:', error);
+      setError('Unable to fetch your chats. Please try again.');
       return [];
     }
   }
@@ -85,6 +119,7 @@ const ChatsScreen = () => {
         });
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
+        setError('Unable to load some chat details. Please try again.');
       }
     }
 
@@ -119,6 +154,7 @@ const ChatsScreen = () => {
       setChats(prevChats => prevChats.filter(chat => chat.chatId !== chatId));
     } catch (error) {
       console.error("Error unmatching:", error);
+      setError('Unable to unmatch. Please try again.');
     }
   };
 
@@ -127,8 +163,6 @@ const ChatsScreen = () => {
       AsyncStorage.getItem("userId").then(id => setCurrentUserId(id));
       // Initial fetch
       getChatInformation();
-
-      //removed to avoid exceeding AWS free tier limit
 
       // Set up interval polling every 5000ms (5 seconds)
       const interval = setInterval(() => {
@@ -153,161 +187,322 @@ const ChatsScreen = () => {
     }
   }, [route.params?.updatedChatId]);
 
-
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await getChatInformation();
     setRefreshing(false);
-  }, [])
-
+  }, []);
 
   return (
-    <View style={styles.container}>
-      {chats.length === 0 ? (
-        <ScrollView contentContainerStyle={styles.noMatchesContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-          <Ionicons name="sad-outline" size={50} color="#555" />
-          <Text style={styles.noMatchesText}>No chats yet</Text>
-        </ScrollView>
-      ) : (
-        // <FlatList
-        //   data={chats}
-        //   keyExtractor={(item, index) => index.toString()}
-        //   renderItem={({ item }) => {
-        //     // Only apply grey if we have a currentUserId and there are unread messages AND the last message was not sent by the current user
-        //     const isUnreadForCurrentUser = currentUserId
-        //       ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-        //       : false;
-        //     return (
-          <SwipeListView
-            data={chats}
-            keyExtractor={(item) => item.chatId.toString()}
-            renderItem={({ item }) => {
-              const isUnreadForCurrentUser = currentUserId
-                ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-                : false;
-            return (
-              <TouchableOpacity
-                style={[
-                  styles.chatCard,
-                  isUnreadForCurrentUser && styles.unreadChatCard
-                ]}
-                onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
-              >
-                {item.profilePicUrl ? (
-                  <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-                ) : (
-                  <Ionicons name="person-circle-outline" size={100} color="#ccc" />
-                )}
-                <View style={styles.textContainer}>
-                  <Text style={styles.fullName}>{item.fullName}</Text>
-                  <Text style={styles.bio}>{item.lastMessage}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-          renderHiddenItem={({ item }) => (
-            <View style={styles.hiddenItemContainer}>
-              <TouchableOpacity
-                style={styles.unmatchButton}
-                onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
-              >
-                <Text style={styles.unmatchText}>Unmatch</Text>
-              </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
+        style={[styles.gradient, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.headerContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="chatbubbles" size={28} color="#fff" />
             </View>
+            <Text style={styles.headerTitle}>Chats</Text>
+          </View>
+        </View>
+        
+        {error ? (
+          <Animated.View 
+            style={[
+              styles.errorContainer, 
+              { opacity: fadeAnim }
+            ]}
+          >
+            <Ionicons name="alert-circle-outline" size={18} color="#FF6B6B" />
+            <Text style={styles.error}>{error}</Text>
+          </Animated.View>
+        ) : null}
+
+        <View style={styles.contentContainer}>
+          {chats.length === 0 ? (
+            <ScrollView 
+              contentContainerStyle={styles.noMatchesContainer} 
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+            >
+              <View style={styles.emptyStateIconContainer}>
+                <Ionicons name="chatbubbles-outline" size={60} color="#fff" />
+              </View>
+              <Text style={styles.noMatchesText}>No chats yet</Text>
+              <Text style={styles.noMatchesSubText}>
+                Start matching with people to begin conversations
+              </Text>
+            </ScrollView>
+          ) : (
+            <SwipeListView
+              data={chats}
+              keyExtractor={(item) => item.chatId.toString()}
+              renderItem={({ item }) => {
+                const isUnreadForCurrentUser = currentUserId
+                  ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+                  : false;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.chatCard,
+                      isUnreadForCurrentUser && styles.unreadChatCard
+                    ]}
+                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+                  >
+                    {item.profilePicUrl ? (
+                      <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                    ) : (
+                      <View style={styles.profilePlaceholder}>
+                        <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                      </View>
+                    )}
+                    <View style={styles.textContainer}>
+                      <Text style={styles.fullName}>{item.fullName}</Text>
+                      <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
+                    </View>
+                    {isUnreadForCurrentUser && (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadBadgeText}>
+                          {parseInt(item.unreadCount)}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+              renderHiddenItem={({ item }) => (
+                <View style={styles.hiddenItemContainer}>
+                  <TouchableOpacity
+                    style={styles.unmatchButton}
+                    onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#fff" />
+                    <Text style={styles.unmatchText}>Unmatch</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              leftOpenValue={0}
+              rightOpenValue={-100}
+              disableRightSwipe={true}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+              contentContainerStyle={styles.listContent}
+            />
           )}
-          leftOpenValue={0}
-          rightOpenValue={-100} // Swipe left to reveal unmatch button
-          disableRightSwipe={true} // Prevent swiping right
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        />
-      )}
-    </View>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
-
-export default ChatsScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 5,
+    backgroundColor: '#4c6ef5',
+  },
+  gradient: {
+    flex: 1,
+  },
+  headerContainer: {
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 10,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 10,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderLeftWidth: 3,
+    borderLeftColor: "#FF6B6B",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  error: {
+    color: "#FF6B6B",
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 15,
+  },
+  listContent: {
+    paddingBottom: 20,
   },
   noMatchesContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 200,
+    paddingBottom: 100,
+  },
+  emptyStateIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   noMatchesText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#555",
-    marginTop: 10,
+    color: "#fff",
+    marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  noMatchesSubText: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: 'center',
+    maxWidth: '80%',
   },
   chatCard: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     marginBottom: 10,
-    borderRadius: 20,
-    padding: 10,
+    borderRadius: 12,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
-    height: 100,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+    height: 85,
   },
   unreadChatCard: {
-    backgroundColor: "#dff8ff", // a darker shade for chats with unread messages
-    borderColor: "#0B185F",
-    borderWidth: 0.5,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    borderColor: "rgba(255, 255, 255, 0.4)",
   },
   textContainer: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
   },
   profilePic: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     borderWidth: 2,
-    borderColor: "#ddd",
+    borderColor: "rgba(255, 255, 255, 0.5)",
+  },
+  profilePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
   fullName: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 2,
+    marginBottom: 4,
+    color: "#fff",
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  bio: {
-    fontSize: 16,
-    color: "#555",
+  lastMessage: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
   },
-  chatIcon: {
-    fontSize: 45,
-    color: "#555",
+  unreadBadge: {
+    backgroundColor: "#ff6b6b",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  unreadBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   hiddenItemContainer: {
     alignItems: "flex-end",
     justifyContent: "center",
-    height: 100,
-    backgroundColor: "#fff",
-    borderRadius: 20,
+    height: 85,
     marginBottom: 10,
+    borderRadius: 12,
     paddingRight: 15,
   },
   unmatchButton: {
-    backgroundColor: "red",
+    backgroundColor: "#ff6b6b",
     justifyContent: "center",
     alignItems: "center",
     width: 100,
     height: "100%",
-    borderRadius: 20,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
   unmatchText: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 16,
-  },
+    fontSize: 14,
+    marginTop: 4,
+  }
 });
+
+export default ChatsScreen;

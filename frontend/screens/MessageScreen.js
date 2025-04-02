@@ -1,11 +1,22 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { View, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, TouchableOpacity, Text, Keybo } from "react-native";
+import { 
+  View, 
+  StyleSheet, 
+  SafeAreaView, 
+  KeyboardAvoidingView, 
+  Platform, 
+  TouchableOpacity, 
+  Text, 
+  StatusBar,
+  Animated
+} from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import config from "../config";
+import { LinearGradient } from 'expo-linear-gradient';
 
 const MessageScreen = ({ route }) => {
   const { chatId, otherUserId, name } = route.params;
@@ -13,13 +24,34 @@ const MessageScreen = ({ route }) => {
   const [userId, setUserId] = useState("");
   const [token, setToken] = useState("");
   const navigation = useNavigation();
+  const [error, setError] = useState('');
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  // Error animation effect
+  useEffect(() => {
+    if (error) {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(5000),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setError(''));
+    }
+  }, [error, fadeAnim]);
 
   // Set the header title dynamically
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: `Chat with ${name}`, // Customize the title dynamically
+      headerShown: false, // Hide the default header
     });
-  }, [navigation, otherUserId]);
+  }, [navigation]);
 
   const fetchMessages = async () => {
     const storedUserId = await AsyncStorage.getItem("userId");
@@ -27,11 +59,10 @@ const MessageScreen = ({ route }) => {
     const storedToken = await AsyncStorage.getItem("token");
     setToken(storedToken);
     try {
-      const token = await AsyncStorage.getItem("token");
       const response = await axios.get(`${config.API_BASE_URL}/api/users/getMessages`, {
         params: { chatId },
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${storedToken}`,
         },
       });
 
@@ -51,26 +82,24 @@ const MessageScreen = ({ route }) => {
         setMessages(formattedMessages);
       } else {
         console.error("Failed to fetch messages:", response.status);
+        setError('Unable to load messages. Please try again.');
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
+      setError('Unable to load messages. Please try again.');
     }
   };
 
   // Handle sending a new message
   const onSendMessage = async (text) => {
-    // if (newMessages.length === 0) return;
-    // const text = newMessages[0].text;
-
     if (text.trim()) {
       const requestData = {
-        chatId: chatId,  // Include chatId in the URL
+        chatId: chatId,
         createdAt: new Date().toISOString(),
         userId: userId,
         name: name,
         text: text,
       };
-
 
       const userParams = new URLSearchParams();
       userParams.append('chatId', requestData.chatId);
@@ -79,23 +108,21 @@ const MessageScreen = ({ route }) => {
       userParams.append('userId', requestData.userId);
       userParams.append('name', requestData.name);
 
-      console.log("params:" + userParams.toString());
-
       try {
         await axios.post(
           `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
-          {},  // You don't need to send the body if all data is in the URL
+          {},
           {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
           }
         );
+        fetchMessages();  // Fetch messages again to include the new message
       } catch (error) {
         console.error("Error sending message:", error);
+        setError('Unable to send message. Please try again.');
       }
-
-      fetchMessages();  // Fetch messages again to include the new message
     }
   };
 
@@ -104,15 +131,19 @@ const MessageScreen = ({ route }) => {
     async function markMessagesRead() {
       const userId = await AsyncStorage.getItem("userId");
       const token = await AsyncStorage.getItem("token");
-      await axios.post(`${config.API_BASE_URL}/api/users/markMessagesAsRead`, {
-        chatId: chatId,
-        userId: userId,
-      }, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      try {
+        await axios.post(`${config.API_BASE_URL}/api/users/markMessagesAsRead`, {
+          chatId: chatId,
+          userId: userId,
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
     }
+    
     markMessagesRead();
-
     fetchMessages(); // Initial fetch
 
     const interval = setInterval(() => {
@@ -129,44 +160,85 @@ const MessageScreen = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
       >
-        <View style={styles.container}>
-          {/* <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-          <Text style={styles.headerText}>Chat</Text>
-        </TouchableOpacity>
-      </View> */}
+        <View style={styles.headerContainer}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="person" size={24} color="#fff" />
+            </View>
+            <Text style={styles.headerTitle}>{name}</Text>
+          </View>
+        </View>
+        
+        {error ? (
+          <Animated.View 
+            style={[
+              styles.errorContainer, 
+              { opacity: fadeAnim }
+            ]}
+          >
+            <Ionicons name="alert-circle-outline" size={18} color="#FF6B6B" />
+            <Text style={styles.error}>{error}</Text>
+          </Animated.View>
+        ) : null}
+
+        <KeyboardAvoidingView
+          style={styles.contentContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
           <View style={styles.chatContainer}>
             <Chat
               messages={messages}
               setMessages={(val) => onSendMessage(val)}
-              themeColor="blue"
+              themeColor="#4c6ef5"
               themeTextColor="white"
               showSenderAvatar={false}
               showReceiverAvatar={false}
-              inputBorderColor="black"
+              inputBorderColor="rgba(255, 255, 255, 0.3)"
               user={{
                 _id: userId,
                 name: name,
               }}
-              backgroundColor="white"
-              inputBackgroundColor="white"
-              placeholder="Enter Your Message"
-              placeholderColor="gray"
+              backgroundColor="transparent"
+              inputBackgroundColor="rgba(255, 255, 255, 0.2)"
+              placeholder="Type a message..."
+              placeholderColor="rgba(255, 255, 255, 0.7)"
               showEmoji={false}
               onPressEmoji={() => console.log("Emoji Button Pressed..")}
               showAttachment={false}
               onPressAttachment={() => console.log("Attachment Button Pressed..")}
-              timeContainerColor="red"
+              timeContainerColor="rgba(255, 255, 255, 0.2)"
               timeContainerTextColor="white"
+              senderBubbleColor="rgba(255, 255, 255, 0.2)"
+              receiverBubbleColor="rgba(76, 110, 245, 0.4)"
+              senderTextColor="white"
+              receiverTextColor="white"
+              bubbleBorderRadius={16}
+              messageTextSize={15}
+              timeTextSize={11}
+              inputHeight={50}
+              inputTextColor="white"
+              inputTextSize={15}
+              sendButtonBackgroundColor="rgba(255, 255, 255, 0.3)"
+              sendButtonIconColor="white"
             />
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -174,13 +246,89 @@ const MessageScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#4c6ef5',
+  },
+  gradient: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 10,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    flex: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 10,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderLeftWidth: 3,
+    borderLeftColor: "#FF6B6B",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  error: {
+    color: "#FF6B6B",
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    marginTop: 10,
   },
   chatContainer: {
-    flex: 1, // Ensures the chat takes up the remaining space
-    marginTop: 10, // Creates space between the header and chat
-    paddingBottom: 10, // Avoids messages getting too close to the bottom
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingBottom: 20,
   },
 });
 

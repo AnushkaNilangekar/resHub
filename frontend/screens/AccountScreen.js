@@ -20,7 +20,7 @@ import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
-import AccountService from '../screens/AccountService';
+import AccountService from '../context/AccountService';
 
 const AccountScreen = () => {
   const [profileData, setProfileData] = useState(null);
@@ -76,7 +76,9 @@ const AccountScreen = () => {
   const performDeleteAccount = async () => {
     setDeleting(true);
     try {
+      console.log("Starting account deletion process...");
       const result = await AccountService.deleteAccount();
+      console.log("Delete account result:", result);
       
       if (result.success) {
         await logout();
@@ -87,7 +89,8 @@ const AccountScreen = () => {
             { 
               text: "OK", 
               onPress: () => {
-                navigation.navigate({
+                // Force navigation to login screen
+                navigation.reset({
                   index: 0,
                   routes: [{ name: 'Login' }],
                 });

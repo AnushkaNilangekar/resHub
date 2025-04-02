@@ -372,10 +372,10 @@ const SwipeScreen = () => {
                         <View style={styles.swipeHints}>
                           <View style={styles.swipeHintLeft}>
                             <Ionicons name="close-circle" size={24} color="#ff6b6b" />
-                            <Text style={styles.swipeHintTextLeft}>Swipe left to pass</Text>
+                            <Text style={styles.swipeHintTextLeft}>Swipe right to match</Text>
                           </View>
                           <View style={styles.swipeHintRight}>
-                            <Text style={styles.swipeHintTextRight}>Swipe right to match</Text>
+                            <Text style={styles.swipeHintTextRight}>Swipe left to pass</Text>
                             <Ionicons name="checkmark-circle" size={24} color="#20bf6b" />
                           </View>
                         </View>

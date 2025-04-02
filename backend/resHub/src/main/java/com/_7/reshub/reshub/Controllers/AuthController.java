@@ -12,6 +12,7 @@ import java.util.Map;
 import com._7.reshub.reshub.Utils.JwtUtil;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
 import com._7.reshub.reshub.Services.UserService;
+import com._7.reshub.reshub.Services.AccountService;
 
 @RestController
 @RequestMapping("/api")
@@ -25,6 +26,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private AccountService accountService;
 
     private static final String TABLE_NAME = "accounts"; 
 
@@ -90,5 +94,32 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token or expired.");
         }
     }
-
+    
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAccount(@RequestBody Map<String, String> requestBody) {
+        try {
+            String userId = requestBody.get("userId");
+            
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "error", "User ID is required")
+                );
+            }
+            
+            Map<String, Object> result = accountService.deleteAccount(userId);
+            
+            if ((boolean) result.get("success")) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false, 
+                    "error", "Failed to delete account: " + e.getMessage()
+                ));
+        }
+    }
 }

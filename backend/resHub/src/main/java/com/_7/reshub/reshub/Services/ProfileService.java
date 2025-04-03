@@ -205,19 +205,27 @@ public class ProfileService {
      * table
      */
     public void doAddToBlockedUsers(String blockerId, String blockedId) {
-        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
+        List<String> blockedUsers = new ArrayList<>(doGetBlockedUsers(blockerId)); // Assuming doGetBlockedUsers works
     
+        if (!blockedUsers.contains(blockedId)) {
+            blockedUsers.add(blockedId);
+        }
+    
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
+        
         Map<String, AttributeValue> updateValues = Map.of(
-                ":blockedId", AttributeValue.builder().s(blockedId).build()
+                ":newBlockedUsers", AttributeValue.builder().l(blockedUsers.stream()
+                        .map(blocked -> AttributeValue.builder().s(blocked).build())
+                        .collect(Collectors.toList())).build()
         );
     
         UpdateItemRequest updateRequest = UpdateItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
-                .updateExpression("ADD blockedUsers :blockedId") // Use ADD instead of SET
+                .updateExpression("SET blockedUsers = :newBlockedUsers")
                 .expressionAttributeValues(updateValues)
                 .build();
     
         dynamoDbClient.updateItem(updateRequest);
-    }
+    }     
 }

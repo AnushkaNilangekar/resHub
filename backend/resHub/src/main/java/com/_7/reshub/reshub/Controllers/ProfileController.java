@@ -237,105 +237,105 @@ public class ProfileController {
       * @return A ResponseEntity with HTTP 200 if the update is successful,
       *         HTTP 400 if the request is invalid, or HTTP 404 if the user profile is not found.
       */
-@PutMapping("/updateProfile")
-public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request) {
-    try {
-        if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("User ID is required");
-        }
+    @PutMapping("/updateProfile")
+    public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest request) {
+        try {
+            if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("User ID is required");
+            }
 
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("userId", AttributeValue.builder().s(request.getUserId()).build());
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("userId", AttributeValue.builder().s(request.getUserId()).build());
 
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-            .tableName("profiles")
-            .key(key)
-            .build();
-        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+            GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .build();
+            GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
 
-        if (!getItemResponse.hasItem()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
-        }
+            if (!getItemResponse.hasItem()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
+            }
 
-        Map<String, AttributeValue> attributeValues = new HashMap<>();
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        StringBuilder updateExpression = new StringBuilder("SET ");
-        List<String> updateList = new ArrayList<>();
+            Map<String, AttributeValue> attributeValues = new HashMap<>();
+            Map<String, String> expressionAttributeNames = new HashMap<>();
+            StringBuilder updateExpression = new StringBuilder("SET ");
+            List<String> updateList = new ArrayList<>();
 
-        // Basic Profile Info
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "fullName", request.getFullName());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "email", request.getEmail());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "age", request.getAge());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "gender", request.getGender());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "major", request.getMajor());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "minor", request.getMinor());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "graduationYear", request.getGraduationYear());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "residence", request.getResidence());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "bio", request.getBio());
-        
-        // Hobbies 
-        if (request.getHobbies() != null && !request.getHobbies().isEmpty()) {
-            String attributeKey = ":hobbiesValue";
-            String expressionField = "#hobbies";
+            // Basic Profile Info
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "fullName", request.getFullName());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "email", request.getEmail());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "age", request.getAge());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "gender", request.getGender());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "major", request.getMajor());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "minor", request.getMinor());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "graduationYear", request.getGraduationYear());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "residence", request.getResidence());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "bio", request.getBio());
             
-            expressionAttributeNames.put(expressionField, "hobbies");
-            
-            updateList.add(expressionField + " = " + attributeKey);
-            attributeValues.put(attributeKey, AttributeValue.builder()
-                .l(request.getHobbies().stream()
-                    .map(hobby -> AttributeValue.builder().s(hobby).build())
-                    .collect(Collectors.toList()))
-                .build());
+            // Hobbies 
+            if (request.getHobbies() != null && !request.getHobbies().isEmpty()) {
+                String attributeKey = ":hobbiesValue";
+                String expressionField = "#hobbies";
+                
+                expressionAttributeNames.put(expressionField, "hobbies");
+                
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder()
+                    .l(request.getHobbies().stream()
+                        .map(hobby -> AttributeValue.builder().s(hobby).build())
+                        .collect(Collectors.toList()))
+                    .build());
+            }
+
+            // Personal Traits
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "smokingStatus", request.getSmokingStatus());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "cleanlinessLevel", request.getCleanlinessLevel());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "sleepSchedule", request.getSleepSchedule());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "guestFrequency", request.getGuestFrequency());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "hasPets", request.getHasPets());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "noiseLevel", request.getNoiseLevel());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "sharingCommonItems", request.getSharingCommonItems());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "dietaryPreference", request.getDietaryPreference());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "allergies", request.getAllergies());
+
+            // Roommate Preferences
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSmokingPreference", request.getRoommateSmokingPreference());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateCleanlinessLevel", request.getRoommateCleanlinessLevel());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSleepSchedule", request.getRoommateSleepSchedule());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateGuestFrequency", request.getRoommateGuestFrequency());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommatePetPreference", request.getRoommatePetPreference());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateNoiseTolerance", request.getRoommateNoiseTolerance());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSharingCommonItems", request.getRoommateSharingCommonItems());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
+
+            if (updateList.isEmpty()) {
+                return ResponseEntity.badRequest().body("No fields to update");
+            }
+
+            updateExpression.append(String.join(", ", updateList));
+
+            // Complete request
+            UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .updateExpression(updateExpression.toString())
+                .expressionAttributeNames(expressionAttributeNames)
+                .expressionAttributeValues(attributeValues)
+                .build();
+
+            dynamoDbClient.updateItem(updateItemRequest);
+
+            return ResponseEntity.ok("Profile updated successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
         }
-
-        // Personal Traits
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "smokingStatus", request.getSmokingStatus());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "cleanlinessLevel", request.getCleanlinessLevel());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "sleepSchedule", request.getSleepSchedule());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "guestFrequency", request.getGuestFrequency());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "hasPets", request.getHasPets());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "noiseLevel", request.getNoiseLevel());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "sharingCommonItems", request.getSharingCommonItems());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "dietaryPreference", request.getDietaryPreference());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "allergies", request.getAllergies());
-
-        // Roommate Preferences
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSmokingPreference", request.getRoommateSmokingPreference());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateCleanlinessLevel", request.getRoommateCleanlinessLevel());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSleepSchedule", request.getRoommateSleepSchedule());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateGuestFrequency", request.getRoommateGuestFrequency());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommatePetPreference", request.getRoommatePetPreference());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateNoiseTolerance", request.getRoommateNoiseTolerance());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSharingCommonItems", request.getRoommateSharingCommonItems());
-        addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
-
-        if (updateList.isEmpty()) {
-            return ResponseEntity.badRequest().body("No fields to update");
-        }
-
-        updateExpression.append(String.join(", ", updateList));
-
-        // Complete request
-        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
-            .tableName("profiles")
-            .key(key)
-            .updateExpression(updateExpression.toString())
-            .expressionAttributeNames(expressionAttributeNames)
-            .expressionAttributeValues(attributeValues)
-            .build();
-
-        dynamoDbClient.updateItem(updateItemRequest);
-
-        return ResponseEntity.ok("Profile updated successfully");
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("error", e.getMessage()));
     }
-}
      
         //helper methods
-        private void addAttribute(
+    private void addAttribute(
         List<String> updateList, 
         Map<String, AttributeValue> attributeValues, 
         Map<String, String> expressionAttributeNames,

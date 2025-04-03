@@ -213,23 +213,6 @@ public class ProfileService {
      * Handles adding the new blocked user to the user1's account in the accounts
      * table
      */
-    /*public void doAddToBlockedUsers(String blockerId, String blockedId) {
-        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
-    
-        Map<String, AttributeValue> updateValues = Map.of(
-                ":blockedId", AttributeValue.builder().s(blockedId).build()
-        );
-    
-        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
-                .tableName(dynamoDbConfig.getUserProfilesTableName())
-                .key(key)
-                .updateExpression("SET blockedUsers = list_append(blockedUsers, :blockedUser)")
-                .expressionAttributeValues(updateValues)
-                .build();
-    
-        dynamoDbClient.updateItem(updateRequest);
-    }*/
-
     public void doAddToBlockedUsers(String blockerId, String blockedId) {
         List<String> blockedUsers = new ArrayList<>(doGetBlockedUsers(blockerId)); // Assuming doGetBlockedUsers works
 
@@ -254,5 +237,4 @@ public class ProfileService {
 
         dynamoDbClient.updateItem(updateRequest);
     }
-
 }

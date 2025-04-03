@@ -172,11 +172,8 @@ const MessageScreen = ({ route }) => {
     try {
       const storedUserId = await AsyncStorage.getItem('userId');
       const storedToken = await AsyncStorage.getItem('token');
-      await axios.post(`${config.API_BASE_URL}/api/blockUser`, {
-        blockerId: storedUserId,
-        blockedId: otherUserId,
-      }, {
-        headers: { 'Authorization': `Bearer ${storedToken}` },
+      await axios.post(`${config.API_BASE_URL}/api/blockUser?blockerId=${storedUserId}&blockedId=${otherUserId}`, {
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       setIsBlocked(true);
       Alert.alert('User Blocked', 'You have blocked this user.');

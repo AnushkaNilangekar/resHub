@@ -79,6 +79,20 @@ const LoginScreen = () => {
     }
   };
   
+  const updateLastTimeActive = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    const token = await AsyncStorage.getItem("token");
+    
+    try {
+      await axios.post(`${config.API_BASE_URL}/api/users/updateLastTimeActive?userId=${userId}`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update activity status:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,6 +111,7 @@ const LoginScreen = () => {
           await login(response.data.token);
           Alert.alert("Success", "Login successful!", [{ text: "OK" }]);
           checkFirstLogin();
+          updateLastTimeActive();
         } else {
           setError("Login failed");
           Alert.alert("Error", "Login failed. Please try again.", [{ text: "OK" }]);

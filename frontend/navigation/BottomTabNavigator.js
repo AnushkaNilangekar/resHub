@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontWeight: '500', 
     fontSize: 10, 
-    marginBottom: Platform.OS === 'ios' ? 0 : -2, ion
+    marginBottom: Platform.OS === 'ios' ? 0 : -2,
   },
   tabBarItem: {
     paddingTop: 3,

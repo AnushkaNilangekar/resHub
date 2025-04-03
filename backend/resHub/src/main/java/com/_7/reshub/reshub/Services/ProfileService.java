@@ -13,8 +13,10 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -142,5 +144,80 @@ public class ProfileService {
             item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s()
         );
-    }    
+    }
+    
+    
+    /*
+     * Handles retrieving the user ids and then user names of the users blocked by the given user.
+     */
+    public List<String> doGetBlockedUsers(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
+
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            AttributeValue blockedUsersAttribute = item.get("blockedUsers");
+
+            if (blockedUsersAttribute != null && blockedUsersAttribute.l() != null) {
+                List<String> blockedUserIds = blockedUsersAttribute.l().stream()
+                        .map(AttributeValue::s)
+                        .collect(Collectors.toList());
+
+                // Fetch full names for each blocked user ID
+                List<String> blockedUserFullNames = blockedUserIds.stream()
+                        .map(blockedUserId -> getFullNameForUserId(blockedUserId))
+                        .collect(Collectors.toList());
+
+                return blockedUserFullNames;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    // Helper method to fetch the full name for a given user ID
+    private String getFullNameForUserId(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .attributesToGet("fullName") // Fetch only the fullName attribute
+                .build();
+
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+
+        if (response.hasItem() && response.item().containsKey("fullName")) {
+            return response.item().get("fullName").s();
+        } else {
+            return "User ID: " + userId; // Or handle the case where the name is not found
+        }
+    }
+
+
+    /*
+     * Handles adding the new blocked user to the user1's account in the accounts
+     * table
+     */
+    public void doAddToBlockedUsers(String blockerId, String blockedId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
+    
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":blockedId", AttributeValue.builder().s(blockedId).build()
+        );
+    
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("ADD blockedUsers :blockedId") // Use ADD instead of SET
+                .expressionAttributeValues(updateValues)
+                .build();
+    
+        dynamoDbClient.updateItem(updateRequest);
+    }
 }

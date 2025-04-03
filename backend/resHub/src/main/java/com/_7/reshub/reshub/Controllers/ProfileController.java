@@ -458,4 +458,49 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
                 .body(Map.of("error", e.getMessage()));
     }
 }
+
+        
+        @GetMapping("/getBlockedUsers")
+        public List<String> getBlockedUsers(@RequestParam String userId) {
+                try {
+                List<String> blockedUsers = profileService.doGetBlockedUsers(userId);
+                return blockedUsers;
+                } catch (Exception e) {
+                e.printStackTrace();
+                return List.of("Error: " + e.getMessage());
+                }
+        }
+
+        @GetMapping("/isBlocked")
+        public boolean isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
+                try {
+                List<String> blockedUsers = getBlockedUsers(blockerId);
+                return blockedUsers.contains(blockedId);
+                } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+                }
+        }
+
+        @PostMapping("/blockUser")
+        public ResponseEntity<?> blockUser(@RequestParam String blockerId, @RequestParam String blockedId) {
+                try {
+                profileService.doAddToBlockedUsers(blockerId, blockedId);
+                return ResponseEntity.ok("Blocked successfully");
+                } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.badRequest().body("Failed to block user: " + e.getMessage());
+                }
+        }
+
+        /*@GetMapping("/getReportedChats")
+        public List<String> getReportedChats(@RequestParam String userId) {
+                try {
+                List<String> reportedChats = chatService.doGetReportedChats(userId);
+                return reportedChats;
+                } catch (Exception e) {
+                e.printStackTrace();
+                return List.of("Error: " + e.getMessage());
+                }
+        }*/
 }

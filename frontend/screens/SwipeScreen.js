@@ -699,9 +699,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: 12,
-    height: height * 0.78,
+    height: height * 0.75,
     width: width * 0.88,
-    marginTop: Platform.OS == 'android' ? RFPercentage(-17) : RFPercentage(-14),
+    marginTop: Platform.OS == 'android' ? RFPercentage(-17) : RFPercentage(-12),
     marginLeft: 8,
     alignSelf: 'center',
     shadowColor: '#000',

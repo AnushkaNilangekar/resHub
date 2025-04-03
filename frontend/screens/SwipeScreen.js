@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../styles/colors.js';
 
 const { height, width } = Dimensions.get('window');
 
@@ -193,7 +194,7 @@ const SwipeScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <LinearGradient
-        colors={[COLORS.gradientStart, COLORS.accent2, '#2d98da', COLORS.primaryDark]}
+        colors={[colors.gradientStart, colors.accent2, '#2d98da', colors.primaryDark]}
         style={styles.gradientContainer}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -262,7 +263,7 @@ const SwipeScreen = () => {
                     return (
                       <View style={styles.card}>
                         <LinearGradient
-                          colors={[COLORS.primary, COLORS.primaryLight]}
+                          colors={[colors.primary, colors.primaryLight]}
                           style={[styles.cardHeader, styles.cardHeaderGradient]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
@@ -359,14 +360,14 @@ const SwipeScreen = () => {
                             <View style={styles.preferencesGrid}>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="flame-outline" size={18} color={COLORS.accent1} />
+                                  <Ionicons name="flame-outline" size={18} color={colors.accent1} />
                                   <Text style={styles.preferenceLabel}>Smoking:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.smokingStatus || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="sparkles-outline" size={18} color={COLORS.accent2} />
+                                  <Ionicons name="sparkles-outline" size={18} color={colors.accent2} />
                                   <Text style={styles.preferenceLabel}>Cleanliness:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.cleanlinessLevel || "N/A"}</Text>
@@ -383,7 +384,7 @@ const SwipeScreen = () => {
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="volume-high-outline" size={18} color={COLORS.accent3} />
+                                  <Ionicons name="volume-high-outline" size={18} color={colors.accent3} />
                                   <Text style={styles.preferenceLabel}>Noise:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.noiseLevel || "N/A"}</Text>
@@ -400,35 +401,35 @@ const SwipeScreen = () => {
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="people-outline" size={18} color={COLORS.accent4} />
+                                  <Ionicons name="people-outline" size={18} color={colors.accent4} />
                                   <Text style={styles.preferenceLabel}>Sharing:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sharingCommonItems || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="restaurant-outline" size={18} color={COLORS.primaryLight} />
+                                  <Ionicons name="restaurant-outline" size={18} color={colors.primaryLight} />
                                   <Text style={styles.preferenceLabel}>Diet:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.dietaryPreference || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="moon-outline" size={18} color={COLORS.primary} />
+                                  <Ionicons name="moon-outline" size={18} color={colors.primary} />
                                   <Text style={styles.preferenceLabel}>Sleep:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sleepSchedule || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="paw-outline" size={18} color={COLORS.accent1} />
+                                  <Ionicons name="paw-outline" size={18} color={colors.accent1} />
                                   <Text style={styles.preferenceLabel}>Pets:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.hasPets || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
-                                  <Ionicons name="person-add-outline" size={18} color={COLORS.accent2} />
+                                  <Ionicons name="person-add-outline" size={18} color={colors.accent2} />
                                   <Text style={styles.preferenceLabel}>Guests:</Text>
                                 </View>
                                 <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.guestFrequency || "N/A"}</Text>
@@ -440,12 +441,12 @@ const SwipeScreen = () => {
                         {/* Fixed swipe hints at bottom */}
                         <View style={styles.swipeHints}>
                           <View style={styles.swipeHintLeft}>
-                            <Ionicons name="close-circle" size={24} color={COLORS.button.negative} />
+                            <Ionicons name="close-circle" size={24} color={colors.button.negative} />
                             <Text style={styles.swipeHintTextLeft}>Swipe left to pass</Text>
                           </View>
                           <View style={styles.swipeHintRight}>
                             <Text style={styles.swipeHintTextRight}>Swipe right to match</Text>
-                            <Ionicons name="checkmark-circle" size={24} color={COLORS.button.positive} />
+                            <Ionicons name="checkmark-circle" size={24} color={colors.button.positive} />
                           </View>
                         </View>
                       </View>
@@ -459,14 +460,14 @@ const SwipeScreen = () => {
                   cardIndex={0}
                   backgroundColor="transparent"
                   stackSize={3}
-                  stackSeparation={15}
+                  stackSeparation={0}
                   animateOverlayLabelsOpacity
                   overlayLabels={{
                     left: {
                       title: 'PASS',
                       style: {
                         label: {
-                          backgroundColor: COLORS.button.negative,
+                          backgroundColor: colors.button.negative,
                           color: '#fff',
                           fontSize: 24,
                           borderRadius: 10,
@@ -485,7 +486,7 @@ const SwipeScreen = () => {
                       title: 'MATCH',
                       style: {
                         label: {
-                          backgroundColor: COLORS.button.positive,
+                          backgroundColor: colors.button.positive,
                           color: '#fff',
                           fontSize: 24,
                           borderRadius: 10,
@@ -547,47 +548,10 @@ const handleViewProfile = (profileId) => {
   console.log(`Viewing full profile for ID: ${profileId}`);
 };
   
-const COLORS = {
-  // Primary colors
-  primary: '#6C5CE7',       // Main purple
-  primaryDark: '#5849BE',   // Darker purple for accents
-  primaryLight: '#A29BFE',  // Lighter purple for subtle elements
-  
-  // Accent colors
-  accent1: '#FF9FF3',      // Soft pink
-  accent2: '#48DBFB',      // Cyan blue
-  accent3: '#1DD1A1',      // Mint green
-  accent4: '#FECA57',      // Warm yellow
-
-  // Gradient options
-  gradientStart: '#6C5CE7',
-  gradientEnd: '#5849BE',
-  
-  // UI elements
-  background: '#6C5CE7',
-  card: '#FFFFFF',
-  text: {
-    primary: '#333333',
-    secondary: '#555555',
-    light: '#FFFFFF',
-    muted: '#666666',
-  },
-  border: {
-    light: 'rgba(255, 255, 255, 0.3)',
-    card: '#f0f0f0',
-  },
-  button: {
-    default: 'rgba(255, 255, 255, 0.2)',
-    selected: 'rgba(255, 255, 255, 0.3)',
-    positive: 'rgba(32, 191, 107, 0.8)',
-    negative: 'rgba(255, 107, 107, 0.8)',
-  }
-};
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background, 
+    backgroundColor: colors.background, 
   },
   gradientContainer: {
     flex: 1,
@@ -611,24 +575,23 @@ const styles = StyleSheet.create({
     flex: 1, 
     alignItems: "center",
     flexWrap: "wrap",
-    paddingLeft: 15,
-    gap: 6
-  },  
+    paddingLeft: 15
+  },
   filterButton: {
     paddingVertical: 5,
     paddingHorizontal: 9,
     marginHorizontal: 3,
     borderRadius: 14,
-    backgroundColor: COLORS.button.default,
+    backgroundColor: colors.button.default,
     borderWidth: 1,
-    borderColor: COLORS.border.light,
+    borderColor: colors.border.light,
   },
   selectedFilter: {
-    backgroundColor: COLORS.button.selected,
-    borderColor: COLORS.text.light,
+    backgroundColor: colors.button.selected,
+    borderColor: colors.text.light,
   },
   filterText: {
-    color: COLORS.text.light,
+    color: colors.text.light,
     fontWeight: "600",
     fontSize: 14,
   },
@@ -649,21 +612,21 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginRight: 28,
     marginLeft: 4,
-    backgroundColor: COLORS.button.default,
+    backgroundColor: colors.button.default,
     borderWidth: 1,
-    borderColor: COLORS.border.light,
+    borderColor: colors.border.light,
     alignSelf: 'center',
   },
   refreshButtonEmpty: {
-    backgroundColor: COLORS.button.default,
+    backgroundColor: colors.button.default,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.text.light,
+    borderColor: colors.text.light,
   },
   actionButtonText: {
-    color: COLORS.text.light,
+    color: colors.text.light,
     fontWeight: "600",
     fontSize: 12,
     marginLeft: 4,
@@ -675,10 +638,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: COLORS.text.light,
+    color: colors.text.light,
     marginTop: 8,
   },
   noProfilesContainer: {
+    marginTop: RFPercentage(-70),
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -688,13 +652,13 @@ const styles = StyleSheet.create({
   noProfilesText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.text.light,
+    color: colors.text.light,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 16,
   },
   refreshButtonText: {
-    color: COLORS.text.light,
+    color: colors.text.light,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -707,41 +671,37 @@ const styles = StyleSheet.create({
     marginTop: -25,
   },
   swipeFeedback: {
-    position: 'absolute',
-    top: '36%',
+    position: "absolute",
+    top: RFPercentage(15),
     zIndex: 100,
-    width: 60,
-    height: 60,
+    width: 23,
+    height: '85%',
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    backgroundColor: colors.transparent,
     elevation: 4,
   },
   rightSwipeFeedback: {
-    right: 16,
-    borderColor: COLORS.button.positive,
-    borderWidth: 2,
+    right: 0,
+    borderColor: colors.button.positive,
+    borderWidth: 5,
   },
   leftSwipeFeedback: {
-    left: 16,
-    borderColor: COLORS.button.negative,
-    borderWidth: 2,
+    left: 0,
+    borderColor: colors.button.negative,
+    borderWidth: 5,
   },
   swipeIcon: {
-    fontSize: 25,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   card: {
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     height: height * 0.78,
-    width: width * 0.88,  
-    marginTop: -100,
+    width: width * 0.88,
+    marginTop: Platform.OS == 'android' ? RFPercentage(-17) : RFPercentage(-14),
     marginLeft: 8,
     alignSelf: 'center',
     shadowColor: '#000',
@@ -757,7 +717,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border.card,
+    borderBottomColor: colors.border.card,
     backgroundColor: 'rgba(108, 92, 231, 0.05)',
   },
   scrollableContent: {
@@ -773,7 +733,7 @@ const styles = StyleSheet.create({
     height: width * 0.14,
     borderRadius: (width * 0.14) / 2,
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: colors.primary,
   },
   headerInfo: {
     marginLeft: 10,
@@ -783,7 +743,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: RFPercentage(2.1),
     fontWeight: 'bold',
-    color: COLORS.text.primary,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   
@@ -799,7 +759,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: RFPercentage(1.6),
-    color: COLORS.text.secondary,
+    color: colors.text.secondary,
     marginLeft: 4,
   },
   cardBody: {
@@ -817,7 +777,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: RFPercentage(1.7),
-    color: COLORS.text.secondary,
+    color: colors.text.secondary,
     marginLeft: 4,
     flex: 1, 
   },
@@ -830,7 +790,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: RFPercentage(1.7),
     fontWeight: 'bold',
-    color: COLORS.text.primary,
+    color: colors.text.primary,
     marginBottom: 1,
   },
   hobbiesContainer: {
@@ -838,7 +798,7 @@ const styles = StyleSheet.create({
   },
   hobbiesText: {
     fontSize: RFPercentage(1.7),
-    color: COLORS.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 20,
   },
   bioContainer: {
@@ -846,7 +806,7 @@ const styles = StyleSheet.create({
   },
   bioText: {
     fontSize: RFPercentage(1.7),
-    color: COLORS.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 20,
   },
   cardFooter: {
@@ -855,7 +815,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     backgroundColor: 'rgba(69, 170, 242, 0.05)',
     borderTopWidth: 1,
-    borderTopColor: COLORS.border.card,
+    borderTopColor: colors.border.card,
     marginTop: 'auto',
   },
   preferenceHeader: {
@@ -866,7 +826,7 @@ const styles = StyleSheet.create({
   preferencesTitle: {
     fontSize: RFPercentage(1.8),
     fontWeight: 'bold',
-    color: COLORS.text.primary,
+    color: colors.text.primary,
     marginBottom: 6,
     textAlign: 'center',
   },
@@ -889,16 +849,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderWidth: 1,
-    borderColor: COLORS.border.card,
+    borderColor: colors.border.card,
   },
   preferenceLabel: {
     fontSize: RFPercentage(1.5),
-    color: COLORS.text.muted,
+    color: colors.text.muted,
     marginTop: 4,
   },
   preferenceValue: {
     fontSize: RFPercentage(1.5),
-    color: COLORS.text.primary,
+    color: colors.text.primary,
     fontWeight: '500',
     marginLeft: 18,
     marginTop: 1,
@@ -910,7 +870,7 @@ const styles = StyleSheet.create({
     padding: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderTopWidth: 1,
-    borderTopColor: COLORS.border.card,
+    borderTopColor: colors.border.card,
   },
   swipeHintLeft: {
     flexDirection: 'row',
@@ -922,12 +882,12 @@ const styles = StyleSheet.create({
   },
   swipeHintTextLeft: {
     fontSize: 10,
-    color: COLORS.text.muted,
+    color: colors.text.muted,
     marginLeft: 4,
   },
   swipeHintTextRight: {
     fontSize: 10,
-    color: COLORS.text.muted,
+    color: colors.text.muted,
     marginRight: 4,
   },
   tagContainer: {
@@ -946,22 +906,22 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: RFPercentage(1.5),
     fontWeight: '500',
-    color: COLORS.text.light,
+    color: colors.text.light,
   },
   tagPrimary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
   },
   tagAccent1: {
-    backgroundColor: COLORS.accent1,
+    backgroundColor: colors.accent1,
   },
   tagAccent2: {
-    backgroundColor: COLORS.accent2,
+    backgroundColor: colors.accent2,
   },
   tagAccent3: {
-    backgroundColor: COLORS.accent3,
+    backgroundColor: colors.accent3,
   },
   tagAccent4: {
-    backgroundColor: COLORS.accent4,
+    backgroundColor: colors.accent4,
   },
   highlightSection: {
     marginTop: 10,
@@ -972,15 +932,15 @@ const styles = StyleSheet.create({
   },
   highlightPrimary: {
     backgroundColor: 'rgba(108, 92, 231, 0.1)',
-    borderLeftColor: COLORS.primary,
+    borderLeftColor: colors.primary,
   },
   highlightAccent1: {
     backgroundColor: 'rgba(255, 159, 243, 0.1)',
-    borderLeftColor: COLORS.accent1,
+    borderLeftColor: colors.accent1,
   },
   highlightAccent2: {
     backgroundColor: 'rgba(72, 219, 251, 0.1)',
-    borderLeftColor: COLORS.accent2,
+    borderLeftColor: colors.accent2,
   },
   cardHeaderGradient: {
     borderBottomLeftRadius: 0,
@@ -999,19 +959,19 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressPrimary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
   },
   progressAccent1: {
-    backgroundColor: COLORS.accent1,
+    backgroundColor: colors.accent1,
   },
   progressAccent2: {
-    backgroundColor: COLORS.accent2,
+    backgroundColor: colors.accent2,
   },
   progressAccent3: {
-    backgroundColor: COLORS.accent3,
+    backgroundColor: colors.accent3,
   },
   progressAccent4: {
-    backgroundColor: COLORS.accent4,
+    backgroundColor: colors.accent4,
   },
   cardAction: {
     flexDirection: 'row',
@@ -1022,16 +982,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardActionPrimary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
   },
   cardActionAccent2: {
-    backgroundColor: COLORS.accent2,
+    backgroundColor: colors.accent2,
   },
   cardActionAccent3: {
-    backgroundColor: COLORS.accent3,
+    backgroundColor: colors.accent3,
   },
   cardActionText: {
-    color: COLORS.text.light,
+    color: colors.text.light,
     fontWeight: '600',
     fontSize: RFPercentage(1.8),
     marginLeft: 5,

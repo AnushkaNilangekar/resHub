@@ -214,7 +214,7 @@ public class ProfileService {
      * table
      */
     public void doAddToBlockedUsers(String blockerId, String blockedId) {
-        List<String> blockedUsers = new ArrayList<>(doGetBlockedUsers(blockerId)); // Assuming doGetBlockedUsers works
+        List<String> blockedUsers = new ArrayList<>(doGetBlockedUsers(blockerId));
 
         if (!blockedUsers.contains(blockedId)) {
             blockedUsers.add(blockedId);

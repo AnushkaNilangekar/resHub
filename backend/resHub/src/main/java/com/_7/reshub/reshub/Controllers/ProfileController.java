@@ -4,7 +4,8 @@ import com._7.reshub.reshub.Models.Requests.ProfileRequest;
 import com._7.reshub.reshub.Services.ProfileService;
 import com._7.reshub.reshub.Services.SwipeService;
 import com._7.reshub.reshub.Models.Profile;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class ProfileController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
 
     @Autowired
     private DynamoDbClient dynamoDbClient;
@@ -461,36 +464,56 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
 
         
         @GetMapping("/getBlockedUsers")
-        public List<String> getBlockedUsers(@RequestParam String userId) {
-                try {
+        public ResponseEntity<List<String>> getBlockedUsers(@RequestParam String userId) {
+        try {
                 List<String> blockedUsers = profileService.doGetBlockedUsers(userId);
-                return blockedUsers;
-                } catch (Exception e) {
-                e.printStackTrace();
-                return List.of("Error: " + e.getMessage());
-                }
+                return ResponseEntity.ok(blockedUsers);
+        } catch (Exception e) {
+                logger.error("Error fetching blocked users for userId: {}", userId, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
         }
 
         @GetMapping("/isBlocked")
+        public ResponseEntity<Boolean> isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
+        try {
+                boolean isBlocked = profileService.isUserBlocked(blockerId, blockedId);
+                return ResponseEntity.ok(isBlocked);
+        } catch (Exception e) {
+                logger.error("Error checking if user {} is blocked by {}", blockedId, blockerId, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+        }
+
+        /*@GetMapping("/isBlocked")
         public boolean isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
                 try {
-                List<String> blockedUsers = getBlockedUsers(blockerId);
+                ResponseEntity<List<String>> response = getBlockedUsers(blockerId);
+                List<String> blockedUsers = response.getBody();
+                System.out.println(blockedUsers.contains(blockedId););
                 return blockedUsers.contains(blockedId);
                 } catch (Exception e) {
                 e.printStackTrace();
                 return false;
                 }
-        }
+        }*/
 
         @PostMapping("/blockUser")
-        public ResponseEntity<?> blockUser(@RequestParam String blockerId, @RequestParam String blockedId) {
-                try {
+        public ResponseEntity<?> blockUser(@RequestBody Map<String, String> requestBody) {
+        String blockerId = requestBody.get("blockerId");
+        String blockedId = requestBody.get("blockedId");
+
+        if (blockerId == null || blockedId == null) {
+                return ResponseEntity.badRequest().body("Missing parameters");
+        }
+
+        try {
                 profileService.doAddToBlockedUsers(blockerId, blockedId);
                 return ResponseEntity.ok("Blocked successfully");
-                } catch (Exception e) {
+        } catch (Exception e) {
                 e.printStackTrace();
                 return ResponseEntity.badRequest().body("Failed to block user: " + e.getMessage());
-                }
+        }
         }
 
         /*@GetMapping("/getReportedChats")

@@ -200,11 +200,20 @@ public class ProfileService {
     }
 
 
+    public boolean isUserBlocked(String blockerId, String blockedId) {
+        try {
+            List<String> blockedUsers = doGetBlockedUsers(blockerId);
+            return blockedUsers.contains(blockedId);
+        } catch (Exception e) {
+            throw new RuntimeException("Error checking blocked status", e);
+        }
+    }
+
     /*
      * Handles adding the new blocked user to the user1's account in the accounts
      * table
      */
-    public void doAddToBlockedUsers(String blockerId, String blockedId) {
+    /*public void doAddToBlockedUsers(String blockerId, String blockedId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
     
         Map<String, AttributeValue> updateValues = Map.of(
@@ -214,10 +223,36 @@ public class ProfileService {
         UpdateItemRequest updateRequest = UpdateItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
-                .updateExpression("ADD blockedUsers :blockedId") // Use ADD instead of SET
+                .updateExpression("SET blockedUsers = list_append(blockedUsers, :blockedUser)")
                 .expressionAttributeValues(updateValues)
                 .build();
     
         dynamoDbClient.updateItem(updateRequest);
+    }*/
+
+    public void doAddToBlockedUsers(String blockerId, String blockedId) {
+        List<String> blockedUsers = new ArrayList<>(doGetBlockedUsers(blockerId)); // Assuming doGetBlockedUsers works
+
+        if (!blockedUsers.contains(blockedId)) {
+            blockedUsers.add(blockedId);
+        }
+
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(blockerId).build());
+
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":newBlockedUsers", AttributeValue.builder().l(blockedUsers.stream()
+                        .map(blocked -> AttributeValue.builder().s(blocked).build())
+                        .collect(Collectors.toList())).build()
+        );
+
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("SET blockedUsers = :newBlockedUsers")
+                .expressionAttributeValues(updateValues)
+                .build();
+
+        dynamoDbClient.updateItem(updateRequest);
     }
+
 }

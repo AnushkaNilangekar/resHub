@@ -278,15 +278,23 @@ const SettingsScreen = ({ navigation }) => {
         try {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('token');
+    
             const response = await axios.get(`${config.API_BASE_URL}/api/getBlockedUsers`, {
                 params: { userId: userId },
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+    
+            if (response.data.error) {
+                console.error('Error fetching blocked users:', response.data.error);
+                return;
+            }
+    
             setBlockedUsers(response.data);
         } catch (error) {
             console.error('Error fetching blocked users:', error);
         }
     };
+    
     
     /*const fetchReportedChats = async () => {
         try {

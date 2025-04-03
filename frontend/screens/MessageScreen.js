@@ -153,17 +153,20 @@ const MessageScreen = ({ route }) => {
 
   const checkBlockedStatus = async () => {
     try {
-      const storedUserId = await AsyncStorage.getItem('userId');
-      const storedToken = await AsyncStorage.getItem('token');
-      const response = await axios.get(`${config.API_BASE_URL}/api/isBlocked`, {
-        params: { blockerId: storedUserId, blockedId: otherUserId },
-        headers: { 'Authorization': `Bearer ${storedToken}` },
-      });
-      setIsBlocked(response.data.isBlocked);
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const storedToken = await AsyncStorage.getItem('token');
+
+        const response = await axios.get(`${config.API_BASE_URL}/api/isBlocked`, {
+            params: { blockerId: storedUserId, blockedId: otherUserId },
+            headers: { 'Authorization': `Bearer ${storedToken}` },
+        });
+
+        // Since the backend returns a boolean directly, use response.data
+        setIsBlocked(response.data); 
     } catch (error) {
-      console.error('Error checking blocked status:', error);
+        console.error('Error checking blocked status:', error);
     }
-  };
+};
 
   const handleBlockUser = async () => {
     try {

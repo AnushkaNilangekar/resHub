@@ -2,12 +2,14 @@ package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
+import org.springframework.context.annotation.Lazy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate; // For WebSockets
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -18,9 +20,9 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
+//import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+//import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+//import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -49,6 +51,13 @@ public class UserService {
 
     @Autowired
     private DynamoDbService dynamoDbService;
+
+    /*@Autowired
+    private NotificationService notificationService;
+*/
+    @Autowired
+    @Lazy
+    private SimpMessagingTemplate messagingTemplate; // For sending WebSocket messages
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -172,6 +181,26 @@ public class UserService {
         doAddToMatches(userId, matchUserId);
         doAddToMatches(matchUserId, userId);
         createChat(userId, matchUserId);
+
+        // Get user names for notifications and send to both users about the match
+/* 
+        String userName1 = getUserName(userId);
+        String userName2 = getUserName(matchUserId);
+        */
+        // Send Match Notification
+        sendMatchNotification(userId, matchUserId);
+        sendMatchNotification(matchUserId, userId);
+    }
+
+    private void sendMatchNotification(String userId, String matchedUserId) {
+        // Construct notification payload
+        Map<String, String> notification = new HashMap<>();
+        notification.put("type", "match");
+        notification.put("message", "You have a new match!");
+        notification.put("matchedUserId", matchedUserId);
+
+        // Send notification to the user via WebSocket topic
+        messagingTemplate.convertAndSend("/topic/notifications/" + userId, notification);
     }
 
     /*
@@ -578,7 +607,76 @@ public class UserService {
             System.err.println("Error updating chat last message: " + e.getMessage());
             e.printStackTrace();
         }
+
+        // Send Message Notification
+        sendMessageNotification(chatId, createdAt, userId, name, text);
+
+        /*
+        // Get the other user's ID to notify them
+        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getChatsTableName())
+                .key(key)
+                .build();
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            AttributeValue participantsAttribute = item.get("participants");
+            
+            if (participantsAttribute != null && participantsAttribute.l() != null) {
+                // Find the recipient ID
+                String recipientId = participantsAttribute.l().stream()
+                        .map(AttributeValue::s)
+                        .filter(id -> !id.equals(userId))
+                        .findFirst()
+                        .orElse(null);
+                        
+                if (recipientId != null) {
+                    // Send notification for new message
+                    String previewText = text.substring(0, Math.min(text.length(), 30));
+                    notificationService.notifyNewMessage(recipientId, userId, name, previewText);
+                }
+            }
+        }*/
     }
+
+    private void sendMessageNotification(String chatId, String createdAt, String userId, String name, String text) {
+        // Get the other user ID in the chat
+        String otherUserId = getOtherUserId(chatId, userId);
+        if (otherUserId != null) {
+            // Construct notification payload
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "message");
+            notification.put("message", "New message: " + text);
+            notification.put("chatId", chatId);
+            notification.put("senderId", userId);
+            notification.put("senderName", name);
+            notification.put("text", text);
+            notification.put("createdAt", createdAt);
+
+            // Send notification to the other user via WebSocket topic
+            messagingTemplate.convertAndSend("/topic/notifications/" + otherUserId, notification);
+        }
+    }
+
+    /* 
+     * Helper method to get user name
+     */ 
+    /*private String getUserName(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
+        
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+        if (response.hasItem() && response.item().containsKey("name")) {
+            return response.item().get("name").s();
+        }
+        
+        return ""; // Default if name not found
+    }*/
 
     /*
      * Retrieves a list of messages from the messages table for the given chatId,

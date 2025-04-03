@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';
-import { AppState } from 'react-native';
+import { AppState, View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import config from "./config";
 import * as SplashScreen from 'expo-splash-screen';
+import * as Stomp from '@stomp/stompjs';
+import NotificationBanner from './notifications/NotificationBanner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +24,8 @@ export default function App() {
       },
     },
   };
+  const [notification, setNotification] = useState(null); // State for notification
+  const client = useRef(null); // Ref for WebSocket client
 
   useEffect(() => {
     // Prepare the app
@@ -85,6 +89,37 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const connectWebSocket = async () => {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+            client.current = new Stomp.Client({
+                brokerURL: `${config.API_BASE_URL.replace('http', 'ws')}/ws`,
+                onConnect: () => {
+                    client.current.subscribe(`/topic/notifications/${userId}`, (message) => {
+                        const notificationData = JSON.parse(message.body);
+                        setNotification(notificationData);
+                    });
+                },
+                onStompError: (frame) => {
+                    console.error('Broker reported error: ' + frame.headers['message']);
+                    console.error('Additional details: ' + frame.body);
+                },
+            });
+
+            client.current.activate();
+        }
+    };
+
+    connectWebSocket();
+
+    return () => {
+        if (client.current && client.current.active) {
+            client.current.deactivate();
+        }
+    };
+  }, []);
+
   if (!appIsReady) {
     return null;
   }
@@ -93,6 +128,13 @@ export default function App() {
     <AuthProvider> {/* Wrap with AuthProvider */}
       <NavigationContainer linking={linking}>
         <StackNavigator />
+        {notification && (
+            <NotificationBanner
+                message={notification.message}
+                visible={!!notification}
+                onClose={() => setNotification(null)}
+            />
+        )}
       </NavigationContainer>
     </AuthProvider>
   );

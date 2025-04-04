@@ -8,29 +8,54 @@ import {
   StatusBar, 
   KeyboardAvoidingView, 
   Platform,
-  Animated,
-  Dimensions
+  SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// IMPORTANT: Add this import at the top of your file
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 export default function Step1BasicInfo({ fullName, setFullName, handleNext }) {
     const [isFocused, setIsFocused] = useState(false);
-    const screenHeight = Dimensions.get('window').height;
+    // Get safe area insets to handle notches and system UI properly
+    const insets = useSafeAreaInsets();
     
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <>
+            {/* First, fill the screen with solid color to avoid any white gaps */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#4d6ef5',
+            }} />
+            
+            {/* Then add the gradient that will extend beyond screen edges */}
             <LinearGradient
-                colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-                style={[styles.gradient, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                locations={[0, 0.4, 0.7, 1]}
-            >
+                colors={['#4d6ef5', '#70b2d0', '#6BBFBC', '#4d6ef5']}
+                style={{
+                    position: 'absolute',
+                    top: -5,
+                    left: -5,
+                    right: -5,
+                    bottom: -5,
+                }}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                locations={[0, 0.45, 0.65, 1]}
+            />
+            
+            {/* Make sure status bar is properly handled */}
+            <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+            
+            {/* Actual content */}
+            <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
+                    style={{ flex: 1 }}
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={styles.keyboardAvoidingView}
                 >
                     <View style={styles.contentWrapper}>
                         <View style={styles.headerContainer}>
@@ -40,7 +65,7 @@ export default function Step1BasicInfo({ fullName, setFullName, handleNext }) {
                             <Text style={styles.title}>Basic Information</Text>
                             <Text style={styles.subtitle}>Let's start with your name</Text>
                         </View>
-
+                        
                         <View style={styles.formContainer}>
                             <View style={styles.inputContainer}>
                                 <Text style={styles.label}>FULL NAME</Text>
@@ -80,7 +105,7 @@ export default function Step1BasicInfo({ fullName, setFullName, handleNext }) {
                                 </View>
                             </View>
                         </View>
-
+                        
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity 
                                 style={styles.nextButton}
@@ -93,28 +118,17 @@ export default function Step1BasicInfo({ fullName, setFullName, handleNext }) {
                         </View>
                     </View>
                 </KeyboardAvoidingView>
-            </LinearGradient>
-        </View>
+            </SafeAreaView>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#4c6ef5',
-    },
-    gradient: {
-        flex: 1,
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-        paddingTop: Platform.OS === 'ios' ? 50 : 70,
-        paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-    },
     contentWrapper: {
         flex: 1,
         justifyContent: 'space-between',
         paddingHorizontal: 25,
+        paddingTop: Platform.OS === 'ios' ? 20 : 40,
         paddingBottom: 30,
     },
     headerContainer: {
@@ -226,7 +240,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     nextButton: {
-        backgroundColor: '#4c6ef5',
+        backgroundColor: 'rgba(77, 110, 245, 0.8)',
         borderRadius: 12,
         paddingVertical: 15,
         flexDirection: 'row',

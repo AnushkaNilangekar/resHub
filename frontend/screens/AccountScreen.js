@@ -12,6 +12,7 @@ import {
     Platform,
     Alert
 } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -20,7 +21,7 @@ import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
-import AccountService from '../screens/AccountService';
+import AccountService from '../context/AccountService';
 
 const AccountScreen = () => {
   const [profileData, setProfileData] = useState(null);
@@ -73,6 +74,7 @@ const AccountScreen = () => {
     );
   };
 
+  // Inside your component:
   const performDeleteAccount = async () => {
     setDeleting(true);
     try {
@@ -87,10 +89,12 @@ const AccountScreen = () => {
             { 
               text: "OK", 
               onPress: () => {
-                navigation.navigate({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                  })
+                );
               }
             }
           ]

@@ -483,6 +483,7 @@ const SettingsScreen = ({ navigation }) => {
                                 placeholder="Tell us about yourself"
                                 placeholderTextColor="rgba(255, 255, 255, 0.6)"
                                 multiline={true}
+                                maxLength={40}
                                 onFocus={() => setFocusedInput('bio')}
                                 onBlur={() => setFocusedInput(null)}
                             />

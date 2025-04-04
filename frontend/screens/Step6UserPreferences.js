@@ -81,131 +81,155 @@ export default function Step6RoommatePreferences({
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-            <LinearGradient
-                colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-                style={styles.gradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                locations={[0, 0.4, 0.7, 1]}
-            >
-                <ScrollView contentContainerStyle={styles.contentWrapper}>
-                    <View style={styles.headerContainer}>
-                        <View style={styles.stepIndicator}>
-                            <Text style={styles.stepNumber}>6</Text>
+        <>
+        {/* First, fill the screen with solid color to avoid any white gaps */}
+        <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#4d6ef5',
+            zIndex: 0
+        }} />
+        
+        {/* Then add the gradient that will extend beyond screen edges */}
+        <LinearGradient
+            colors={['#4d6ef5', '#70b2d0', '#6BBFBC', '#4d6ef5']}
+            style={{
+                position: 'absolute',
+                top: -5,
+                left: -5,
+                right: -5,
+                bottom: -5,
+                zIndex: 1
+            }}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            locations={[0, 0.45, 0.65, 1]}
+        />
+        
+        {/* Make sure status bar is properly handled */}
+        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        
+        {/* Main content */}
+        <View style={[styles.container, { zIndex: 2 }]}>
+            <ScrollView contentContainerStyle={styles.contentWrapper}>
+                <View style={styles.headerContainer}>
+                    <View style={styles.stepIndicator}>
+                        <Text style={styles.stepNumber}>6</Text>
+                    </View>
+                    <Text style={styles.title}>Roommate Preferences</Text>
+                    <Text style={styles.subtitle}>Tell us about your ideal roommate</Text>
+                </View>
+
+                <View style={styles.formContainer}>
+                    <CustomPicker 
+                        label="SMOKING PREFERENCE"
+                        value={roommateSmokingPreference}
+                        onValueChange={setRoommateSmokingPreference}
+                        options={["Non-Smoker", "Smoker", "Only when I'm not around"]}
+                    />
+
+                    <CustomPicker 
+                        label="CLEANLINESS LEVEL"
+                        value={roommateCleanlinessLevel}
+                        onValueChange={setRoommateCleanlinessLevel}
+                        options={["Very Clean", "Moderate", "Messy"]}
+                    />
+
+                    <CustomPicker 
+                        label="SLEEP SCHEDULE"
+                        value={roommateSleepSchedule}
+                        onValueChange={setRoommateSleepSchedule}
+                        options={["Early Bird", "Night Owl", "Flexible"]}
+                    />
+
+                    <CustomPicker 
+                        label="GUEST FREQUENCY"
+                        value={roommateGuestFrequency}
+                        onValueChange={setRoommateGuestFrequency}
+                        options={["Rarely", "Occasionally", "Frequently"]}
+                    />
+
+                    <CustomPicker 
+                        label="PET PREFERENCE"
+                        value={roommatePetPreference}
+                        onValueChange={setRoommatePetPreference}
+                        options={["No Pets", "Okay with Pets"]}
+                    />
+
+                    <CustomPicker 
+                        label="NOISE TOLERANCE"
+                        value={roommateNoiseTolerance}
+                        onValueChange={setRoommateNoiseTolerance}
+                        options={["Quiet", "Moderate", "Loud Environment"]}
+                    />
+
+                    <CustomPicker 
+                        label="SHARING COMMON ITEMS"
+                        value={roommateSharingCommonItems}
+                        onValueChange={setRoommateSharingCommonItems}
+                        options={["Strictly Separate", "Willing to Share", "Flexible"]}
+                    />
+
+                    <CustomPicker 
+                        label="DIETARY PREFERENCE"
+                        value={roommateDietaryPreference}
+                        onValueChange={setRoommateDietaryPreference}
+                        options={["Vegetarian", "Vegan", "No Restrictions"]}
+                    />
+                    
+                    <View style={styles.progressIndicator}>
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
                         </View>
-                        <Text style={styles.title}>Roommate Preferences</Text>
-                        <Text style={styles.subtitle}>Tell us about your ideal roommate</Text>
-                    </View>
-
-                    <View style={styles.formContainer}>
-                        <CustomPicker 
-                            label="SMOKING PREFERENCE"
-                            value={roommateSmokingPreference}
-                            onValueChange={setRoommateSmokingPreference}
-                            options={["Non-Smoker", "Smoker", "Only when I'm not around"]}
-                        />
-
-                        <CustomPicker 
-                            label="CLEANLINESS LEVEL"
-                            value={roommateCleanlinessLevel}
-                            onValueChange={setRoommateCleanlinessLevel}
-                            options={["Very Clean", "Moderate", "Messy"]}
-                        />
-
-                        <CustomPicker 
-                            label="SLEEP SCHEDULE"
-                            value={roommateSleepSchedule}
-                            onValueChange={setRoommateSleepSchedule}
-                            options={["Early Bird", "Night Owl", "Flexible"]}
-                        />
-
-                        <CustomPicker 
-                            label="GUEST FREQUENCY"
-                            value={roommateGuestFrequency}
-                            onValueChange={setRoommateGuestFrequency}
-                            options={["Rarely", "Occasionally", "Frequently"]}
-                        />
-
-                        <CustomPicker 
-                            label="PET PREFERENCE"
-                            value={roommatePetPreference}
-                            onValueChange={setRoommatePetPreference}
-                            options={["No Pets", "Okay with Pets"]}
-                        />
-
-                        <CustomPicker 
-                            label="NOISE TOLERANCE"
-                            value={roommateNoiseTolerance}
-                            onValueChange={setRoommateNoiseTolerance}
-                            options={["Quiet", "Moderate", "Loud Environment"]}
-                        />
-
-                        <CustomPicker 
-                            label="SHARING COMMON ITEMS"
-                            value={roommateSharingCommonItems}
-                            onValueChange={setRoommateSharingCommonItems}
-                            options={["Strictly Separate", "Willing to Share", "Flexible"]}
-                        />
-
-                        <CustomPicker 
-                            label="DIETARY PREFERENCE"
-                            value={roommateDietaryPreference}
-                            onValueChange={setRoommateDietaryPreference}
-                            options={["Vegetarian", "Vegan", "No Restrictions"]}
-                        />
-                        
-                        <View style={styles.progressIndicator}>
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
-                            </View>
-                            <View style={styles.progressLine} />
-                            <View style={styles.progressDot}>
-                                <View style={styles.progressDotInner} />
-                            </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={[styles.progressDotInner, styles.progressDotCompleted]} />
+                        </View>
+                        <View style={styles.progressLine} />
+                        <View style={styles.progressDot}>
+                            <View style={styles.progressDotInner} />
                         </View>
                     </View>
+                </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity 
-                            style={styles.backButton}
-                            onPress={handleBack}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="arrow-back" size={20} color="#fff" style={styles.buttonIcon} />
-                            <Text style={styles.backButtonText}>BACK</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            style={styles.nextButton}
-                            onPress={handleNext}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.nextButtonText}>CONTINUE</Text>
-                            <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.buttonIcon} />
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </LinearGradient>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity 
+                        style={styles.backButton}
+                        onPress={handleBack}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="arrow-back" size={20} color="#fff" style={styles.buttonIcon} />
+                        <Text style={styles.backButtonText}>BACK</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={styles.nextButton}
+                        onPress={handleNext}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.nextButtonText}>CONTINUE</Text>
+                        <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.buttonIcon} />
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </View>
-    );
+    </>
+);
 }
 
 const styles = StyleSheet.create({

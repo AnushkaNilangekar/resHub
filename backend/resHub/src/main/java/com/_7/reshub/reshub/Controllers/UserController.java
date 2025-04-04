@@ -197,6 +197,13 @@ public class UserController {
         }
     }
 
+    @GetMapping("/checkUserExists")
+    public ResponseEntity<?> checkUserExists(@RequestParam String userId) {
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", userService.userExists(userId));
+        return ResponseEntity.ok(response);
+    }
+    
     @PostMapping("/notification")
     public ResponseEntity<?> checkForUnreadNotification(@RequestBody Map<String, String> request) {
         try {

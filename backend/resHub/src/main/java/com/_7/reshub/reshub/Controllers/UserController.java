@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import com._7.reshub.reshub.Services.UserService;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -189,6 +191,39 @@ public class UserController {
 
             userService.unmatch(userId, matchUserId, chatId);
             return ResponseEntity.ok("Unmatched successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/notification")
+    public ResponseEntity<?> checkForUnreadNotification(@RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            if (userId == null || userId.isEmpty()) {
+                return ResponseEntity.badRequest().body("Missing userId in request.");
+            }
+
+            Map<String, AttributeValue> notification = userService.getMostRecentUnreadNotification(userId);
+
+            if (notification != null) {
+                // Optionally convert AttributeValue map into a simpler map to return
+                Map<String, Object> response = new HashMap<>();
+                notification.forEach((key, value) -> {
+                    if (value.s() != null) {
+                        response.put(key, value.s());
+                    } else if (value.bool() != null) {
+                        response.put(key, value.bool());
+                    }
+                    // Handle other types if needed
+                });
+
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.ok(null); // No unread notifications
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());

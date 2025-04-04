@@ -35,6 +35,10 @@ public class DynamoDbConfig {
     @Value("${dynamodb.messages.table.name}")
     private String messagesTableName;
 
+    // dynamodb.notifications.table.name in application.properties
+    @Value("${dynamodb.notifications.table.name}")
+    private String notificationsTableName; // New property for notifications table
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
     }
@@ -57,6 +61,10 @@ public class DynamoDbConfig {
 
     public String getMessagesTableName() {
         return messagesTableName;  // New getter for chats table
+    }
+
+    public String getNotificationsTableName() {
+        return notificationsTableName;  // New getter for notifications table
     }
 
 

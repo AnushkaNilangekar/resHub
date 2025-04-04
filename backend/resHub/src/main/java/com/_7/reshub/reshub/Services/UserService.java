@@ -193,14 +193,36 @@ public class UserService {
     }
 
     private void sendMatchNotification(String userId, String matchedUserId) {
-        // Construct notification payload
-        Map<String, String> notification = new HashMap<>();
-        notification.put("type", "match");
-        notification.put("message", "You have a new match!");
-        notification.put("matchedUserId", matchedUserId);
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+            GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
 
-        // Send notification to the user via WebSocket topic
-        messagingTemplate.convertAndSend("/topic/notifications/" + userId, notification);
+            GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+            Map<String, AttributeValue> item = response.item();
+            String fullName = item.get("fullName").s();
+        // Construct notification payload
+        Map<String, AttributeValue> messageItem = new HashMap<>();
+            messageItem.put("userId", AttributeValue.builder().s(matchedUserId).build());
+            messageItem.put("type", AttributeValue.builder().s("match").build());
+            messageItem.put("message", AttributeValue.builder().s("New match with " + fullName).build());
+            // messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
+            // messageItem.put("senderId", AttributeValue.builder().s(userId).build());
+            // messageItem.put("senderName", AttributeValue.builder().s(name).build());
+            // messageItem.put("text", AttributeValue.builder().s(text).build());
+            messageItem.put("createdAt", AttributeValue.builder().s(Instant.now().toString()).build());
+            messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
+        // Map<String, String> notification = new HashMap<>();
+        // notification.put("type", "match");
+        // notification.put("message", "You have a new match!");
+        // notification.put("matchedUserId", matchedUserId);
+
+         // Insert the new notification into the 'notifications' table
+         PutItemRequest putMessageRequest = PutItemRequest.builder()
+         .tableName(dynamoDbConfig.getNotificationsTableName())
+         .item(messageItem)
+         .build();
     }
 
     /*
@@ -646,19 +668,86 @@ public class UserService {
         String otherUserId = getOtherUserId(chatId, userId);
         if (otherUserId != null) {
             // Construct notification payload
-            Map<String, Object> notification = new HashMap<>();
-            notification.put("type", "message");
-            notification.put("message", "New message: " + text);
-            notification.put("chatId", chatId);
-            notification.put("senderId", userId);
-            notification.put("senderName", name);
-            notification.put("text", text);
-            notification.put("createdAt", createdAt);
+            // Map<String, Object> notification = new HashMap<>();
+            // notification.put("type", "message");
+            // notification.put("message", "New message: " + text);
+            // notification.put("chatId", chatId);
+            // notification.put("senderId", userId);
+            // notification.put("senderName", name);
+            // notification.put("text", text);
+            // notification.put("createdAt", createdAt);
+            Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+            GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
 
-            // Send notification to the other user via WebSocket topic
-            messagingTemplate.convertAndSend("/topic/notifications/" + otherUserId, notification);
+            GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+            Map<String, AttributeValue> item = response.item();
+            String fullName = item.get("fullName").s();
+
+            Map<String, AttributeValue> messageItem = new HashMap<>();
+            messageItem.put("userId", AttributeValue.builder().s(otherUserId).build());
+            messageItem.put("type", AttributeValue.builder().s("message").build());
+            messageItem.put("message", AttributeValue.builder().s("New message from " + fullName).build());
+            // messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
+            // messageItem.put("senderId", AttributeValue.builder().s(userId).build());
+            // messageItem.put("senderName", AttributeValue.builder().s(name).build());
+            // messageItem.put("text", AttributeValue.builder().s(text).build());
+            messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
+            messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
+
+            // Insert the new notification into the 'notifications' table
+            PutItemRequest putMessageRequest = PutItemRequest.builder()
+                .tableName(dynamoDbConfig.getNotificationsTableName())
+                .item(messageItem)
+                .build();
+
+            // // Send notification to the other user via WebSocket topic
+            // // messagingTemplate.convertAndSend("/topic/notifications/" + otherUserId, notification);
+            // return notification;
         }
     }
+
+    public Map<String, AttributeValue> getMostRecentUnreadNotification(String userId) {
+        DynamoDbClient dynamoDb = DynamoDbClient.create();
+    
+        QueryRequest queryRequest = QueryRequest.builder()
+            .tableName(dynamoDbConfig.getMessagesTableName())
+            .keyConditionExpression("userId = :userId")
+            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
+            .scanIndexForward(false) // Descending order: most recent first
+            .limit(1) // Only get the most recent one
+            .build();
+    
+        QueryResponse queryResponse = dynamoDb.query(queryRequest);
+        List<Map<String, AttributeValue>> items = queryResponse.items();
+    
+        if (!items.isEmpty()) {
+            Map<String, AttributeValue> mostRecent = items.get(0);
+            if (mostRecent.containsKey("isUnread") && mostRecent.get("isUnread").bool()) {
+                // Update isUnread to false
+                Map<String, AttributeValue> key = Map.of(
+                    "userId", mostRecent.get("userId"),
+                    "createdAt", mostRecent.get("createdAt") // Assuming createdAt is your sort key
+                );
+    
+                UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                    .tableName(dynamoDbConfig.getMessagesTableName())
+                    .key(key)
+                    .updateExpression("SET isUnread = :false")
+                    .expressionAttributeValues(Map.of(":false", AttributeValue.builder().bool(false).build()))
+                    .build();
+    
+                dynamoDb.updateItem(updateRequest);
+    
+                return mostRecent;
+            }
+        }
+    
+        return null; // No unread notifications
+    }
+    
 
     /* 
      * Helper method to get user name

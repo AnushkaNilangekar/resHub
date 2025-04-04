@@ -148,9 +148,42 @@ public class ProfileService {
     
     
     /*
-     * Handles retrieving the user ids and then user names of the users blocked by the given user.
+     * Handles retrieving the user ids of the users blocked by the given user.
      */
     public List<String> doGetBlockedUsers(String userId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .build();
+
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            AttributeValue blockedUsersAttribute = item.get("blockedUsers");
+
+            if (blockedUsersAttribute != null && blockedUsersAttribute.l() != null) {
+                List<String> blockedUserIds = blockedUsersAttribute.l().stream()
+                        .map(AttributeValue::s)
+                        .collect(Collectors.toList());
+
+                // Fetch full names for each blocked user ID
+                /*List<String> blockedUserFullNames = blockedUserIds.stream()
+                        .map(blockedUserId -> getFullNameForUserId(blockedUserId))
+                        .collect(Collectors.toList());*/
+
+                return blockedUserIds;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /*
+     * Handles retrieving the user ids and then user names of the users blocked by the given user.
+     */
+    public List<String> doGetBlockedUserNames(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()

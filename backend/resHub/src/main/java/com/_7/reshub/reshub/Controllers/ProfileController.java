@@ -466,7 +466,7 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
         @GetMapping("/getBlockedUsers")
         public ResponseEntity<List<String>> getBlockedUsers(@RequestParam String userId) {
         try {
-                List<String> blockedUsers = profileService.doGetBlockedUsers(userId);
+                List<String> blockedUsers = profileService.doGetBlockedUserNames(userId);
                 return ResponseEntity.ok(blockedUsers);
         } catch (Exception e) {
                 logger.error("Error fetching blocked users for userId: {}", userId, e);

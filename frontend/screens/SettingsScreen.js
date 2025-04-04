@@ -138,7 +138,7 @@ const SettingsScreen = ({ navigation }) => {
 
     // Blocked Users and Reported Chats
     const [blockedUsers, setBlockedUsers] = useState([]);
-    //const [reportedChats, setReportedChats] = useState([]);
+    const [reportedChats, setReportedChats] = useState([]);
 
     useEffect(() => {
         fetchUserProfile();
@@ -717,21 +717,25 @@ const SettingsScreen = ({ navigation }) => {
                         </View>
                         {blockedUsers.length > 0 ? (
                             <FlatList
-                                data={blockedUsers} // blockedUsers is now an array of full names
+                                data={blockedUsers}
                                 renderItem={({ item }) => (
                                     <View style={styles.blockedUserItem}>
-                                        <Text style={styles.blockedUserText}>{item}</Text> {/* Display the full name directly */}
+                                        <Text style={styles.blockedUserText}>{item}</Text>
                                     </View>
                                 )}
-                                keyExtractor={(item) => item} // Use the full name as the key
+                                keyExtractor={(item) => item}
+                                scrollEnabled={false}
+                                nestedScrollEnabled={true}
                             />
                         ) : (
-                            <Text style={styles.noDataText}>No users blocked.</Text>
+                            <View style={styles.noDataContainer}>
+                                <Text style={styles.noDataText}>No users blocked.</Text>
+                            </View>
                         )}
                     </View>
 
                     {/* Reported Chats Section */}
-                    {/*<View style={styles.sectionContainer}>
+                    <View style={styles.sectionContainer}>
                         <View style={styles.sectionHeader}>
                             <Ionicons name="alert-circle" size={22} color="#FFFFFF" />
                             <Text style={styles.sectionTitle}>Reported Chats</Text>
@@ -745,11 +749,15 @@ const SettingsScreen = ({ navigation }) => {
                                     </View>
                                 )}
                                 keyExtractor={(item) => item.chatId}
+                                scrollEnabled={false}
+                                nestedScrollEnabled={true}
                             />
                         ) : (
-                            <Text style={styles.noDataText}>No reported chats.</Text>
+                            <View style={styles.noDataContainer}>
+                                <Text style={styles.noDataText}>No reported chats.</Text>
+                            </View>
                         )}
-                    </View>*/}
+                    </View>
 
                     {/* Save Button */}
                     <TouchableOpacity 
@@ -1017,7 +1025,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         },
-        /*reportedChatItem: {
+        reportedChatItem: {
         padding: 15,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.1)',
@@ -1025,11 +1033,15 @@ const styles = StyleSheet.create({
         reportedChatText: {
         color: '#FFFFFF',
         fontSize: 16,
-        },*/
+        },
         noDataText: {
         color: '#FFFFFF',
         fontSize: 16,
         marginTop: 10,
+        },
+        noDataContainer: {
+            paddingVertical: 15,
+            paddingHorizontal: 16,
         },
 });
 

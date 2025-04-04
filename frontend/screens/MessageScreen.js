@@ -29,7 +29,7 @@ const MessageScreen = ({ route }) => {
   const [error, setError] = useState('');
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
-
+  const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -116,6 +116,16 @@ const MessageScreen = ({ route }) => {
       setError('Cannot send message. The other user has deleted their account.');
       return;
     }
+
+    if (isBlocked) {
+      setError('Cannot send message. You have blocked this user.')
+      return;
+    }
+
+    if (isCurrentUserBlocked) {
+      setError('Cannot send message. You have been blocked by this user.')
+      return;
+    }
     
     if (text.trim()) {
       const requestData = {
@@ -151,24 +161,44 @@ const MessageScreen = ({ route }) => {
     }
   };
 
-  const checkBlockedStatus = async () => {
+  const checkBlockedStatus = async (blockerId, blockedId) => {
     try {
-        const storedUserId = await AsyncStorage.getItem('userId');
         const storedToken = await AsyncStorage.getItem('token');
 
         const response = await axios.get(`${config.API_BASE_URL}/api/isBlocked`, {
-            params: { blockerId: storedUserId, blockedId: otherUserId },
+            params: { blockerId, blockedId },
             headers: { 'Authorization': `Bearer ${storedToken}` },
         });
 
-        // Since the backend returns a boolean directly, use response.data
-        setIsBlocked(response.data); 
+        console.log(`User ${blockerId} has blocked user ${blockedId}: ${response.data}`);
+        return response.data; // Return the boolean result
     } catch (error) {
         console.error('Error checking blocked status:', error);
+        return false; // Return false as default in case of error
     }
-};
+  };
+
+  // Check if the OTHER user has blocked the CURRENT user
+  const checkIfCurrentUserIsBlocked = async () => {
+    const storedUserId = await AsyncStorage.getItem('userId');
+    const isBlocked = await checkBlockedStatus(otherUserId, storedUserId);
+    setisCurrentUserBlocked(isBlocked);
+    console.log("Current user ", storedUserId, " is blocked:", isBlocked);
+  };
+
+  // Check if the CURRENT user has blocked the OTHER user
+  const checkIfOtherUserIsBlocked = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      const isBlocked = await checkBlockedStatus(storedUserId, otherUserId);
+      setIsBlocked(isBlocked);
+  };
 
   const handleBlockUser = async () => {
+    if (isBlocked) {
+      Alert.alert('Already Blocked', 'You have already blocked this user.');
+      return;
+    }
+    
     try {
       const storedUserId = await AsyncStorage.getItem('userId');
       const storedToken = await AsyncStorage.getItem('token');
@@ -190,7 +220,8 @@ const MessageScreen = ({ route }) => {
   useEffect(() => {
     // Check if the other user exists
     checkUserExists();
-    checkBlockedStatus();
+    checkIfOtherUserIsBlocked();
+    checkIfCurrentUserIsBlocked();
 
     // Mark messages as read when the screen loads
     async function markMessagesRead() {
@@ -289,11 +320,12 @@ const MessageScreen = ({ route }) => {
               showSenderAvatar={false}
               showReceiverAvatar={false}
               inputBorderColor="rgba(255, 255, 255, 0.3)"
-              disabled={!otherUserExists || isBlocked}
-              inputBackgroundColor={otherUserExists && !isBlocked ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
+              disabled={!otherUserExists || isBlocked || isCurrentUserBlocked}
+              inputBackgroundColor={otherUserExists && !isBlocked && !isCurrentUserBlocked ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
               placeholder={
                 !otherUserExists ? "Chat disabled (User account deleted)" : 
                 isBlocked ? "Chat disabled (User blocked)" : 
+                isCurrentUserBlocked ? "Chat disabled (You've been blocked)" :
                 "Type a message..." 
               }
               user={{

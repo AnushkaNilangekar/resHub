@@ -60,6 +60,9 @@ public class ProfileService {
     }
 
     public List<Profile> doGetProfiles(String userId, String genderFilter, boolean filterOutSwipedOn) {
+        // Fetch blocked users list
+        List<String> blockedUsers = doGetBlockedUsers(userId);
+        
         // Scan request to fetch profiles from DynamoDB
         ScanRequest scanRequest = ScanRequest.builder()
             .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -69,6 +72,7 @@ public class ProfileService {
         // Convert DynamoDB items to Profile object and filter by gender and exclude logged-in user
         List<Profile> profiles = scanResponse.items().stream()
             .filter(item -> !item.get("userId").s().equals(userId))
+            .filter(item -> !blockedUsers.contains(item.get("userId").s()))
             .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
                     (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
             .map(this::convertDynamoItemToProfile)
@@ -168,11 +172,6 @@ public class ProfileService {
                 List<String> blockedUserIds = blockedUsersAttribute.l().stream()
                         .map(AttributeValue::s)
                         .collect(Collectors.toList());
-
-                // Fetch full names for each blocked user ID
-                /*List<String> blockedUserFullNames = blockedUserIds.stream()
-                        .map(blockedUserId -> getFullNameForUserId(blockedUserId))
-                        .collect(Collectors.toList());*/
 
                 return blockedUserIds;
             }

@@ -136,8 +136,14 @@ const SettingsScreen = ({ navigation }) => {
     const [roommateSharingCommonItems, setRoommateSharingCommonItems] = useState('');
     const [roommateDietaryPreference, setRoommateDietaryPreference] = useState('');
 
+    // Blocked Users and Reported Chats
+    const [blockedUsers, setBlockedUsers] = useState([]);
+    const [reportedChats, setReportedChats] = useState([]);
+
     useEffect(() => {
         fetchUserProfile();
+        fetchBlockedUsers();
+        //fetchReportedChats();
     }, []);
 
     const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false, icon }) => (
@@ -267,6 +273,42 @@ const SettingsScreen = ({ navigation }) => {
             setSaving(false);
         }
     };
+
+    const fetchBlockedUsers = async () => {
+        try {
+            const userId = await AsyncStorage.getItem('userId');
+            const token = await AsyncStorage.getItem('token');
+    
+            const response = await axios.get(`${config.API_BASE_URL}/api/getBlockedUsers`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+    
+            if (response.data.error) {
+                console.error('Error fetching blocked users:', response.data.error);
+                return;
+            }
+    
+            setBlockedUsers(response.data);
+        } catch (error) {
+            console.error('Error fetching blocked users:', error);
+        }
+    };
+    
+    
+    /*const fetchReportedChats = async () => {
+        try {
+            const userId = await AsyncStorage.getItem('userId');
+            const token = await AsyncStorage.getItem('token');
+            const response = await axios.get(`${config.API_BASE_URL}/api/users/reportedChats`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setReportedChats(response.data);
+        } catch (error) {
+            console.error('Error fetching reported chats:', error);
+        }
+    };*/
 
     if (loading) {
         return (
@@ -667,6 +709,56 @@ const SettingsScreen = ({ navigation }) => {
                         />
                     </View>
 
+                    {/* Blocked Users Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="ban" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Blocked Users</Text>
+                        </View>
+                        {blockedUsers.length > 0 ? (
+                            <FlatList
+                                data={blockedUsers}
+                                renderItem={({ item }) => (
+                                    <View style={styles.blockedUserItem}>
+                                        <Text style={styles.blockedUserText}>{item}</Text>
+                                    </View>
+                                )}
+                                keyExtractor={(item) => item}
+                                scrollEnabled={false}
+                                nestedScrollEnabled={true}
+                            />
+                        ) : (
+                            <View style={styles.noDataContainer}>
+                                <Text style={styles.noDataText}>No users blocked.</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Reported Chats Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="alert-circle" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Reported Chats</Text>
+                        </View>
+                        {reportedChats.length > 0 ? (
+                            <FlatList
+                                data={reportedChats}
+                                renderItem={({ item }) => (
+                                    <View style={styles.reportedChatItem}>
+                                        <Text style={styles.reportedChatText}>{item.chatId}</Text>
+                                    </View>
+                                )}
+                                keyExtractor={(item) => item.chatId}
+                                scrollEnabled={false}
+                                nestedScrollEnabled={true}
+                            />
+                        ) : (
+                            <View style={styles.noDataContainer}>
+                                <Text style={styles.noDataText}>No reported chats.</Text>
+                            </View>
+                        )}
+                    </View>
+
                     {/* Save Button */}
                     <TouchableOpacity 
                         style={styles.saveButton} 
@@ -923,7 +1015,34 @@ const styles = StyleSheet.create({
     },
     saveButtonIcon: {
         marginRight: 10,
-    }
+    },
+    blockedUserItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        blockedUserText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        },
+        reportedChatItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        reportedChatText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        },
+        noDataText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        marginTop: 10,
+        },
+        noDataContainer: {
+            paddingVertical: 15,
+            paddingHorizontal: 16,
+        },
 });
 
 export default SettingsScreen;

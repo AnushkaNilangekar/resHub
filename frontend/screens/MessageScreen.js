@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   Text, 
   StatusBar,
-  Animated
+  Animated,
+  Alert
 } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
@@ -27,7 +28,8 @@ const MessageScreen = ({ route }) => {
   const navigation = useNavigation();
   const [error, setError] = useState('');
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -114,6 +116,16 @@ const MessageScreen = ({ route }) => {
       setError('Cannot send message. The other user has deleted their account.');
       return;
     }
+
+    if (isBlocked) {
+      setError('Cannot send message. You have blocked this user.')
+      return;
+    }
+
+    if (isCurrentUserBlocked) {
+      setError('Cannot send message. You have been blocked by this user.')
+      return;
+    }
     
     if (text.trim()) {
       const requestData = {
@@ -149,10 +161,68 @@ const MessageScreen = ({ route }) => {
     }
   };
 
+  const checkBlockedStatus = async (blockerId, blockedId) => {
+    try {
+        const storedToken = await AsyncStorage.getItem('token');
+
+        const response = await axios.get(`${config.API_BASE_URL}/api/isBlocked`, {
+            params: { blockerId, blockedId },
+            headers: { 'Authorization': `Bearer ${storedToken}` },
+        });
+
+        console.log(`User ${blockerId} has blocked user ${blockedId}: ${response.data}`);
+        return response.data; // Return the boolean result
+    } catch (error) {
+        console.error('Error checking blocked status:', error);
+        return false; // Return false as default in case of error
+    }
+  };
+
+  // Check if the OTHER user has blocked the CURRENT user
+  const checkIfCurrentUserIsBlocked = async () => {
+    const storedUserId = await AsyncStorage.getItem('userId');
+    const isBlocked = await checkBlockedStatus(otherUserId, storedUserId);
+    setisCurrentUserBlocked(isBlocked);
+    console.log("Current user ", storedUserId, " is blocked:", isBlocked);
+  };
+
+  // Check if the CURRENT user has blocked the OTHER user
+  const checkIfOtherUserIsBlocked = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      const isBlocked = await checkBlockedStatus(storedUserId, otherUserId);
+      setIsBlocked(isBlocked);
+  };
+
+  const handleBlockUser = async () => {
+    if (isBlocked) {
+      Alert.alert('Already Blocked', 'You have already blocked this user.');
+      return;
+    }
+    
+    try {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      const storedToken = await AsyncStorage.getItem('token');
+      await axios.post(`${config.API_BASE_URL}/api/blockUser`, {
+        blockerId: storedUserId,
+        blockedId: otherUserId,
+      }, {
+        headers: { 'Authorization': `Bearer ${storedToken}` },
+      });
+      setIsBlocked(true);
+      Alert.alert('User Blocked', 'You have blocked this user.');
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      Alert.alert('Error', 'Failed to block user.');
+    }
+  };
+
+
   useEffect(() => {
     // Check if the other user exists
     checkUserExists();
-    
+    checkIfOtherUserIsBlocked();
+    checkIfCurrentUserIsBlocked();
+
     // Mark messages as read when the screen loads
     async function markMessagesRead() {
       const userId = await AsyncStorage.getItem("userId");
@@ -182,7 +252,7 @@ const MessageScreen = ({ route }) => {
         route.params.onGoBack(chatId);
       }
     };
-  }, [chatId, checkUserExists]);
+  }, [chatId, checkUserExists, otherUserId]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -207,6 +277,12 @@ const MessageScreen = ({ route }) => {
             </View>
             <Text style={styles.headerTitle}>{name}</Text>
           </View>
+          <TouchableOpacity
+            style={styles.blockButton}
+            onPress={handleBlockUser}
+          >
+            <Ionicons name="ban-outline" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
         
         {!otherUserExists && (
@@ -244,9 +320,14 @@ const MessageScreen = ({ route }) => {
               showSenderAvatar={false}
               showReceiverAvatar={false}
               inputBorderColor="rgba(255, 255, 255, 0.3)"
-              disabled={!otherUserExists}
-              inputBackgroundColor={otherUserExists ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
-              placeholder={otherUserExists ? "Type a message..." : "User has deleted their account"}
+              disabled={!otherUserExists || isBlocked || isCurrentUserBlocked}
+              inputBackgroundColor={otherUserExists && !isBlocked && !isCurrentUserBlocked ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
+              placeholder={
+                !otherUserExists ? "Chat disabled (User account deleted)" : 
+                isBlocked ? "Chat disabled (User blocked)" : 
+                isCurrentUserBlocked ? "Chat disabled (You've been blocked)" :
+                "Type a message..." 
+              }
               user={{
                 _id: userId,
                 name: name,
@@ -269,7 +350,7 @@ const MessageScreen = ({ route }) => {
               inputHeight={50}
               inputTextColor="white"
               inputTextSize={15}
-              sendButtonBackgroundColor={otherUserExists ? "rgba(255, 255, 255, 0.3)" : "rgba(100, 100, 100, 0.3)"}
+              sendButtonBackgroundColor={otherUserExists && !isBlocked ? "rgba(255, 255, 255, 0.3)" : "rgba(100, 100, 100, 0.3)"}
               sendButtonIconColor="white"
             />
           </View>
@@ -382,6 +463,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     paddingBottom: 20,
+  },
+  blockButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
 });
 

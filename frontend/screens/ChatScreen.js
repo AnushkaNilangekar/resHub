@@ -66,7 +66,6 @@ const ChatScreen = () => {
           'Authorization': `Bearer ${token}`,
         }
       });
-      console.log("Getting chat IDs for user", userId, response.data)
 
       return response.data;
     } catch (error) {

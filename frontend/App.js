@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';

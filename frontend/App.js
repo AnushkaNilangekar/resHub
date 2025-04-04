@@ -1,13 +1,14 @@
 import 'react-native-url-polyfill/auto';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';
-import { AppState } from 'react-native';
+import { AppState, View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import config from "./config";
 import * as SplashScreen from 'expo-splash-screen';
+import NotificationBanner from './notifications/NotificationBanner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +23,7 @@ export default function App() {
       },
     },
   };
+  const [notification, setNotification] = useState(null); // State for notification
 
   useEffect(() => {
     // Prepare the app
@@ -50,6 +52,7 @@ export default function App() {
     }
   }, [appIsReady]);
 
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     //Update lastTimeActive when they return to app after it being suspended in background/inactive
@@ -79,9 +82,42 @@ export default function App() {
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const fetchNotification = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+          const userId = await AsyncStorage.getItem('userId');
+          if (!userId) return;
+
+          const response =  await axios.post(
+            `${config.API_BASE_URL}/api/users/notification`,
+            { userId },
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.data) {
+              setNotification(response.data); // Show most recent unread notification
+          } else {
+              setNotification(null); // Clear it if there's nothing
+          }
+      } catch (error) {
+          console.error('Error fetching notification:', error);
+      }
+  };
+
+  // Initial call
+  fetchNotification();
+  const POLL_INTERVAL = 5000;
+
+  // Start polling
+  intervalRef.current = setInterval(fetchNotification, POLL_INTERVAL);
 
     return () => {
       subscription.remove();
+      clearInterval(intervalRef.current);
     };
   }, []);
 
@@ -93,6 +129,13 @@ export default function App() {
     <AuthProvider> {/* Wrap with AuthProvider */}
       <NavigationContainer linking={linking}>
         <StackNavigator />
+        {notification && (
+            <NotificationBanner
+                message={notification.message}
+                visible={!!notification}
+                onClose={() => setNotification(null)}
+            />
+        )}
       </NavigationContainer>
     </AuthProvider>
   );

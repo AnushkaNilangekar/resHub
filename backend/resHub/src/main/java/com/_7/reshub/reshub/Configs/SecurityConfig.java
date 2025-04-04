@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +34,15 @@ public class SecurityConfig {
                 .requestMatchers(new AntPathRequestMatcher("/api/login")).permitAll() // Allow /api/login
                 .requestMatchers(new AntPathRequestMatcher("/api/signup")).permitAll() // Allow /api/signup
                 .requestMatchers(new AntPathRequestMatcher("/api/forgot-password")).permitAll() // Allow /api/forgot-password
-                .requestMatchers(new AntPathRequestMatcher("/api/reset-password")).permitAll() // Allow /api/reset-password
+                .requestMatchers(new AntPathRequestMatcher("/api/reset-password")).permitAll() // Allow /api/reset-password                
                 .anyRequest().authenticated()
 
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
             // Enable HTTP Basic authentication
-            .httpBasic(Customizer.withDefaults());
+            .httpBasic(Customizer.withDefaults())
+            .cors(Customizer.withDefaults()); // Enable CORS to allow cross-origin requests
         
         return http.build();
     }

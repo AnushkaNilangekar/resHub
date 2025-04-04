@@ -203,4 +203,38 @@ public class UserController {
         response.put("exists", userService.userExists(userId));
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/notification")
+    public ResponseEntity<?> checkForUnreadNotification(@RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            if (userId == null || userId.isEmpty()) {
+                return ResponseEntity.badRequest().body("Missing userId in request.");
+            }
+
+            Map<String, AttributeValue> notification = userService.getMostRecentUnreadNotification(userId);
+
+            if (notification != null) {
+                // Optionally convert AttributeValue map into a simpler map to return
+                Map<String, Object> response = new HashMap<>();
+                notification.forEach((key, value) -> {
+                    if (value.s() != null) {
+                        response.put(key, value.s());
+                    } else if (value.bool() != null) {
+                        response.put(key, value.bool());
+                    }
+                    // Handle other types if needed
+                });
+
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.ok(null); // No unread notifications
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
 }

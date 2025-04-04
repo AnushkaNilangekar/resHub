@@ -11,6 +11,7 @@ import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
+//import ChatsScreen from "../screens/ChatScreen";
 
 
 const Stack = createNativeStackNavigator();

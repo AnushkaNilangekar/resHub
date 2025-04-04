@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import config from "./config";
 import * as SplashScreen from 'expo-splash-screen';
-import * as Stomp from '@stomp/stompjs';
+// import * as Stomp from '@stomp/stompjs';
 import NotificationBanner from './notifications/NotificationBanner';
 
 SplashScreen.preventAutoHideAsync();
@@ -54,6 +54,7 @@ export default function App() {
     }
   }, [appIsReady]);
 
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     //Update lastTimeActive when they return to app after it being suspended in background/inactive
@@ -83,42 +84,75 @@ export default function App() {
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const fetchNotification = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+          const userId = await AsyncStorage.getItem('userId');
+          if (!userId) return;
+
+          const response =  await axios.post(
+            `${config.API_BASE_URL}/api/users/notification`,
+            { userId },
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.data) {
+              setNotification(response.data); // Show most recent unread notification
+          } else {
+              setNotification(null); // Clear it if there's nothing
+          }
+      } catch (error) {
+          console.error('Error fetching notification:', error);
+      }
+  };
+
+  // Initial call
+  fetchNotification();
+  const POLL_INTERVAL = 5000;
+
+  // Start polling
+  intervalRef.current = setInterval(fetchNotification, POLL_INTERVAL);
 
     return () => {
       subscription.remove();
+      clearInterval(intervalRef.current);
     };
   }, []);
 
-  useEffect(() => {
-    const connectWebSocket = async () => {
-        const userId = await AsyncStorage.getItem('userId');
-        if (userId) {
-            client.current = new Stomp.Client({
-                brokerURL: `${config.API_BASE_URL.replace('http', 'ws')}/ws`,
-                onConnect: () => {
-                    client.current.subscribe(`/topic/notifications/${userId}`, (message) => {
-                        const notificationData = JSON.parse(message.body);
-                        setNotification(notificationData);
-                    });
-                },
-                onStompError: (frame) => {
-                    console.error('Broker reported error: ' + frame.headers['message']);
-                    console.error('Additional details: ' + frame.body);
-                },
-            });
+  // useEffect(() => {
+  //   const connectWebSocket = async () => {
+  //       const userId = await AsyncStorage.getItem('userId');
+  //       if (userId) {
+  //           client.current = new Stomp.Client({
+  //               brokerURL: `${config.API_BASE_URL.replace('http', 'ws')}/ws`,
+  //               onConnect: () => {
+  //                   client.current.subscribe(`/topic/notifications/${userId}`, (message) => {
+  //                       const notificationData = JSON.parse(message.body);
+  //                       setNotification(notificationData);
+  //                   });
+  //               },
+  //               onStompError: (frame) => {
+  //                   console.error('Broker reported error: ' + frame.headers['message']);
+  //                   console.error('Additional details: ' + frame.body);
+  //               },
+  //           });
 
-            client.current.activate();
-        }
-    };
+  //           client.current.activate();
+  //       }
+  //   };
 
-    connectWebSocket();
+  //   connectWebSocket();
 
-    return () => {
-        if (client.current && client.current.active) {
-            client.current.deactivate();
-        }
-    };
-  }, []);
+  //   return () => {
+  //       if (client.current && client.current.active) {
+  //           client.current.deactivate();
+  //       }
+  //   };
+  // }, []);
 
   if (!appIsReady) {
     return null;

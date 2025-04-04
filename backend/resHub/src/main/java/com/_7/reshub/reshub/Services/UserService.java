@@ -2,14 +2,11 @@ package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
-import org.springframework.context.annotation.Lazy;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.messaging.simp.SimpMessagingTemplate; // For WebSockets
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -51,13 +48,6 @@ public class UserService {
 
     @Autowired
     private DynamoDbService dynamoDbService;
-
-    /*@Autowired
-    private NotificationService notificationService;
-*/
-    @Autowired
-    @Lazy
-    private SimpMessagingTemplate messagingTemplate; // For sending WebSocket messages
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -182,17 +172,13 @@ public class UserService {
         doAddToMatches(matchUserId, userId);
         createChat(userId, matchUserId);
 
-        // Get user names for notifications and send to both users about the match
-/* 
-        String userName1 = getUserName(userId);
-        String userName2 = getUserName(matchUserId);
-        */
         // Send Match Notification
         sendMatchNotification(userId, matchUserId);
         sendMatchNotification(matchUserId, userId);
     }
 
     private void sendMatchNotification(String userId, String matchedUserId) {
+        
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
             GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -202,27 +188,20 @@ public class UserService {
             GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
             Map<String, AttributeValue> item = response.item();
             String fullName = item.get("fullName").s();
-        // Construct notification payload
-        Map<String, AttributeValue> messageItem = new HashMap<>();
+            // Construct notification payload
+            Map<String, AttributeValue> messageItem = new HashMap<>();
             messageItem.put("userId", AttributeValue.builder().s(matchedUserId).build());
             messageItem.put("type", AttributeValue.builder().s("match").build());
             messageItem.put("message", AttributeValue.builder().s("New match with " + fullName).build());
-            // messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
-            // messageItem.put("senderId", AttributeValue.builder().s(userId).build());
-            // messageItem.put("senderName", AttributeValue.builder().s(name).build());
-            // messageItem.put("text", AttributeValue.builder().s(text).build());
             messageItem.put("createdAt", AttributeValue.builder().s(Instant.now().toString()).build());
             messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
-        // Map<String, String> notification = new HashMap<>();
-        // notification.put("type", "match");
-        // notification.put("message", "You have a new match!");
-        // notification.put("matchedUserId", matchedUserId);
 
          // Insert the new notification into the 'notifications' table
          PutItemRequest putMessageRequest = PutItemRequest.builder()
          .tableName(dynamoDbConfig.getNotificationsTableName())
          .item(messageItem)
          .build();
+         dynamoDbClient.putItem(putMessageRequest);
     }
 
     /*
@@ -667,15 +646,6 @@ public class UserService {
         // Get the other user ID in the chat
         String otherUserId = getOtherUserId(chatId, userId);
         if (otherUserId != null) {
-            // Construct notification payload
-            // Map<String, Object> notification = new HashMap<>();
-            // notification.put("type", "message");
-            // notification.put("message", "New message: " + text);
-            // notification.put("chatId", chatId);
-            // notification.put("senderId", userId);
-            // notification.put("senderName", name);
-            // notification.put("text", text);
-            // notification.put("createdAt", createdAt);
             Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
             GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
@@ -690,10 +660,6 @@ public class UserService {
             messageItem.put("userId", AttributeValue.builder().s(otherUserId).build());
             messageItem.put("type", AttributeValue.builder().s("message").build());
             messageItem.put("message", AttributeValue.builder().s("New message from " + fullName).build());
-            // messageItem.put("chatId", AttributeValue.builder().s(chatId).build());
-            // messageItem.put("senderId", AttributeValue.builder().s(userId).build());
-            // messageItem.put("senderName", AttributeValue.builder().s(name).build());
-            // messageItem.put("text", AttributeValue.builder().s(text).build());
             messageItem.put("createdAt", AttributeValue.builder().s(createdAt).build());
             messageItem.put("isUnread", AttributeValue.builder().bool(true).build());
 
@@ -702,30 +668,34 @@ public class UserService {
                 .tableName(dynamoDbConfig.getNotificationsTableName())
                 .item(messageItem)
                 .build();
-
-            // // Send notification to the other user via WebSocket topic
-            // // messagingTemplate.convertAndSend("/topic/notifications/" + otherUserId, notification);
-            // return notification;
+                dynamoDbClient.putItem(putMessageRequest);
         }
     }
 
     public Map<String, AttributeValue> getMostRecentUnreadNotification(String userId) {
-        DynamoDbClient dynamoDb = DynamoDbClient.create();
-    
         QueryRequest queryRequest = QueryRequest.builder()
-            .tableName(dynamoDbConfig.getMessagesTableName())
+            .tableName(dynamoDbConfig.getNotificationsTableName())
             .keyConditionExpression("userId = :userId")
-            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
+            .filterExpression("isUnread = :isUnread")
+            .expressionAttributeValues(Map.of(
+                ":userId", AttributeValue.builder().s(userId).build(),
+                ":isUnread", AttributeValue.builder().bool(true).build()
+            ))
             .scanIndexForward(false) // Descending order: most recent first
             .limit(1) // Only get the most recent one
             .build();
     
-        QueryResponse queryResponse = dynamoDb.query(queryRequest);
+        //logger.info("DynamoDB Query Request:");
+        //logger.info("  Table Name: " + queryRequest.tableName());
+        //logger.info("  Key Condition: "+ queryRequest.keyConditionExpression());
+        //logger.info("  Expression Values: "+ queryRequest.expressionAttributeValues());
+    
+        QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
         List<Map<String, AttributeValue>> items = queryResponse.items();
     
         if (!items.isEmpty()) {
             Map<String, AttributeValue> mostRecent = items.get(0);
-            if (mostRecent.containsKey("isUnread") && mostRecent.get("isUnread").bool()) {
+            //if (mostRecent.containsKey("isUnread") && mostRecent.get("isUnread").bool()) {
                 // Update isUnread to false
                 Map<String, AttributeValue> key = Map.of(
                     "userId", mostRecent.get("userId"),
@@ -733,22 +703,21 @@ public class UserService {
                 );
     
                 UpdateItemRequest updateRequest = UpdateItemRequest.builder()
-                    .tableName(dynamoDbConfig.getMessagesTableName())
+                    .tableName(dynamoDbConfig.getNotificationsTableName())
                     .key(key)
                     .updateExpression("SET isUnread = :false")
                     .expressionAttributeValues(Map.of(":false", AttributeValue.builder().bool(false).build()))
                     .build();
     
-                dynamoDb.updateItem(updateRequest);
+                dynamoDbClient.updateItem(updateRequest);
     
                 return mostRecent;
-            }
+            //}
         }
     
         return null; // No unread notifications
     }
     
-
     /* 
      * Helper method to get user name
      */ 

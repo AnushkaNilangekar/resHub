@@ -4,13 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../styles/colors.js';
 import { Audio } from 'expo-av';
 
-const NotificationBanner = ({ message, visible, onClose,  matchVolume = 1  }) => {
+const NotificationBanner = ({ message, visible, onClose,  notificationVolume = 1  }) => {
     const slideAnim = useState(new Animated.Value(-100))[0];
     const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
         if (visible) {
-            playNotificationSound(matchVolume); 
+            playNotificationSound(notificationVolume); 
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: 0,

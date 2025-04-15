@@ -155,8 +155,8 @@ public class ProfileController {
         }
         item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
-        item.put("matchVolume", AttributeValue.builder()
-        .n(request.getMatchVolume() != null ? String.valueOf(request.getMatchVolume()) : "1.0")
+        item.put("notificationVolume", AttributeValue.builder()
+        .n(request.getnotificationVolume() != null ? String.valueOf(request.getnotificationVolume()) : "1.0")
         .build());
 
         item.put("matchNotificationsEnabled", AttributeValue.builder()
@@ -326,7 +326,7 @@ public class ProfileController {
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
 
             //Notifs
-            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchVolume", request.getMatchVolume());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "notificationVolume", request.getnotificationVolume());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "matchNotificationsEnabled", request.getMatchNotificationsEnabled());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "messageNotificationsEnabled", request.getMessageNotificationsEnabled());
 

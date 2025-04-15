@@ -42,7 +42,7 @@ public class ProfileRequest {
     private String roommateDietaryPreference;
 
     //Notifs
-    private Double matchVolume;
+    private Double notificationVolume;
     private Boolean matchNotificationsEnabled;
     private Boolean messageNotificationsEnabled;
 
@@ -164,8 +164,8 @@ public class ProfileRequest {
         return roommateDietaryPreference;
     }
 
-    public Double getMatchVolume() {
-        return matchVolume;
+    public Double getnotificationVolume() {
+        return notificationVolume;
     }    
 
     public void setUserId(String userId) {
@@ -284,8 +284,8 @@ public class ProfileRequest {
         this.roommateDietaryPreference = roommateDietaryPreference;
     }
 
-    public void setMatchVolume(Double matchVolume) {
-        this.matchVolume = matchVolume;
+    public void setnotificationVolume(Double notificationVolume) {
+        this.notificationVolume = notificationVolume;
     }
 
     public Boolean getMatchNotificationsEnabled() { 

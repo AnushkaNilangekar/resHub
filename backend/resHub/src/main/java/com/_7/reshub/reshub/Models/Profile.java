@@ -45,7 +45,7 @@ public class Profile {
     private String roommateDietaryPreference;
 
     //Notifs
-    private Double matchVolume;
+    private Double notificationVolume;
     private Boolean matchNotificationsEnabled;
     private Boolean messageNotificationsEnabled;
 
@@ -82,7 +82,7 @@ public class Profile {
             String roommateNoiseTolerance,
             String roommateSharingCommonItems,
             String roommateDietaryPreference, 
-            Double matchVolume,
+            Double notificationVolume,
             Boolean matchNotificationsEnabled,
             Boolean messageNotificationsEnabled
         ) 
@@ -243,8 +243,8 @@ public class Profile {
     }
 
     //Notifs
-    public Double getMatchVolume() {
-        return matchVolume;
+    public Double getnotificationVolume() {
+        return notificationVolume;
     }
 
     public Boolean getMatchNotificationsEnabled() { 

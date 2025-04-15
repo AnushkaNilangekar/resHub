@@ -147,8 +147,8 @@ public class ProfileService {
             item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s(),
-            item.containsKey("matchVolume") 
-            ? Double.valueOf(item.get("matchVolume").n()) 
+            item.containsKey("notificationVolume") 
+            ? Double.valueOf(item.get("notificationVolume").n()) 
             : 1.0,
             item.containsKey("matchNotificationsEnabled")
             ? item.get("matchNotificationsEnabled").bool()

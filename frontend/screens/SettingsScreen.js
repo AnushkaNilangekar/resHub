@@ -142,7 +142,7 @@ const SettingsScreen = ({ navigation }) => {
     const [reportedChats, setReportedChats] = useState([]);
 
     //Notifications
-    const [matchVolume, setMatchVolume] = useState(1);
+    const [notificationVolume, setnotificationVolume] = useState(1);
     const [matchNotifsEnabled, setMatchNotifsEnabled] = useState(true);
     const [messageNotifsEnabled, setMessageNotifsEnabled] = useState(true);
 
@@ -216,7 +216,7 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateSharingCommonItems(profile.roommateSharingCommonItems || '');
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
-            setMatchVolume(profile.matchVolume ?? 1);
+            setnotificationVolume(profile.notificationVolume ?? 1);
             setMatchNotifsEnabled(profile.matchNotifsEnabled ?? true);
             setMessageNotifsEnabled(profile.messageNotifsEnabled ?? true);
 
@@ -271,7 +271,7 @@ const SettingsScreen = ({ navigation }) => {
                 roommateSharingCommonItems,
                 roommateDietaryPreference,
 
-                matchVolume,
+                notificationVolume,
                 matchNotifsEnabled,
                 messageNotifsEnabled,
 
@@ -739,14 +739,14 @@ const SettingsScreen = ({ navigation }) => {
                             minimumValue={0}
                             maximumValue={1}
                             step={0.01}
-                            value={matchVolume}
-                            onValueChange={setMatchVolume}
+                            value={notificationVolume}
+                            onValueChange={setnotificationVolume}
                             minimumTrackTintColor="#FFFFFF"
                             maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                             thumbTintColor="#FFFFFF"
                             />
                             <Text style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                            Volume: {Math.round(matchVolume * 100)}%
+                            Volume: {Math.round(notificationVolume * 100)}%
                             </Text>
                         </View>
                         </View>

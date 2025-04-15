@@ -9,7 +9,8 @@ import {
   Text, 
   StatusBar,
   Animated,
-  Alert
+  Alert,
+  ActionSheetIOS
 } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
@@ -30,6 +31,7 @@ const MessageScreen = ({ route }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
   const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
+  
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -216,6 +218,54 @@ const MessageScreen = ({ route }) => {
     }
   };
 
+  // Handle long press on a message
+  const handleLongPress = (message) => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Report Chat'],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 1,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            navigateToReportScreen(message);
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Message Options',
+        'What would you like to do?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Report Chat', 
+            style: 'destructive', 
+            onPress: () => navigateToReportScreen(message) 
+          },
+        ]
+      );
+    }
+  };
+
+  const navigateToReportScreen = (message) => {
+    navigation.navigate('ReportScreen', {
+      chatId,
+      otherUserId,
+      name,
+      messageContent: message?.text || '',
+      messageTimestamp: message?.createdAt || new Date().toISOString(),
+      onGoBack: () => {
+        // This will be called when returning from the report screen
+      }
+    });
+  };
+
+  // Handle the report button press in the header
+  const handleReportChat = () => {
+    navigateToReportScreen();
+  };
 
   useEffect(() => {
     // Check if the other user exists
@@ -277,12 +327,20 @@ const MessageScreen = ({ route }) => {
             </View>
             <Text style={styles.headerTitle}>{name}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.blockButton}
-            onPress={handleBlockUser}
-          >
-            <Ionicons name="ban-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleReportChat}
+            >
+              <Ionicons name="flag-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleBlockUser}
+            >
+              <Ionicons name="ban-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
         
         {!otherUserExists && (
@@ -352,6 +410,7 @@ const MessageScreen = ({ route }) => {
               inputTextSize={15}
               sendButtonBackgroundColor={otherUserExists && !isBlocked ? "rgba(255, 255, 255, 0.3)" : "rgba(100, 100, 100, 0.3)"}
               sendButtonIconColor="white"
+              onLongPress={handleLongPress}
             />
           </View>
         </KeyboardAvoidingView>
@@ -416,6 +475,22 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+  },
+  headerButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
   accountDeletedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -463,18 +538,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     paddingBottom: 20,
-  },
-  blockButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
 });
 

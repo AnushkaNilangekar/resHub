@@ -47,7 +47,7 @@ public class UserService {
     private JavaMailSender mailSender;
 
     @Autowired
-    private DynamoDbService dynamoDbService;
+    private PasswordResetService passwordResetService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -89,7 +89,7 @@ public class UserService {
                 return "Invalid email address.";
             }
             // Check if user exists
-            Map<String, AttributeValue> user = dynamoDbService.getUserByEmail(email);
+            Map<String, AttributeValue> user = passwordResetService.getUserByEmail(email);
             if (user == null) {
                 return "If this email is associated with an account, you will receive a reset token.";
             }
@@ -98,7 +98,7 @@ public class UserService {
             long expirationTime = Instant.now().getEpochSecond() + TOKEN_EXPIRATION_TIME;
 
             // Save token with expiration
-            dynamoDbService.savePasswordResetToken(email, resetToken, expirationTime);
+            passwordResetService.savePasswordResetToken(email, resetToken, expirationTime);
 
             // Send reset email
             sendPasswordResetEmail(email, resetToken);
@@ -137,7 +137,7 @@ public class UserService {
             String newPassword = request.getNewPassword();
 
             // Retrieve token details
-            Map<String, AttributeValue> user = dynamoDbService.getUserByResetToken(token);
+            Map<String, AttributeValue> user = passwordResetService.getUserByResetToken(token);
             if (user == null) {
                 return false;
             }
@@ -152,10 +152,10 @@ public class UserService {
             // Update user password
             String email = user.get("email").s();
             String encodedPassword = passwordEncoder.encode(newPassword);
-            dynamoDbService.updateUserPassword(email, encodedPassword);
+            passwordResetService.updateUserPassword(email, encodedPassword);
 
             // Clear reset token after use
-            dynamoDbService.clearPasswordResetToken(email);
+            passwordResetService.clearPasswordResetToken(email);
 
             return true;
         } catch (Exception e) {

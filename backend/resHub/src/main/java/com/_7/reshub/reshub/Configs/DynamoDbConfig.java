@@ -37,7 +37,11 @@ public class DynamoDbConfig {
 
     // dynamodb.notifications.table.name in application.properties
     @Value("${dynamodb.notifications.table.name}")
-    private String notificationsTableName; // New property for notifications table
+    private String notificationsTableName;
+
+    // dynamodb.reports.table.name in application.properties
+    @Value("${dynamodb.reports.table.name}")
+    private String reportsTableName;
 
     public String getSwipeLogTableName() {
         return swipeLogTableName;
@@ -67,6 +71,9 @@ public class DynamoDbConfig {
         return notificationsTableName;  // New getter for notifications table
     }
 
+    public String getReportsTableName() {
+        return reportsTableName;
+    }
 
     /*
      * Creates the DynamoDB client using the credentials stored in your system.

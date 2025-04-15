@@ -9,6 +9,7 @@ import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
 import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
+import ReportScreen from "../screens/ReportScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
 //import ChatsScreen from "../screens/ChatScreen";
@@ -45,7 +46,8 @@ const StackNavigator = () => {
             name="MessageScreen"
             component={MessageScreen}
             options={{ headerShown: true }}  
-          />
+            />
+            <Stack.Screen name="ReportScreen" component={ReportScreen} />
         </>
       )}
     </Stack.Navigator>

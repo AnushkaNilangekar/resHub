@@ -149,7 +149,14 @@ public class ProfileService {
             item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s(),
             item.containsKey("matchVolume") 
             ? Double.valueOf(item.get("matchVolume").n()) 
-            : 1.0
+            : 1.0,
+            item.containsKey("matchNotificationsEnabled")
+            ? item.get("matchNotificationsEnabled").bool()
+            : true,
+
+        item.containsKey("messageNotificationsEnabled")
+            ? item.get("messageNotificationsEnabled").bool()
+            : true
         );
     }
     

@@ -143,6 +143,8 @@ const SettingsScreen = ({ navigation }) => {
 
     //Notifications
     const [matchVolume, setMatchVolume] = useState(1);
+    const [matchNotifsEnabled, setMatchNotifsEnabled] = useState(true);
+    const [messageNotifsEnabled, setMessageNotifsEnabled] = useState(true);
 
 
     useEffect(() => {
@@ -215,6 +217,8 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
             setMatchVolume(profile.matchVolume ?? 1);
+            setMatchNotifsEnabled(profile.matchNotifsEnabled ?? true);
+            setMessageNotifsEnabled(profile.messageNotifsEnabled ?? true);
 
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -268,6 +272,9 @@ const SettingsScreen = ({ navigation }) => {
                 roommateDietaryPreference,
 
                 matchVolume,
+                matchNotifsEnabled,
+                messageNotifsEnabled,
+
             };
 
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
@@ -744,6 +751,36 @@ const SettingsScreen = ({ navigation }) => {
                         </View>
                         </View>
 
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Match Notifications</Text>
+                            <TouchableOpacity 
+                                style={[
+                                    styles.toggleButton, 
+                                    matchNotifsEnabled ? styles.toggleOn : styles.toggleOff
+                                ]}
+                                onPress={() => setMatchNotifsEnabled(!matchNotifsEnabled)}
+                            >
+                                <Text style={styles.toggleText}>
+                                    {matchNotifsEnabled ? 'Enabled' : 'Disabled'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Message Notifications</Text>
+                            <TouchableOpacity 
+                                style={[
+                                    styles.toggleButton, 
+                                    messageNotifsEnabled ? styles.toggleOn : styles.toggleOff
+                                ]}
+                                onPress={() => setMessageNotifsEnabled(!messageNotifsEnabled)}
+                            >
+                                <Text style={styles.toggleText}>
+                                    {messageNotifsEnabled ? 'Enabled' : 'Disabled'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
                     {/* Blocked Users Section */}
                     <View style={styles.sectionContainer}>
                         <View style={styles.sectionHeader}>
@@ -1078,6 +1115,26 @@ const styles = StyleSheet.create({
             paddingVertical: 15,
             paddingHorizontal: 16,
         },
+        toggleButton: {
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+            alignItems: 'center',
+            borderWidth: 1,
+            marginTop: 6,
+        },
+        toggleOn: {
+            backgroundColor: '#34D399',
+            borderColor: '#10B981',
+        },
+        toggleOff: {
+            backgroundColor: '#F87171',
+            borderColor: '#EF4444',
+        },
+        toggleText: {
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+        },        
 });
 
 export default SettingsScreen;

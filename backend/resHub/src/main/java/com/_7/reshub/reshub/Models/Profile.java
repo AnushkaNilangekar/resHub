@@ -46,6 +46,8 @@ public class Profile {
 
     //Notifs
     private Double matchVolume;
+    private Boolean matchNotificationsEnabled;
+    private Boolean messageNotificationsEnabled;
 
     /**
      * Constructor for Profile including new traits and roommate preferences.
@@ -80,7 +82,9 @@ public class Profile {
             String roommateNoiseTolerance,
             String roommateSharingCommonItems,
             String roommateDietaryPreference, 
-            Double matchVolume
+            Double matchVolume,
+            Boolean matchNotificationsEnabled,
+            Boolean messageNotificationsEnabled
         ) 
         {
         this.userId = userId;
@@ -112,7 +116,6 @@ public class Profile {
         this.roommateNoiseTolerance = roommateNoiseTolerance;
         this.roommateSharingCommonItems = roommateSharingCommonItems;
         this.roommateDietaryPreference = roommateDietaryPreference;
-        this.matchVolume = 1.0;
     }
 
     // Getters for all fields
@@ -242,5 +245,13 @@ public class Profile {
     //Notifs
     public Double getMatchVolume() {
         return matchVolume;
+    }
+
+    public Boolean getMatchNotificationsEnabled() { 
+        return matchNotificationsEnabled; 
+    }
+
+    public Boolean getMessageNotificationsEnabled() { 
+        return messageNotificationsEnabled; 
     }
 }

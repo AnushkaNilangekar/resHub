@@ -43,6 +43,8 @@ public class ProfileRequest {
 
     //Notifs
     private Double matchVolume;
+    private Boolean matchNotificationsEnabled;
+    private Boolean messageNotificationsEnabled;
 
     // Getters for all fields
 
@@ -285,4 +287,19 @@ public class ProfileRequest {
     public void setMatchVolume(Double matchVolume) {
         this.matchVolume = matchVolume;
     }
+
+    public Boolean getMatchNotificationsEnabled() { 
+        return matchNotificationsEnabled; 
+    }
+    public void setMatchNotificationsEnabled(Boolean value) { 
+        this.matchNotificationsEnabled = value; 
+    }
+
+    public Boolean getMessageNotificationsEnabled() { 
+        return messageNotificationsEnabled; 
+    }
+    public void setMessageNotificationsEnabled(Boolean value) { 
+        this.messageNotificationsEnabled = value;
+    }
+
 }

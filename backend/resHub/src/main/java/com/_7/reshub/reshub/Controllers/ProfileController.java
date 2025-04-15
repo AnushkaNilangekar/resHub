@@ -159,6 +159,15 @@ public class ProfileController {
         .n(request.getMatchVolume() != null ? String.valueOf(request.getMatchVolume()) : "1.0")
         .build());
 
+        item.put("matchNotificationsEnabled", AttributeValue.builder()
+        .bool(request.getMatchNotificationsEnabled() != null ? request.getMatchNotificationsEnabled() : true)
+        .build());
+
+        item.put("messageNotificationsEnabled", AttributeValue.builder()
+        .bool(request.getMessageNotificationsEnabled() != null ? request.getMessageNotificationsEnabled() : true)
+        .build());
+
+
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
                 .tableName("profiles")
@@ -318,6 +327,9 @@ public class ProfileController {
 
             //Notifs
             addAttribute(updateList, attributeValues, expressionAttributeNames, "matchVolume", request.getMatchVolume());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchNotificationsEnabled", request.getMatchNotificationsEnabled());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "messageNotificationsEnabled", request.getMessageNotificationsEnabled());
+
             
             if (updateList.isEmpty()) {
                 return ResponseEntity.badRequest().body("No fields to update");
@@ -403,6 +415,23 @@ public class ProfileController {
         }
         }
 
+        private void addAttribute(
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
+        Map<String, String> expressionAttributeNames,
+        String fieldName,
+        Boolean value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().bool(value).build());
+        }
+        }
 
         @PutMapping("/updateProfilePic")
         public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {

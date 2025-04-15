@@ -44,6 +44,9 @@ public class Profile {
     private String roommateSharingCommonItems;
     private String roommateDietaryPreference;
 
+    //Notifs
+    private Double matchVolume;
+
     /**
      * Constructor for Profile including new traits and roommate preferences.
      */
@@ -76,7 +79,10 @@ public class Profile {
             String roommatePetPreference,
             String roommateNoiseTolerance,
             String roommateSharingCommonItems,
-            String roommateDietaryPreference) {
+            String roommateDietaryPreference, 
+            Double matchVolume
+        ) 
+        {
         this.userId = userId;
         this.fullName = fullName;
         this.gender = gender;
@@ -106,6 +112,7 @@ public class Profile {
         this.roommateNoiseTolerance = roommateNoiseTolerance;
         this.roommateSharingCommonItems = roommateSharingCommonItems;
         this.roommateDietaryPreference = roommateDietaryPreference;
+        this.matchVolume = 1.0;
     }
 
     // Getters for all fields
@@ -230,5 +237,10 @@ public class Profile {
 
     public String getRoommateDietaryPreference() {
         return roommateDietaryPreference;
+    }
+
+    //Notifs
+    public Double getMatchVolume() {
+        return matchVolume;
     }
 }

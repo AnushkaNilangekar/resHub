@@ -41,6 +41,9 @@ public class ProfileRequest {
     private String roommateSharingCommonItems;
     private String roommateDietaryPreference;
 
+    //Notifs
+    private Double matchVolume;
+
     // Getters for all fields
 
     public String getUserId() {
@@ -159,6 +162,10 @@ public class ProfileRequest {
         return roommateDietaryPreference;
     }
 
+    public Double getMatchVolume() {
+        return matchVolume;
+    }    
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -273,5 +280,9 @@ public class ProfileRequest {
 
     public void setRoommateDietaryPreference(String roommateDietaryPreference) {
         this.roommateDietaryPreference = roommateDietaryPreference;
+    }
+
+    public void setMatchVolume(Double matchVolume) {
+        this.matchVolume = matchVolume;
     }
 }

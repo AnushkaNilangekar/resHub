@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
 
 const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -140,6 +141,10 @@ const SettingsScreen = ({ navigation }) => {
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [reportedChats, setReportedChats] = useState([]);
 
+    //Notifications
+    const [matchVolume, setMatchVolume] = useState(1);
+
+
     useEffect(() => {
         fetchUserProfile();
         fetchBlockedUsers();
@@ -209,6 +214,8 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateSharingCommonItems(profile.roommateSharingCommonItems || '');
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
+            setMatchVolume(profile.matchVolume ?? 1);
+
         } catch (error) {
             console.error('Error fetching profile:', error);
             Alert.alert('Error', 'Could not fetch profile details');
@@ -258,7 +265,9 @@ const SettingsScreen = ({ navigation }) => {
                 roommatePetPreference,
                 roommateNoiseTolerance,
                 roommateSharingCommonItems,
-                roommateDietaryPreference
+                roommateDietaryPreference,
+
+                matchVolume,
             };
 
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
@@ -708,6 +717,32 @@ const SettingsScreen = ({ navigation }) => {
                             icon="restaurant-outline"
                         />
                     </View>
+
+                    { /* Notif Section */ }
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="notifications" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Notification Preferences</Text>
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Notification Volume</Text>
+                            <Slider
+                            style={{ width: '100%', height: 40 }}
+                            minimumValue={0}
+                            maximumValue={1}
+                            step={0.01}
+                            value={matchVolume}
+                            onValueChange={setMatchVolume}
+                            minimumTrackTintColor="#FFFFFF"
+                            maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
+                            thumbTintColor="#FFFFFF"
+                            />
+                            <Text style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                            Volume: {Math.round(matchVolume * 100)}%
+                            </Text>
+                        </View>
+                        </View>
 
                     {/* Blocked Users Section */}
                     <View style={styles.sectionContainer}>

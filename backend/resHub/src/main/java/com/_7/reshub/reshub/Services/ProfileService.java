@@ -146,7 +146,10 @@ public class ProfileService {
             item.getOrDefault("roommatePetPreference", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s()
+            item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s(),
+            item.containsKey("matchVolume") 
+            ? Double.valueOf(item.get("matchVolume").n()) 
+            : 1.0
         );
     }
     

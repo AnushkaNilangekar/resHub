@@ -155,6 +155,10 @@ public class ProfileController {
         }
         item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
+        item.put("matchVolume", AttributeValue.builder()
+        .n(request.getMatchVolume() != null ? String.valueOf(request.getMatchVolume()) : "1.0")
+        .build());
+
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
                 .tableName("profiles")
@@ -312,6 +316,9 @@ public class ProfileController {
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSharingCommonItems", request.getRoommateSharingCommonItems());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
 
+            //Notifs
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchVolume", request.getMatchVolume());
+            
             if (updateList.isEmpty()) {
                 return ResponseEntity.badRequest().body("No fields to update");
             }
@@ -337,7 +344,7 @@ public class ProfileController {
         }
     }
      
-        //helper methods
+   //helper methods
     private void addAttribute(
         List<String> updateList, 
         Map<String, AttributeValue> attributeValues, 
@@ -377,6 +384,25 @@ public class ProfileController {
                 attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
         }
         }
+
+        private void addAttribute(
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
+        Map<String, String> expressionAttributeNames,
+        String fieldName,
+        Double value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+        }
+        }
+
 
         @PutMapping("/updateProfilePic")
         public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {

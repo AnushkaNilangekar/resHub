@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Animated, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../styles/colors.js';
+import { Audio } from 'expo-av';
 
-const NotificationBanner = ({ message, visible, onClose }) => {
+const NotificationBanner = ({ message, visible, onClose,  matchVolume = 1  }) => {
     const slideAnim = useState(new Animated.Value(-100))[0];
     const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
         if (visible) {
+            playNotificationSound(matchVolume); 
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: 0,
@@ -56,6 +58,23 @@ const NotificationBanner = ({ message, visible, onClose }) => {
             </LinearGradient>
         </Animated.View>
     );
+};
+
+const playNotificationSound = async (volume = 1.0) => {
+    try {
+        const { sound } = await Audio.Sound.createAsync(
+            require('../assets/notifSound.mp3'), 
+        );
+        await sound.setVolumeAsync(volume);
+        await sound.playAsync();
+        sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.didJustFinish) {
+                sound.unloadAsync();
+            }
+        });
+    } catch (error) {
+        console.log('Error playing sound:', error);
+    }
 };
 
 const styles = StyleSheet.create({

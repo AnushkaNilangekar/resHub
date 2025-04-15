@@ -24,7 +24,7 @@ export default function App() {
     },
   };
   const [notification, setNotification] = useState(null); // State for notification
-
+  const [matchVolume, setMatchVolume] = useState(1);
   useEffect(() => {
     // Prepare the app
     async function prepareApp() {
@@ -88,6 +88,17 @@ export default function App() {
           const userId = await AsyncStorage.getItem('userId');
           if (!userId) return;
 
+          try {
+            const profileRes = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+              params: { userId },
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const volume = profileRes.data.matchVolume ?? 1;
+            setMatchVolume(volume);
+          } catch (err) {
+            console.error('Failed to fetch match volume:', err);
+          }
+
           const response =  await axios.post(
             `${config.API_BASE_URL}/api/users/notification`,
             { userId },
@@ -123,7 +134,7 @@ export default function App() {
 
   if (!appIsReady) {
     return null;
-  }
+  } 
 
   return (
     <AuthProvider> {/* Wrap with AuthProvider */}
@@ -134,6 +145,7 @@ export default function App() {
                 message={notification.message}
                 visible={!!notification}
                 onClose={() => setNotification(null)}
+                matchVolume={matchVolume}
             />
         )}
       </NavigationContainer>

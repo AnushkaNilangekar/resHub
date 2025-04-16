@@ -155,9 +155,15 @@ public class ProfileController {
         }
         item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
-        item.put("matchVolume", AttributeValue.builder()
-        .n(request.getMatchVolume() != null ? String.valueOf(request.getMatchVolume()) : "1.0")
+        item.put("notifVolume", AttributeValue.builder()
+        .n(request.getNotifVolume() != null ? String.valueOf(request.getNotifVolume()) : "1.0")
         .build());
+
+        item.put("matchSoundEnabled", AttributeValue.builder()
+        .bool(request.getMatchSoundEnabled() != null ? request.getMatchSoundEnabled() : true).build());
+
+        item.put("messageSoundEnabled", AttributeValue.builder()
+        .bool(request.getMessageSoundEnabled() != null ? request.getMessageSoundEnabled() : true).build());
 
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
@@ -317,7 +323,10 @@ public class ProfileController {
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
 
             //Notifs
-            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchVolume", request.getMatchVolume());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "notifVolume", request.getNotifVolume());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchSoundEnabled", request.getMatchSoundEnabled());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "messageSoundEnabled", request.getMessageSoundEnabled());
+            
             
             if (updateList.isEmpty()) {
                 return ResponseEntity.badRequest().body("No fields to update");
@@ -344,7 +353,7 @@ public class ProfileController {
         }
     }
      
-   //helper methods
+   //helper (overload) methods
     private void addAttribute(
         List<String> updateList, 
         Map<String, AttributeValue> attributeValues, 
@@ -403,6 +412,23 @@ public class ProfileController {
         }
         }
 
+        private void addAttribute(
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
+        Map<String, String> expressionAttributeNames,
+        String fieldName,
+        Boolean value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().bool(value).build());
+        }
+        }
 
         @PutMapping("/updateProfilePic")
         public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {

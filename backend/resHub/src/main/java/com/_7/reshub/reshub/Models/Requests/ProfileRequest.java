@@ -42,7 +42,9 @@ public class ProfileRequest {
     private String roommateDietaryPreference;
 
     //Notifs
-    private Double matchVolume;
+    private Double notifVolume;
+    private Boolean matchSoundEnabled;
+    private Boolean messageSoundEnabled;
 
     // Getters for all fields
 
@@ -162,8 +164,8 @@ public class ProfileRequest {
         return roommateDietaryPreference;
     }
 
-    public Double getMatchVolume() {
-        return matchVolume;
+    public Double getNotifVolume() {
+        return notifVolume;
     }    
 
     public void setUserId(String userId) {
@@ -282,7 +284,23 @@ public class ProfileRequest {
         this.roommateDietaryPreference = roommateDietaryPreference;
     }
 
-    public void setMatchVolume(Double matchVolume) {
-        this.matchVolume = matchVolume;
+    public void setNotifVolume(Double notifVolume) {
+        this.notifVolume = notifVolume;
+    }
+
+    public Boolean getMatchSoundEnabled() {
+        return matchSoundEnabled;
+    }
+
+    public void setMatchSoundEnabled(Boolean matchSoundEnabled) {
+        this.matchSoundEnabled = matchSoundEnabled;
+    }
+
+    public Boolean getMessageSoundEnabled() {
+        return messageSoundEnabled;
+    }
+
+    public void setMessageSoundEnabled(Boolean messageSoundEnabled) {
+        this.messageSoundEnabled = messageSoundEnabled;
     }
 }

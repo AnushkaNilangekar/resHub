@@ -147,9 +147,12 @@ public class ProfileService {
             item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s(),
-            item.containsKey("matchVolume") 
-            ? Double.valueOf(item.get("matchVolume").n()) 
-            : 1.0
+            item.containsKey("notifVolume") 
+            ? Double.valueOf(item.get("notifVolume").n()) 
+            : 1.0,
+            item.containsKey("matchSoundEnabled") ? item.get("matchSoundEnabled").bool() : true,
+            item.containsKey("messageSoundEnabled") ? item.get("messageSoundEnabled").bool() : true
+
         );
     }
     

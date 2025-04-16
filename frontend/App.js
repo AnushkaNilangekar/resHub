@@ -24,7 +24,9 @@ export default function App() {
     },
   };
   const [notification, setNotification] = useState(null); // State for notification
-  const [matchVolume, setMatchVolume] = useState(1);
+  const [notifVolume, setNotifVolume] = useState(1);
+  const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
+  const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
   useEffect(() => {
     // Prepare the app
     async function prepareApp() {
@@ -93,8 +95,13 @@ export default function App() {
               params: { userId },
               headers: { 'Authorization': `Bearer ${token}` }
             });
-            const volume = profileRes.data.matchVolume ?? 1;
-            setMatchVolume(volume);
+            const volume = profileRes.data.notifVolume ?? 1;
+            const matchEnabled = profileRes.data.matchSoundEnabled ?? true;
+            const messageEnabled = profileRes.data.messageSoundEnabled ?? true;
+
+            setNotifVolume(volume);
+            setMatchSoundEnabled(matchEnabled);
+            setMessageSoundEnabled(messageEnabled);
           } catch (err) {
             console.error('Failed to fetch match volume:', err);
           }
@@ -145,7 +152,9 @@ export default function App() {
                 message={notification.message}
                 visible={!!notification}
                 onClose={() => setNotification(null)}
-                matchVolume={matchVolume}
+                notifVolume={notifVolume}
+                matchSoundEnabled={matchSoundEnabled}
+                messageSoundEnabled={messageSoundEnabled}
             />
         )}
       </NavigationContainer>

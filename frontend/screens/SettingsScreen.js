@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
-    Text, 
+    Text,
+    Switch, 
     StyleSheet, 
     ScrollView, 
     TouchableOpacity, 
@@ -142,8 +143,9 @@ const SettingsScreen = ({ navigation }) => {
     const [reportedChats, setReportedChats] = useState([]);
 
     //Notifications
-    const [matchVolume, setMatchVolume] = useState(1);
-
+    const [notifVolume, setNotifVolume] = useState(1);
+    const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
+    const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
 
     useEffect(() => {
         fetchUserProfile();
@@ -214,7 +216,11 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateSharingCommonItems(profile.roommateSharingCommonItems || '');
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
-            setMatchVolume(profile.matchVolume ?? 1);
+            //Set notification sounds
+            setNotifVolume(profile.notifVolume ?? 1);
+            setMatchSoundEnabled(profile.matchSoundEnabled ?? true);
+            setMessageSoundEnabled(profile.messageSoundEnabled ?? true);
+
 
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -267,7 +273,11 @@ const SettingsScreen = ({ navigation }) => {
                 roommateSharingCommonItems,
                 roommateDietaryPreference,
 
-                matchVolume,
+                //Notif Volume
+                notifVolume,
+                matchSoundEnabled,
+                messageSoundEnabled,
+
             };
 
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
@@ -732,17 +742,39 @@ const SettingsScreen = ({ navigation }) => {
                             minimumValue={0}
                             maximumValue={1}
                             step={0.01}
-                            value={matchVolume}
-                            onValueChange={setMatchVolume}
+                            value={notifVolume}
+                            onValueChange={setNotifVolume}
                             minimumTrackTintColor="#FFFFFF"
                             maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                             thumbTintColor="#FFFFFF"
                             />
                             <Text style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                            Volume: {Math.round(matchVolume * 100)}%
+                            Volume: {Math.round(notifVolume * 100)}%
                             </Text>
                         </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Match Notification Sound</Text>
+                        <Switch
+                            value={matchSoundEnabled}
+                            onValueChange={setMatchSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={matchSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
                         </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Message Notification Sound</Text>
+                        <Switch
+                            value={messageSoundEnabled}
+                            onValueChange={setMessageSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={messageSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
+                        </View>
+                    </View>
 
                     {/* Blocked Users Section */}
                     <View style={styles.sectionContainer}>
@@ -1078,6 +1110,24 @@ const styles = StyleSheet.create({
             paddingVertical: 15,
             paddingHorizontal: 16,
         },
+        toggleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: 12,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            marginHorizontal: 16,
+            marginVertical: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.15)',
+        }, 
+        toggleLabel: {
+            color: '#FFFFFF',
+            fontSize: 15,
+            fontWeight: '500',
+        },          
 });
 
 export default SettingsScreen;

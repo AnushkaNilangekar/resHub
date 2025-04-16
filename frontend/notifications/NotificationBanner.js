@@ -4,13 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../styles/colors.js';
 import { Audio } from 'expo-av';
 
-const NotificationBanner = ({ message, visible, onClose,  matchVolume = 1  }) => {
+const NotificationBanner = ({ message, visible, onClose,  notifVolume = 1, matchSoundEnabled = true, messageSoundEnabled = true  }) => {
     const slideAnim = useState(new Animated.Value(-100))[0];
     const fadeAnim = useState(new Animated.Value(0))[0];
 
     useEffect(() => {
         if (visible) {
-            playNotificationSound(matchVolume); 
+            if (message.toLowerCase().includes('match') && matchSoundEnabled) {
+                playNotificationSound(notifVolume);
+              } else if (message.toLowerCase().includes('message') && messageSoundEnabled) {
+                playNotificationSound(notifVolume);
+              }   
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: 0,
@@ -65,7 +69,8 @@ const playNotificationSound = async (volume = 1.0) => {
         const { sound } = await Audio.Sound.createAsync(
             require('../assets/notifSound.mp3'), 
         );
-        await sound.setVolumeAsync(volume);
+        const adjustedVolume = Math.pow(volume, 2);
+        await sound.setVolumeAsync(adjustedVolume);
         await sound.playAsync();
         sound.setOnPlaybackStatusUpdate((status) => {
             if (status.didJustFinish) {

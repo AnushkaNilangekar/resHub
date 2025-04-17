@@ -26,7 +26,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, login } = useContext(AuthContext);  // Use context to get authentication state and login function
+  const {isAuthenticated, login} = useContext(AuthContext);  // Use context to get authentication state and login function
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
 

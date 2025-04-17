@@ -6,6 +6,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(false);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -36,9 +37,14 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  // Function to handle authentication when setting up the profile
+  const profileSetup = async () => {
+    setIsAuthenticated(true);
+  }
+
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, profileComplete, login, logout, profileSetup }}>
       {children}
     </AuthContext.Provider>
   );

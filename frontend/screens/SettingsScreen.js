@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
-    Text, 
+    Text,
+    Switch, 
     StyleSheet, 
     ScrollView, 
     TouchableOpacity, 
@@ -19,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
 
 const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -140,6 +142,11 @@ const SettingsScreen = ({ navigation }) => {
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [reportedChats, setReportedChats] = useState([]);
 
+    //Notifications
+    const [notifVolume, setNotifVolume] = useState(1);
+    const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
+    const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
+
     useEffect(() => {
         fetchUserProfile();
         fetchBlockedUsers();
@@ -209,6 +216,12 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateSharingCommonItems(profile.roommateSharingCommonItems || '');
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
+            //Set notification sounds
+            setNotifVolume(profile.notifVolume ?? 1);
+            setMatchSoundEnabled(profile.matchSoundEnabled ?? true);
+            setMessageSoundEnabled(profile.messageSoundEnabled ?? true);
+
+
         } catch (error) {
             console.error('Error fetching profile:', error);
             Alert.alert('Error', 'Could not fetch profile details');
@@ -258,7 +271,13 @@ const SettingsScreen = ({ navigation }) => {
                 roommatePetPreference,
                 roommateNoiseTolerance,
                 roommateSharingCommonItems,
-                roommateDietaryPreference
+                roommateDietaryPreference,
+
+                //Notif Volume
+                notifVolume,
+                matchSoundEnabled,
+                messageSoundEnabled,
+
             };
 
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
@@ -709,6 +728,54 @@ const SettingsScreen = ({ navigation }) => {
                         />
                     </View>
 
+                    { /* Notif Section */ }
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="notifications" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Notification Preferences</Text>
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Notification Volume</Text>
+                            <Slider
+                            style={{ width: '100%', height: 40 }}
+                            minimumValue={0}
+                            maximumValue={1}
+                            step={0.01}
+                            value={notifVolume}
+                            onValueChange={setNotifVolume}
+                            minimumTrackTintColor="#FFFFFF"
+                            maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
+                            thumbTintColor="#FFFFFF"
+                            />
+                            <Text style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                            Volume: {Math.round(notifVolume * 100)}%
+                            </Text>
+                        </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Match Notification Sound</Text>
+                        <Switch
+                            value={matchSoundEnabled}
+                            onValueChange={setMatchSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={matchSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
+                        </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Message Notification Sound</Text>
+                        <Switch
+                            value={messageSoundEnabled}
+                            onValueChange={setMessageSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={messageSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
+                        </View>
+                    </View>
+
                     {/* Blocked Users Section */}
                     <View style={styles.sectionContainer}>
                         <View style={styles.sectionHeader}>
@@ -1043,6 +1110,24 @@ const styles = StyleSheet.create({
             paddingVertical: 15,
             paddingHorizontal: 16,
         },
+        toggleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: 12,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            marginHorizontal: 16,
+            marginVertical: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.15)',
+        }, 
+        toggleLabel: {
+            color: '#FFFFFF',
+            fontSize: 15,
+            fontWeight: '500',
+        },          
 });
 
 export default SettingsScreen;

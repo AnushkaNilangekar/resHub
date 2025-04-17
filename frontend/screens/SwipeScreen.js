@@ -14,7 +14,6 @@ import { colors } from '../styles/colors.js';
 const { height, width } = Dimensions.get('window');
 
 const SwipeScreen = () => {
-  //state variables
   const [profiles, setProfiles] = useState([]);
   const [isSwipedAll, setIsSwipedAll] = useState(false);
   const [selectedGender, setSelectedGender] = useState("All");
@@ -25,6 +24,21 @@ const SwipeScreen = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const [swipeFeedback, setSwipeFeedback] = useState(null);
+  const [profileCache, setProfileCache] = useState({
+    All: [],
+    Male: [],
+    Female: [],
+    "Non-Binary": []
+  });
+  const [lastFetchTime, setLastFetchTime] = useState({
+    All: null,
+    Male: null,
+    Female: null,
+    "Non-Binary": null
+  });
+
+  // Cache expiration time in milliseconds (10 minutes)
+  const CACHE_EXPIRATION = 10 * 60 * 1000;
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -42,41 +56,77 @@ const SwipeScreen = () => {
     fetchUserInfo();
   }, []);
 
-  const fetchProfileCards = async () => {
-    if (userInfo && userInfo.userId) {
-      const queryParams = new URLSearchParams({
-        userId: userInfo.userId,
-        genderFilter: selectedGender,
-        filterOutSwipedOn: true
+  const isCacheExpired = (genderType) => {
+    if (!lastFetchTime[genderType]) {
+      return true;
+    }
+
+    const currentTime = new Date().getTime();
+    return currentTime - lastFetchTime[genderType] > CACHE_EXPIRATION;
+  };
+
+  const fetchProfileCards = async (forceRefresh = false) => {
+    if (!userInfo || !userInfo.userId) {
+      return;
+    }
+    
+    // Use cached profiles if available and not forcing refresh
+    if (!forceRefresh && 
+        profileCache[selectedGender] && 
+        profileCache[selectedGender].length > 0 && 
+        !isCacheExpired(selectedGender)) {
+
+      setProfiles(profileCache[selectedGender]);
+      setIsSwipedAll(false);
+      return;
+    }
+  
+    setRefreshing(true);
+
+    const queryParams = new URLSearchParams({
+      userId: userInfo.userId,
+      genderFilter: selectedGender,
+      filterOutSwipedOn: true
+    });
+  
+    try {
+      const response = await fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${userInfo.token}`
+        }
       });
-
-      try {
-        const response = await fetch(`${config.API_BASE_URL}/api/getProfiles?${queryParams.toString()}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${userInfo.token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`API response error: ${response.statusText}`);
-        }
-
-        const rawData = await response.text();
-
-        try {
-            const data = JSON.parse(rawData);
-            if (Array.isArray(data)) {
-                setProfiles(data);
-            } else {
-                console.error('Received data is not an array:', data);
-            }
-        } catch (parseError) {
-            console.error('Error parsing JSON:', parseError);
-        }
-      } catch (error) {
-          console.error('Error fetching profiles:', error);
+  
+      if (!response.ok) {
+        throw new Error(`API response error: ${response.statusText}`);
       }
+  
+      const rawData = await response.text();
+      const data = JSON.parse(rawData);
+  
+      if (Array.isArray(data)) {
+        setProfiles(data);
+        
+        // Update cache with the new profiles
+        setProfileCache(prev => ({
+          ...prev,
+          [selectedGender]: data
+        }));
+        
+        // Update the last fetch time
+        setLastFetchTime(prev => ({
+          ...prev,
+          [selectedGender]: new Date().getTime()
+        }));
+        
+        setIsSwipedAll(data.length === 0);
+      } else {
+        console.error('Received data is not an array:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -84,71 +134,74 @@ const SwipeScreen = () => {
     if (profiles.length > 0) {
       setIsSwipedAll(false);
     }
-  }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    setProfiles([]);
-    await fetchProfileCards();
+    await fetchProfileCards(true);
     checkIfMoreProfiles();
     setRefreshing(false);
   };
-
+  
+  // Effect for when gender filter changes or user info loads
   useEffect(() => {
-    onRefresh();
+    if (userInfo && userInfo.userId) {
+      fetchProfileCards(false);
+    }
   }, [userInfo, selectedGender]);
 
-  // handle swipe on a card
   const handleSwiped = (cardIndex, direction) => {
     const swipedProfile = profiles[cardIndex];
     if (!swipedProfile) return;
+    
     console.log(`Swiped ${direction} on card ${swipedProfile.email}: ${swipedProfile.fullName}`);
     const swipedOnUserId = swipedProfile.userId;
     const endpoint = direction === 'left'
         ? `${config.API_BASE_URL}/api/swipes/swipeLeft`
         : `${config.API_BASE_URL}/api/swipes/swipeRight`;
 
-        axios.post(endpoint, null, {
-            params: {
-                userId: userInfo.userId,
-                swipedOnUserId,
-            },
-            headers: {
-                'Authorization': `Bearer ${userInfo.token}`,
-            }
-        })
-        .catch(error => {
-            if (error.response && error.response.status === 404) {
-                console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
-            } else {
-                console.error('Error recording swipe:', error.response?.data || error.message);
-            }
-        });
-        triggerSwipeFeedback(direction);  
-    };
+    axios.post(endpoint, null, {
+        params: {
+            userId: userInfo.userId,
+            swipedOnUserId,
+        },
+        headers: {
+            'Authorization': `Bearer ${userInfo.token}`,
+        }
+    })
+    .catch(error => {
+        if (error.response && error.response.status === 404) {
+            console.error('Swipe endpoint not found. Check your API URL and ngrok tunnel.');
+        } else {
+            console.error('Error recording swipe:', error.response?.data || error.message);
+        }
+    });
+    
+    triggerSwipeFeedback(direction);
+  };
 
-    const triggerSwipeFeedback = (direction) => {
-      setSwipeFeedback(direction);
+  const triggerSwipeFeedback = (direction) => {
+    setSwipeFeedback(direction);
 
-      // reset animations
-      fadeAnim.setValue(0);
-      translateY.setValue(0);
+    // reset animations
+    fadeAnim.setValue(0);
+    translateY.setValue(0);
 
-      Animated.parallel([
-          Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 10,
-              useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-              toValue: -10,
-              duration: 10,
-              useNativeDriver: true,
-          }),
-      ]).start(() => {
-          setTimeout(() => setSwipeFeedback(null), 300);
-      });
-    };
+    Animated.parallel([
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 10,
+            useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+            toValue: -10,
+            duration: 10,
+            useNativeDriver: true,
+        }),
+    ]).start(() => {
+        setTimeout(() => setSwipeFeedback(null), 300);
+    });
+  };
 
   const LoadingItem = ({ itemLoading }) => {
     return (

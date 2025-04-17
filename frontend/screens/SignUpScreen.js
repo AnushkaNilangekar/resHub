@@ -24,7 +24,6 @@ const SignUpScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -47,7 +46,6 @@ const SignUpScreen = ({ navigation }) => {
                     firstName,
                     lastName,
                     email,
-                    phoneNumber,
                     password
                 })
             });
@@ -117,14 +115,6 @@ const SignUpScreen = ({ navigation }) => {
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Phone Number"
-                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
-                            value={phoneNumber}
-                            onChangeText={setPhoneNumber}
-                            keyboardType="phone-pad"
                         />
                         <TextInput
                             style={styles.input}

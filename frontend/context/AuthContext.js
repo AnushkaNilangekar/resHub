@@ -10,6 +10,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkToken = async () => {
+      if (await AsyncStorage.getItem("profileData") === "created") {
+        setProfileComplete(true);
+      }
       const token = await AsyncStorage.getItem("token");
       if (token) {
         setIsAuthenticated(true);
@@ -35,11 +38,13 @@ export const AuthProvider = ({ children }) => {
       "userId" 
     ]);
     setIsAuthenticated(false);
+    setProfileComplete(false);
   };
 
   // Function to handle authentication when setting up the profile
   const profileSetup = async () => {
-    setIsAuthenticated(true);
+    await AsyncStorage.setItem("profileData", "created");
+    setProfileComplete(true);
   }
 
 

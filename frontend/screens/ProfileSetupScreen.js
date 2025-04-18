@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from '../context/AuthContext';
 
 const ProfileSetupScreen = ({ navigation }) => {
-    const {profileSetup} = useContext(AuthContext);  
+    const {profileSetup, logout} = useContext(AuthContext);  
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
@@ -201,7 +201,6 @@ const ProfileSetupScreen = ({ navigation }) => {
                 profileSetup();
 
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Main', { screen: 'Home' });
             }
         } catch (error) {
             console.error('Profile creation error:', error.response || error);

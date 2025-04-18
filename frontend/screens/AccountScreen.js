@@ -41,10 +41,6 @@ const AccountScreen = () => {
       routes: [{ name: 'Login' }],
     });
   };
-
-  useEffect(() => {
-    handleLogout();
-  })
   
   const handleDeleteAccount = () => {
     // First confirmation alert

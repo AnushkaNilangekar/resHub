@@ -29,6 +29,7 @@ const LoginScreen = () => {
   const { login, profileComplete, profileSetup} = useContext(AuthContext);  // Use context to get authentication state and login function
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -55,6 +56,7 @@ const LoginScreen = () => {
   }, [error, fadeAnim]);
 
   const checkFirstLogin = async (token) => {
+    setIsChecking(true);
     const userId = await AsyncStorage.getItem("userId")
     const response = await axios.get(`${config.API_BASE_URL}/api/profile/exists`, {
       params: { userId: userId},
@@ -65,6 +67,7 @@ const LoginScreen = () => {
     } else {
       navigation.navigate("ProfileSetupScreen");
     }
+    setIsChecking(false);
   };
   
   const updateLastTimeActive = async () => {
@@ -95,7 +98,7 @@ const LoginScreen = () => {
         if (response.status === 200) {
           await AsyncStorage.setItem("userId", response.data.userId);
           await AsyncStorage.setItem("userEmail", email);
-          checkFirstLogin(response.data.token);
+          await checkFirstLogin(response.data.token);
           await AsyncStorage.setItem("token", response.data.token);
           await login(response.data.token);
           Alert.alert("Success", "Login successful!", [{ text: "OK" }]);

@@ -10,7 +10,8 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Animated
+  Animated,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
@@ -19,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../styles/colors.js';
 
 /*
 * Chat Screen
@@ -26,6 +28,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const ChatScreen = () => {
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState(null);
   const [error, setError] = useState('');
@@ -131,6 +134,7 @@ const ChatScreen = () => {
   * Fetches the chat details and populates the UI
   */
   async function getChatInformation() {
+    setLoading(true);
     const chatIds = await getChats();
 
     if (chatIds.length > 0) {
@@ -139,6 +143,8 @@ const ChatScreen = () => {
     } else {
       console.log('No chats found.');
     }
+    setLoading(false);
+
   }
 
   const handleUnmatch = async (chatId, otherUserId) => {
@@ -164,7 +170,6 @@ const ChatScreen = () => {
       AsyncStorage.getItem("userId").then(id => setCurrentUserId(id));
       // Initial fetch
       getChatInformation();
-
       // Set up interval polling every 5000ms (5 seconds)
       const interval = setInterval(() => {
         getChatInformation();
@@ -201,6 +206,32 @@ const ChatScreen = () => {
       ? `${message.substring(0, MAX_MESSAGE_LENGTH)}...` 
       : message;
   };
+
+  const LoadingItem = ({ itemLoading }) => {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading {itemLoading}...</Text>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={['#6C5CE7', '#45aaf2', '#2d98da', '#3867d6']}
+          style={styles.gradientContainer}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.4, 0.7, 1]}
+        >
+          <LoadingItem itemLoading="Chat" />
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -315,12 +346,20 @@ const ChatScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background, 
+  },
   container: {
     flex: 1,
     backgroundColor: '#4c6ef5',
   },
   gradient: {
     flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headerContainer: {
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 20 : 20,
@@ -383,6 +422,16 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+      fontSize: 16,
+      color: colors.text.light,
+      marginTop: 8,
   },
   noMatchesContainer: {
     flex: 1,

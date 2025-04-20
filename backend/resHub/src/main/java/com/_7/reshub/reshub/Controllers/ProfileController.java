@@ -82,7 +82,7 @@ public class ProfileController {
         String email = request.getEmail();
         String domain = "@purdue.edu";
         // Validate that the email ends with ".edu"
-        if (!email.endsWith(domain) && email.length() <= domain.length()) {
+        if (!email.endsWith(domain) || email.length() <= domain.length()) {
             return ResponseEntity.badRequest().body("Email must end with .edu");
         }
 

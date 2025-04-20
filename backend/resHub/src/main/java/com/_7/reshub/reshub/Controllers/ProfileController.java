@@ -79,8 +79,10 @@ public class ProfileController {
             return ResponseEntity.badRequest().body("All fields are required.");
         }
 
+        String email = request.getEmail();
+        String domain = "@purdue.edu";
         // Validate that the email ends with ".edu"
-        if (!request.getEmail().endsWith(".edu")) {
+        if (!email.endsWith(domain) && email.length() <= domain.length()) {
             return ResponseEntity.badRequest().body("Email must end with .edu");
         }
 

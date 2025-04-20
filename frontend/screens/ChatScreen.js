@@ -134,16 +134,15 @@ const ChatScreen = () => {
   * Fetches the chat details and populates the UI
   */
   async function getChatInformation() {
-    setLoading(true);
     const chatIds = await getChats();
 
     if (chatIds.length > 0) {
       const details = await getChatDetails(chatIds);
-      setChats(details);
+      setChats([...details]);
     } else {
+      setChats([]);
       console.log('No chats found.');
     }
-    setLoading(false);
 
   }
 
@@ -167,9 +166,16 @@ const ChatScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem("userId").then(id => setCurrentUserId(id));
-      // Initial fetch
-      getChatInformation();
+      const fetchData = async () => {
+        setLoading(true);
+        const id = await AsyncStorage.getItem("userId");
+        setCurrentUserId(id);
+  
+        await getChatInformation();
+        setLoading(false);
+      };
+  
+      fetchData();
       // Set up interval polling every 5000ms (5 seconds)
       const interval = setInterval(() => {
         getChatInformation();

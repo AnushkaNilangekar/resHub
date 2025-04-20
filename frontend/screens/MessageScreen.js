@@ -245,6 +245,7 @@ const MessageScreen = ({ route }) => {
 
     const interval = setInterval(() => {
       fetchMessages(); // Fetch messages every 5 seconds
+      markMessagesRead(); // Mark messages as read every 5 seconds
     }, 5000);
 
     return () => {

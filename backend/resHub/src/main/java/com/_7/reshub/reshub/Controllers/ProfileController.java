@@ -83,7 +83,7 @@ public class ProfileController {
         String domain = "@purdue.edu";
         // Validate that the email ends with ".edu"
         if (!email.endsWith(domain) || email.length() <= domain.length()) {
-            return ResponseEntity.badRequest().body("Email must end with .edu");
+            return ResponseEntity.badRequest().body("Email must end with .edu and fulfill minimum length requirement.");
         }
 
         // Build the DynamoDB item.

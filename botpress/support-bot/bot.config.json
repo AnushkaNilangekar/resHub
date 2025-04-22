@@ -1,0 +1,17 @@
+{
+    "version": "0.1",
+    "id": "reshub-support-bot",
+    "name": "ResHub Support Bot",
+    "description": "A support bot for ResHub roommate finding app",
+    "private": false,
+    "development": {
+      "useWatcher": true,
+      "watchIgnorePattern": []
+    },
+    "engines": {
+      "node": ">=16.0.0",
+      "botpress": ">=12.0.0"
+    },
+    "imports": {},
+    "dependencies": {}
+  }  

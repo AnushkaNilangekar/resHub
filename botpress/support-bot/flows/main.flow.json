@@ -1,0 +1,100 @@
+{
+    "version": "0.1",
+    "catchAll": {
+      "onReceive": [],
+      "next": []
+    },
+    "startNode": "entry",
+    "nodes": [
+      {
+        "id": "entry",
+        "name": "Entry",
+        "next": [
+          {
+            "condition": "true",
+            "node": "welcome"
+          }
+        ],
+        "onEnter": [],
+        "onReceive": []
+      },
+      {
+        "id": "welcome",
+        "name": "Welcome",
+        "next": [
+          {
+            "condition": "true",
+            "node": "main-menu"
+          }
+        ],
+        "onEnter": [
+          "say #!greeting"
+        ],
+        "onReceive": []
+      },
+      {
+        "id": "main-menu",
+        "name": "Main Menu",
+        "next": [
+          {
+            "condition": "event.payload.text == 'find'",
+            "node": "find-roommate"
+          },
+          {
+            "condition": "event.payload.text == 'help'",
+            "node": "help-options"
+          },
+          {
+            "condition": "event.payload.text == 'account'",
+            "node": "account-issues"
+          }
+        ],
+        "onEnter": [
+          "say #!main-menu"
+        ],
+        "onReceive": []
+      },
+      {
+        "id": "find-roommate",
+        "name": "Find Roommate",
+        "next": [
+          {
+            "condition": "true",
+            "node": "main-menu"
+          }
+        ],
+        "onEnter": [
+          "say #!find-roommate-info"
+        ],
+        "onReceive": []
+      },
+      {
+        "id": "help-options",
+        "name": "Help Options",
+        "next": [
+          {
+            "condition": "true",
+            "node": "main-menu"
+          }
+        ],
+        "onEnter": [
+          "say #!help-options-info"
+        ],
+        "onReceive": []
+      },
+      {
+        "id": "account-issues",
+        "name": "Account Issues",
+        "next": [
+          {
+            "condition": "true",
+            "node": "main-menu"
+          }
+        ],
+        "onEnter": [
+          "say #!account-issues-info"
+        ],
+        "onReceive": []
+      }
+    ]
+  }

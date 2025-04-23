@@ -37,14 +37,14 @@ const ProfileSetupScreen = ({ navigation, route }) => {
     const [userId, setUserId] = useState('');
 
     // State for User's Own Traits
-    const [smokingStatus, setSmokingStatus] = useState('');
-    const [cleanlinessLevel, setCleanlinessLevel] = useState('');
-    const [sleepSchedule, setSleepSchedule] = useState('');
-    const [guestFrequency, setGuestFrequency] = useState('');
-    const [hasPets, setHasPets] = useState('');
-    const [noiseLevel, setNoiseLevel] = useState('');
-    const [sharingCommonItems, setSharingCommonItems] = useState('');
-    const [dietaryPreference, setDietaryPreference] = useState('');
+    const [smokingStatus, setSmokingStatus] = useState(-1);
+    const [cleanlinessLevel, setCleanlinessLevel] = useState(-1);
+    const [sleepSchedule, setSleepSchedule] = useState(-1);
+    const [guestFrequency, setGuestFrequency] = useState(-1);
+    const [hasPets, setHasPets] = useState(-1);
+    const [noiseLevel, setNoiseLevel] = useState(-1);
+    const [sharingCommonItems, setSharingCommonItems] = useState(-1);
+    const [dietaryPreference, setDietaryPreference] = useState(-1);
     const [allergies, setAllergies] = useState('');
 
     // State for Roommate Preferences

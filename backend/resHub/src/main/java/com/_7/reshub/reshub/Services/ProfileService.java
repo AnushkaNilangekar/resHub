@@ -130,14 +130,14 @@ public class ProfileService {
                 .map(Instant::parse)
                 .orElse(null),
             item.getOrDefault("profilePicUrl", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("smokingStatus", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("cleanlinessLevel", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("sleepSchedule", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("guestFrequency", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("hasPets", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("noiseLevel", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("sharingCommonItems", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("dietaryPreference", AttributeValue.builder().s("").build()).s(),
+            parseIfNumberElseZero(item.getOrDefault("smokingStatus", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("cleanlinessLevel", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("sleepSchedule", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("guestFrequency", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("hasPets", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("noiseLevel", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("sharingCommonItems", AttributeValue.builder().n("0").build())),
+            parseIfNumberElseZero(item.getOrDefault("dietaryPreference", AttributeValue.builder().n("0").build())),
             item.getOrDefault("allergies", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateSmokingPreference", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateCleanlinessLevel", AttributeValue.builder().s("").build()).s(),
@@ -150,6 +150,18 @@ public class ProfileService {
         );
     }
     
+    /*
+     * Since some preferences are already saved as strings from previous versions of our app,
+     * ensure that this case is handled accordingly (all string values= 0).
+     */
+    private int parseIfNumberElseZero(AttributeValue attr) {
+        if (attr == null || attr.n() == null) return 0;
+        try {
+            return Integer.parseInt(attr.n());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }    
     
     /*
      * Handles retrieving the user ids of the users blocked by the given user.

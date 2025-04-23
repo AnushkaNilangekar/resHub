@@ -24,14 +24,14 @@ public class Profile {
     private String profilePicUrl;
 
     // New fields for the user's own traits
-    private String smokingStatus;
-    private String cleanlinessLevel;
-    private String sleepSchedule;
-    private String guestFrequency;
-    private String hasPets;
-    private String noiseLevel;
-    private String sharingCommonItems;
-    private String dietaryPreference;
+    private int smokingStatus;
+    private int cleanlinessLevel;
+    private int sleepSchedule;
+    private int guestFrequency;
+    private int hasPets;
+    private int noiseLevel;
+    private int sharingCommonItems;
+    private int dietaryPreference;
     private String allergies;
 
     // New fields for roommate preferences
@@ -60,14 +60,14 @@ public class Profile {
             String bio,
             Instant lastTimeActive,
             String profilePicUrl,
-            String smokingStatus,
-            String cleanlinessLevel,
-            String sleepSchedule,
-            String guestFrequency,
-            String hasPets,
-            String noiseLevel,
-            String sharingCommonItems,
-            String dietaryPreference,
+            int smokingStatus,
+            int cleanlinessLevel,
+            int sleepSchedule,
+            int guestFrequency,
+            int hasPets,
+            int noiseLevel,
+            int sharingCommonItems,
+            int dietaryPreference,
             String allergies,
             String roommateSmokingPreference,
             String roommateCleanlinessLevel,
@@ -163,35 +163,35 @@ public class Profile {
     }
 
     // Getters for user's own traits
-    public String getSmokingStatus() {
+    public int getSmokingStatus() {
         return smokingStatus;
     }
 
-    public String getCleanlinessLevel() {
+    public int getCleanlinessLevel() {
         return cleanlinessLevel;
     }
 
-    public String getSleepSchedule() {
+    public int getSleepSchedule() {
         return sleepSchedule;
     }
 
-    public String getGuestFrequency() {
+    public int getGuestFrequency() {
         return guestFrequency;
     }
 
-    public String getHasPets() {
+    public int getHasPets() {
         return hasPets;
     }
 
-    public String getNoiseLevel() {
+    public int getNoiseLevel() {
         return noiseLevel;
     }
 
-    public String getSharingCommonItems() {
+    public int getSharingCommonItems() {
         return sharingCommonItems;
     }
 
-    public String getDietaryPreference() {
+    public int getDietaryPreference() {
         return dietaryPreference;
     }
 

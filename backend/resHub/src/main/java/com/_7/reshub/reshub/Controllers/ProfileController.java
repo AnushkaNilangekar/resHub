@@ -108,22 +108,14 @@ public class ProfileController {
                 .s(request.getBio() != null ? request.getBio() : "")
                 .build());
 
-        item.put("smokingStatus", AttributeValue.builder()
-                .s(request.getSmokingStatus() != null ? request.getSmokingStatus() : "").build());
-        item.put("cleanlinessLevel", AttributeValue.builder()
-                .s(request.getCleanlinessLevel() != null ? request.getCleanlinessLevel() : "").build());
-        item.put("sleepSchedule", AttributeValue.builder()
-                .s(request.getSleepSchedule() != null ? request.getSleepSchedule() : "").build());
-        item.put("guestFrequency", AttributeValue.builder()
-                .s(request.getGuestFrequency() != null ? request.getGuestFrequency() : "").build());
-        item.put("hasPets",
-                AttributeValue.builder().s(request.getHasPets() != null ? request.getHasPets() : "").build());
-        item.put("noiseLevel",
-                AttributeValue.builder().s(request.getNoiseLevel() != null ? request.getNoiseLevel() : "").build());
-        item.put("sharingCommonItems", AttributeValue.builder()
-                .s(request.getSharingCommonItems() != null ? request.getSharingCommonItems() : "").build());
-        item.put("dietaryPreference", AttributeValue.builder()
-                .s(request.getDietaryPreference() != null ? request.getDietaryPreference() : "").build());
+        item.put("smokingStatus", AttributeValue.builder().n(String.valueOf(request.getSmokingStatus())).build());
+        item.put("cleanlinessLevel", AttributeValue.builder().n(String.valueOf(request.getCleanlinessLevel())).build());
+        item.put("sleepSchedule", AttributeValue.builder().n(String.valueOf(request.getSleepSchedule())).build());
+        item.put("guestFrequency", AttributeValue.builder().n(String.valueOf(request.getGuestFrequency())).build());
+        item.put("hasPets", AttributeValue.builder().n(String.valueOf(request.getHasPets())).build());
+        item.put("noiseLevel", AttributeValue.builder().n(String.valueOf(request.getNoiseLevel())).build());
+        item.put("sharingCommonItems", AttributeValue.builder().n(String.valueOf(request.getSharingCommonItems())).build());
+        item.put("dietaryPreference", AttributeValue.builder().n(String.valueOf(request.getDietaryPreference())).build());
         item.put("allergies",
                 AttributeValue.builder().s(request.getAllergies() != null ? request.getAllergies() : "").build());
         item.put("roommateSmokingPreference",

@@ -10,6 +10,7 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/colors.js';
+import { preferenceOptions } from '../constants/preferences';
 
 const { height, width } = Dimensions.get('window');
 
@@ -416,14 +417,14 @@ const SwipeScreen = () => {
                                   <Ionicons name="flame-outline" size={18} color={colors.accent1} />
                                   <Text style={styles.preferenceLabel}>Smoking:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.smokingStatus || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.smoking[card.smokingStatus] || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
                                   <Ionicons name="sparkles-outline" size={18} color={colors.accent2} />
                                   <Text style={styles.preferenceLabel}>Cleanliness:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.cleanlinessLevel || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.cleanliness[card.cleanlinessLevel] || "N/A"}</Text>
                                 {/* Add progress bar for visual indication */}
                                 <View style={styles.progressBarContainer}>
                                   <View 
@@ -440,7 +441,7 @@ const SwipeScreen = () => {
                                   <Ionicons name="volume-high-outline" size={18} color={colors.accent3} />
                                   <Text style={styles.preferenceLabel}>Noise:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.noiseLevel || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.noise[card.noiseLevel] || "N/A"}</Text>
                                 {/* Add progress bar for visual indication */}
                                 <View style={styles.progressBarContainer}>
                                   <View 
@@ -457,35 +458,35 @@ const SwipeScreen = () => {
                                   <Ionicons name="people-outline" size={18} color={colors.accent4} />
                                   <Text style={styles.preferenceLabel}>Sharing:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sharingCommonItems || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.sharing[card.sharingCommonItems] || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
                                   <Ionicons name="restaurant-outline" size={18} color={colors.primaryLight} />
                                   <Text style={styles.preferenceLabel}>Diet:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.dietaryPreference || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.diet[card.dietaryPreference] || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
                                   <Ionicons name="moon-outline" size={18} color={colors.primary} />
                                   <Text style={styles.preferenceLabel}>Sleep:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.sleepSchedule || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.sleep[card.sleepSchedule] || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
                                   <Ionicons name="paw-outline" size={18} color={colors.accent1} />
                                   <Text style={styles.preferenceLabel}>Pets:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.hasPets || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.pet[card.hasPets] || "N/A"}</Text>
                               </View>
                               <View style={styles.preferenceItem}>
                                 <View style={styles.preferenceHeader}>
                                   <Ionicons name="person-add-outline" size={18} color={colors.accent2} />
                                   <Text style={styles.preferenceLabel}>Guests:</Text>
                                 </View>
-                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{card.guestFrequency || "N/A"}</Text>
+                                <Text style={styles.preferenceValue} numberOfLines={1} ellipsizeMode="tail">{preferenceOptions.guest[card.guestFrequency] || "N/A"}</Text>
                               </View>
                             </View>
                           </View>
@@ -565,16 +566,16 @@ const SwipeScreen = () => {
 
 const getCleanlinessPercentage = (level) => {
   switch (level) {
-    case 'Very Clean':
-      return '100%';
-    case 'Clean':
-      return '75%';
-    case 'Average':
-      return '50%';
-    case 'Relaxed':
+    case 0:
+      return '0%';
+    case 1:
       return '25%';
-    case 'Messy':
-      return '10%';
+    case 2:
+      return '50%';
+    case 3:
+      return '75%';
+    case 4:
+      return '100%';
     default:
       return '0%';
   }
@@ -582,15 +583,11 @@ const getCleanlinessPercentage = (level) => {
 
 const getNoisePercentage = (level) => {
   switch (level) {
-    case 'Very Quiet':
-      return '10%';
-    case 'Quiet':
-      return '25%';
-    case 'Moderate':
+    case 0:
+      return '0%';
+    case 1:
       return '50%';
-    case 'Loud':
-      return '75%';
-    case 'Very Loud':
+    case 2:
       return '100%';
     default:
       return '0%';

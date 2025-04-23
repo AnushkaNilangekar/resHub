@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
+import { preferenceOptions } from '../constants/preferences';
 
 const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -116,15 +117,15 @@ const SettingsScreen = ({ navigation }) => {
       };   
 
     // Personal Traits States
-    const [smokingStatus, setSmokingStatus] = useState('');
-    const [cleanlinessLevel, setCleanlinessLevel] = useState('');
-    const [sleepSchedule, setSleepSchedule] = useState('');
-    const [guestFrequency, setGuestFrequency] = useState('');
-    const [hasPets, setHasPets] = useState('');
-    const [noiseLevel, setNoiseLevel] = useState('');
-    const [sharingCommonItems, setSharingCommonItems] = useState('');
-    const [dietaryPreference, setDietaryPreference] = useState('');
-    const [allergies, setAllergies] = useState('');
+    const [smokingStatus, setSmokingStatus] = useState(-1);
+    const [cleanlinessLevel, setCleanlinessLevel] = useState(-1);
+    const [sleepSchedule, setSleepSchedule] = useState(-1);
+    const [guestFrequency, setGuestFrequency] = useState(-1);
+    const [hasPets, setHasPets] = useState(-1);
+    const [noiseLevel, setNoiseLevel] = useState(-1);
+    const [sharingCommonItems, setSharingCommonItems] = useState(-1);
+    const [dietaryPreference, setDietaryPreference] = useState(-1);
+    const [allergies, setAllergies] = useState(-1);
 
     // Roommate Preferences States
     const [roommateSmokingPreference, setRoommateSmokingPreference] = useState('');
@@ -140,11 +141,30 @@ const SettingsScreen = ({ navigation }) => {
     const [blockedUsers, setBlockedUsers] = useState([]);
     const [reportedChats, setReportedChats] = useState([]);
 
+    const preferenceConfigs = [
+        { key: 'smoking', label: 'SMOKING STATUS', value: smokingStatus, setter: setSmokingStatus, placeholder: 'Enter smoking preference', icon: 'flame-outline' },
+        { key: 'cleanliness', label: 'CLEANLINESS LEVEL', value: cleanlinessLevel, setter: setCleanlinessLevel, placeholder: 'Enter cleanliness preference', icon: 'sparkles-outline' },
+        { key: 'sleep', label: 'SLEEP SCHEDULE', value: sleepSchedule, setter: setSleepSchedule, placeholder: 'Enter sleep preference', icon: 'moon-outline' },
+        { key: 'guest', label: 'GUEST FREQUENCY', value: guestFrequency, setter: setGuestFrequency, placeholder: 'Enter guest preference', icon: 'people-outline' },
+        { key: 'pet', label: 'DO YOU OWN PETS', value: hasPets, setter: setHasPets, placeholder: 'Enter pet preference', icon: 'paw-outline' },
+        { key: 'noise', label: 'NOISE LEVEL', value: noiseLevel, setter: setNoiseLevel, placeholder: 'Enter noise preference', icon: 'volume-high-outline' },
+        { key: 'sharing', label: 'SHARING COMMON ITEMS', value: sharingCommonItems, setter: setSharingCommonItems, placeholder: 'Enter sharing items preference', icon: 'share-outline' },
+        { key: 'diet', label: 'DIETARY PREFERENCE', value: dietaryPreference, setter: setDietaryPreference, placeholder: 'Enter dietary preference', icon: 'restaurant-outline' },
+    ];
+
     useEffect(() => {
         fetchUserProfile();
         fetchBlockedUsers();
         //fetchReportedChats();
     }, []);
+
+    const handlePreferenceChange = (key, setter) => (selectedLabel) => {
+        const options = preferenceOptions[key];
+        const index = options.indexOf(selectedLabel);
+        if (index !== -1) {
+            setter(index);
+        }
+    };
 
     const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false, icon }) => (
         <View style={styles.inputContainer}>
@@ -187,17 +207,17 @@ const SettingsScreen = ({ navigation }) => {
             setResidence(profile.residence || '');
             setBio(profile.bio || '');
             setHobbies(profile.hobbies || []); 
-
+ 
             // Set personal traits
-            setSmokingStatus(profile.smokingStatus || '');
-            setCleanlinessLevel(profile.cleanlinessLevel || '');
-            setSleepSchedule(profile.sleepSchedule || '');
-            setGuestFrequency(profile.guestFrequency || '');
-            setHasPets(profile.hasPets || '');
-            setNoiseLevel(profile.noiseLevel || '');
-            setSharingCommonItems(profile.sharingCommonItems || '');
-            setDietaryPreference(profile.dietaryPreference || '');
-            setAllergies(profile.allergies || '');
+            setSmokingStatus(profile.smokingStatus ?? -1);
+            setCleanlinessLevel(profile.cleanlinessLevel ?? -1);
+            setSleepSchedule(profile.sleepSchedule ?? -1);
+            setGuestFrequency(profile.guestFrequency ?? -1);
+            setHasPets(profile.hasPets ?? -1);
+            setNoiseLevel(profile.noiseLevel ?? -1);
+            setSharingCommonItems(profile.sharingCommonItems ?? -1);
+            setDietaryPreference(profile.dietaryPreference ?? -1);
+            setAllergies(profile.allergies ?? '');            
 
             // Set roommate preferences
             setRoommateSmokingPreference(profile.roommateSmokingPreference || '');
@@ -560,64 +580,21 @@ const SettingsScreen = ({ navigation }) => {
                             <Ionicons name="options" size={22} color="#FFFFFF" />
                             <Text style={styles.sectionTitle}>Personal Traits</Text>
                         </View>
-                        <CustomDropdown 
-                            label="Smoking Status"
-                            selectedValue={smokingStatus}
-                            onValueChange={setSmokingStatus}
-                            options={['Non-Smoker', 'Smoker']}
-                            icon="flame-outline"
-                        />
-                        <CustomDropdown 
-                            label="Cleanliness Level"
-                            selectedValue={cleanlinessLevel}
-                            onValueChange={setCleanlinessLevel}
-                            options={['Very Clean', 'Moderate', 'Messy']}
-                            icon="sparkles-outline"
-                        />
-                        <CustomDropdown 
-                            label="Sleep Schedule"
-                            selectedValue={sleepSchedule}
-                            onValueChange={setSleepSchedule}
-                            options={['Early Bird', 'Night Owl', 'Flexible']}
-                            icon="moon-outline"
-                        />
-                        <CustomDropdown 
-                            label="Guest Frequency"
-                            selectedValue={guestFrequency}
-                            onValueChange={setGuestFrequency}
-                            options={['Rarely', 'Occasionally', 'Frequently']}
-                            icon="people-outline"
-                        />
-                        <CustomDropdown 
-                            label="Do you own pets?"
-                            selectedValue={hasPets}
-                            onValueChange={setHasPets}
-                            options={['Yes', 'No', 'Might']}
-                            icon="paw-outline"
-                        />
-                        <CustomDropdown 
-                            label="Noise Level"
-                            selectedValue={noiseLevel}
-                            onValueChange={setNoiseLevel}
-                            options={['Quiet', 'Moderate Noise', 'Loud Environment']}
-                            icon="volume-high-outline"
-                        />
-                        <CustomDropdown 
-                            label="Sharing Common Items"
-                            selectedValue={sharingCommonItems}
-                            onValueChange={setSharingCommonItems}
-                            options={['Strictly Separate', 'Willing to Share', 'Flexible']}
-                            icon="share-outline"
-                        />
-                        <CustomDropdown 
-                            label="Dietary Preference"
-                            selectedValue={dietaryPreference}
-                            onValueChange={setDietaryPreference}
-                            options={['Vegetarian', 'Vegan', 'Allergies', 'No Restrictions', 'Other']}
-                            icon="restaurant-outline"
-                        />
+
+                        {preferenceConfigs.map(({ key, label, value, setter, placeholder, icon }) => (
+                            <CustomDropdown
+                                key={key}
+                                label={label}
+                                selectedValue={preferenceOptions[key][value] || ''}
+                                onValueChange={handlePreferenceChange(key, setter)}
+                                options={preferenceOptions[key]}
+                                placeholder={placeholder}
+                                icon={icon}
+                            />
+                        ))}
+
                         <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Allergies</Text>
+                            <Text style={styles.inputLabel}>Allergies</Text>
                         <View style={[
                             styles.inputWrapper,
                             focusedInput === 'allergies' && styles.inputWrapperFocused
@@ -690,7 +667,7 @@ const SettingsScreen = ({ navigation }) => {
                             label="Roommate Noise Tolerance"
                             selectedValue={roommateNoiseTolerance}
                             onValueChange={setRoommateNoiseTolerance}
-                            options={['Quiet', 'Moderate Noise', 'Loud Environment']}
+                            options={['Quiet', 'Moderate', 'Loud Environment']}
                             icon="volume-high-outline"
                         />
                         <CustomDropdown 

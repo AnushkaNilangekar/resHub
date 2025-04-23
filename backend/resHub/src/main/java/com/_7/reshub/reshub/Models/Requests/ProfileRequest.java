@@ -22,14 +22,14 @@ public class ProfileRequest {
     private String profilePicUrl; // Profile Picture (upload)
 
     // New fields for user's own traits
-    private String smokingStatus;
-    private String cleanlinessLevel;
-    private String sleepSchedule;
-    private String guestFrequency;
-    private String hasPets;
-    private String noiseLevel;
-    private String sharingCommonItems;
-    private String dietaryPreference;
+    private int smokingStatus;
+    private int cleanlinessLevel;
+    private int sleepSchedule;
+    private int guestFrequency;
+    private int hasPets;
+    private int noiseLevel;
+    private int sharingCommonItems;
+    private int dietaryPreference;
     private String allergies;
     // New fields for roommate preferences
     private String roommateSmokingPreference;
@@ -91,35 +91,35 @@ public class ProfileRequest {
         return profilePicUrl;
     }
 
-    public String getSmokingStatus() {
+    public int getSmokingStatus() {
         return smokingStatus;
     }
 
-    public String getCleanlinessLevel() {
+    public int getCleanlinessLevel() {
         return cleanlinessLevel;
     }
 
-    public String getSleepSchedule() {
+    public int getSleepSchedule() {
         return sleepSchedule;
     }
 
-    public String getGuestFrequency() {
+    public int getGuestFrequency() {
         return guestFrequency;
     }
 
-    public String getHasPets() {
+    public int getHasPets() {
         return hasPets;
     }
 
-    public String getNoiseLevel() {
+    public int getNoiseLevel() {
         return noiseLevel;
     }
 
-    public String getSharingCommonItems() {
+    public int getSharingCommonItems() {
         return sharingCommonItems;
     }
 
-    public String getDietaryPreference() {
+    public int getDietaryPreference() {
         return dietaryPreference;
     }
 
@@ -207,35 +207,35 @@ public class ProfileRequest {
         this.profilePicUrl = profilePicUrl;
     }
 
-    public void setSmokingStatus(String smokingStatus) {
+    public void setSmokingStatus(int smokingStatus) {
         this.smokingStatus = smokingStatus;
     }
 
-    public void setCleanlinessLevel(String cleanlinessLevel) {
+    public void setCleanlinessLevel(int cleanlinessLevel) {
         this.cleanlinessLevel = cleanlinessLevel;
     }
 
-    public void setSleepSchedule(String sleepSchedule) {
+    public void setSleepSchedule(int sleepSchedule) {
         this.sleepSchedule = sleepSchedule;
     }
 
-    public void setGuestFrequency(String guestFrequency) {
+    public void setGuestFrequency(int guestFrequency) {
         this.guestFrequency = guestFrequency;
     }
 
-    public void setHasPets(String hasPets) {
+    public void setHasPets(int hasPets) {
         this.hasPets = hasPets;
     }
 
-    public void setNoiseLevel(String noiseLevel) {
+    public void setNoiseLevel(int noiseLevel) {
         this.noiseLevel = noiseLevel;
     }
 
-    public void setSharingCommonItems(String sharingCommonItems) {
+    public void setSharingCommonItems(int sharingCommonItems) {
         this.sharingCommonItems = sharingCommonItems;
     }
 
-    public void setDietaryPreference(String dietaryPreference) {
+    public void setDietaryPreference(int dietaryPreference) {
         this.dietaryPreference = dietaryPreference;
     }
 

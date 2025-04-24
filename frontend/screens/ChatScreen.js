@@ -146,6 +146,22 @@ const ChatScreen = () => {
 
   }
 
+  const confirmUnmatch = (chatId, otherUserId) => {
+    // First confirmation alert
+    Alert.alert(
+      "Unmatch User",
+      "Are you sure you want to unmatch? This will remove your connection.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unmatch",
+          style: "destructive",
+          onPress: () => handleUnmatch(chatId, otherUserId)
+        }
+      ]
+    );
+  };
+
   const handleUnmatch = async (chatId, otherUserId) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -329,7 +345,7 @@ const ChatScreen = () => {
                 <View style={styles.hiddenItemContainer}>
                   <TouchableOpacity
                     style={styles.unmatchButton}
-                    onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
+                    onPress={() => confirmUnmatch(item.chatId, item.otherUserId)}
                   >
                     <View style={styles.unmatchIconContainer}>
                       <Ionicons name="trash-outline" size={24} color="#fff" />

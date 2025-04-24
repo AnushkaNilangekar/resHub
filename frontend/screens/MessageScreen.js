@@ -194,6 +194,21 @@ const MessageScreen = ({ route }) => {
       setIsBlocked(isBlocked);
   };
 
+  const confirmBlockUser = () => {
+    Alert.alert(
+      "Block User",
+      "Are you sure you want to block this user? You will no longer be able to send or receive messages.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: handleBlockUser
+        }
+      ]
+    );
+  };  
+
   const handleBlockUser = async () => {
     if (isBlocked) {
       Alert.alert('Already Blocked', 'You have already blocked this user.');
@@ -283,7 +298,7 @@ const MessageScreen = ({ route }) => {
           </View>
           <TouchableOpacity
             style={styles.blockButton}
-            onPress={handleBlockUser}
+            onPress={confirmBlockUser}
           >
             <Ionicons name="ban-outline" size={24} color="#fff" />
           </TouchableOpacity>

@@ -4,6 +4,8 @@ import com._7.reshub.reshub.Models.Requests.ProfileRequest;
 import com._7.reshub.reshub.Services.ProfileService;
 import com._7.reshub.reshub.Services.SwipeService;
 import com._7.reshub.reshub.Models.Profile;
+import com._7.reshub.reshub.Constants.Preferences;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -108,6 +111,7 @@ public class ProfileController {
                 .s(request.getBio() != null ? request.getBio() : "")
                 .build());
 
+        // User preferences
         item.put("smokingStatus", AttributeValue.builder().n(String.valueOf(request.getSmokingStatus())).build());
         item.put("cleanlinessLevel", AttributeValue.builder().n(String.valueOf(request.getCleanlinessLevel())).build());
         item.put("sleepSchedule", AttributeValue.builder().n(String.valueOf(request.getSleepSchedule())).build());
@@ -118,6 +122,34 @@ public class ProfileController {
         item.put("dietaryPreference", AttributeValue.builder().n(String.valueOf(request.getDietaryPreference())).build());
         item.put("allergies",
                 AttributeValue.builder().s(request.getAllergies() != null ? request.getAllergies() : "").build());
+
+        // Raw preference values
+        List<Integer> rawPrefs = Arrays.asList(
+                request.getSmokingStatus(),
+                request.getCleanlinessLevel(),
+                request.getSleepSchedule(),
+                request.getGuestFrequency(),
+                request.getHasPets(),
+                request.getNoiseLevel(),
+                request.getSharingCommonItems(),
+                request.getDietaryPreference()
+        );
+        
+        item.put("rawPrefs", AttributeValue.builder()
+            .l(rawPrefs.stream()
+            .map(i -> AttributeValue.builder().n(i.toString()).build())
+            .collect(Collectors.toList()))
+            .build());
+
+        // Normalized, weighted preference values
+        List<Double> normalizedWeightedPrefs = normalizeAndWeightPrefs(rawPrefs);
+        item.put("normalizedWeightedPrefs", AttributeValue.builder()
+                .l(normalizedWeightedPrefs.stream()
+                .map(d -> AttributeValue.builder().n(d.toString()).build())
+                .collect(Collectors.toList()))
+                .build());
+
+        // Preferences in roommate
         item.put("roommateSmokingPreference",
                 AttributeValue.builder()
                         .s(request.getRoommateSmokingPreference() != null ? request.getRoommateSmokingPreference() : "")
@@ -155,6 +187,56 @@ public class ProfileController {
         dynamoDbClient.putItem(putItemRequest);
 
         return ResponseEntity.ok("Profile created successfully");
+    }
+
+    private List<Double> normalizeAndWeightPrefs(List<Integer> rawPrefs) {
+        List<Double> normalizedWeightedPrefs = new ArrayList<>();
+        for (int i = 0; i < rawPrefs.size(); i++) {
+            int preference = rawPrefs.get(i);
+            double normalizedValue;
+            double weight;
+
+            switch (i) {
+                case 0: // SmokingStatus
+                    normalizedValue = preference / Preferences.SMOKING_STATUS_MAX;
+                    weight = Preferences.SMOKING_STATUS_WEIGHT;
+                    break;
+                case 1: // CleanlinessLevel
+                    normalizedValue = preference / Preferences.CLEANLINESS_LEVEL_MAX;
+                    weight = Preferences.CLEANLINESS_LEVEL_WEIGHT;
+                    break;
+                case 2: // SleepSchedule
+                    normalizedValue = preference / Preferences.SLEEP_SCHEDULE_MAX;
+                    weight = Preferences.SLEEP_SCHEDULE_WEIGHT;
+                    break;
+                case 3: // GuestFrequency
+                    normalizedValue = preference / Preferences.GUEST_FREQUENCY_MAX;
+                    weight = Preferences.GUEST_FREQUENCY_WEIGHT;
+                    break;
+                case 4: // HasPets
+                    normalizedValue = preference / Preferences.HAS_PETS_MAX;
+                    weight = Preferences.HAS_PETS_WEIGHT;
+                    break;
+                case 5: // NoiseLevel
+                    normalizedValue = preference / Preferences.NOISE_LEVEL_MAX;
+                    weight = Preferences.NOISE_LEVEL_WEIGHT;
+                    break;
+                case 6: // SharingCommonItems
+                    normalizedValue = preference / Preferences.SHARING_COMMON_ITEMS_MAX;
+                    weight = Preferences.SHARING_COMMON_ITEMS_WEIGHT;
+                    break;
+                case 7: // DietaryPreference
+                    normalizedValue = preference / Preferences.DIETARY_PREFERENCE_MAX;
+                    weight = Preferences.DIETARY_PREFERENCE_WEIGHT;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + i);
+            }
+
+            normalizedWeightedPrefs.add(normalizedValue * weight);
+        }
+
+        return normalizedWeightedPrefs;
     }
 
     /**
@@ -294,6 +376,24 @@ public class ProfileController {
             addAttribute(updateList, attributeValues, expressionAttributeNames, "dietaryPreference", request.getDietaryPreference());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "allergies", request.getAllergies());
 
+            // Raw preferences
+            List<Integer> rawPrefs = Arrays.asList(
+                request.getSmokingStatus(),
+                request.getCleanlinessLevel(),
+                request.getSleepSchedule(),
+                request.getGuestFrequency(),
+                request.getHasPets(),
+                request.getNoiseLevel(),
+                request.getSharingCommonItems(),
+                request.getDietaryPreference()
+            );
+
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "rawPrefs", rawPrefs);
+
+            // Normalized, weighted preference values
+            List<Double> normalizedWeightedPrefs = normalizeAndWeightPrefs(rawPrefs);
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "normalizedWeightedPrefs", normalizedWeightedPrefs);
+
             // Roommate Preferences
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSmokingPreference", request.getRoommateSmokingPreference());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateCleanlinessLevel", request.getRoommateCleanlinessLevel());
@@ -329,134 +429,192 @@ public class ProfileController {
         }
     }
      
-        //helper methods
+    //helper methods
+    @SuppressWarnings("unchecked")
     private void addAttribute(
-        List<String> updateList, 
-        Map<String, AttributeValue> attributeValues, 
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
         Map<String, String> expressionAttributeNames,
-        String fieldName, 
-        String value
-        ) {
+        String fieldName,
+        Object value
+    ) {
         if (value != null) {
-                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
-                
-                String attributeKey = ":" + cleanFieldName + "Value";
-                String expressionField = "#" + cleanFieldName;
-                
-                expressionAttributeNames.put(expressionField, cleanFieldName);
-                
-                updateList.add(expressionField + " = " + attributeKey);
-                attributeValues.put(attributeKey, AttributeValue.builder().s(value).build());
-        }
-        }
+            String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
 
-        private void addAttribute(
-        List<String> updateList, 
-        Map<String, AttributeValue> attributeValues, 
-        Map<String, String> expressionAttributeNames,
-        String fieldName, 
-        Integer value
-        ) {
-        if (value != null) {
-                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
-                
-                String attributeKey = ":" + cleanFieldName + "Value";
-                String expressionField = "#" + cleanFieldName;
-                
-                expressionAttributeNames.put(expressionField, cleanFieldName);
-                
-                updateList.add(expressionField + " = " + attributeKey);
-                attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
-        }
-        }
+            String attributeKey = ":" + cleanFieldName + "Value";
+            String expressionField = "#" + cleanFieldName;
 
-        @PutMapping("/updateProfilePic")
-        public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {
-        try {
-                String userId = payload.get("userId");
-                String profilePicUrl = payload.get("profilePicUrl");
+            expressionAttributeNames.put(expressionField, cleanFieldName);
+            updateList.add(expressionField + " = " + attributeKey);
 
-                if (userId == null || userId.trim().isEmpty() || profilePicUrl == null || profilePicUrl.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("User ID and Profile Picture URL are required");
+            AttributeValue attributeValue = null;
+
+            if (value instanceof String) {
+                attributeValue = AttributeValue.builder().s((String) value).build();
+            } else if (value instanceof Integer) {
+                attributeValue = AttributeValue.builder().n(value.toString()).build();
+            } else if (value instanceof Double) {
+                attributeValue = AttributeValue.builder().n(value.toString()).build();
+            } else if (value instanceof List) {
+                List<?> list = (List<?>) value;
+                if (!list.isEmpty()) {
+                    // Handle Integer list
+                    if (list.get(0) instanceof Integer) {
+                        List<AttributeValue> avList = ((List<Integer>) list).stream()
+                            .map(i -> AttributeValue.builder().n(i.toString()).build())
+                            .collect(Collectors.toList());
+                        attributeValue = AttributeValue.builder().l(avList).build();
+                    }
+                    // Handle Double list
+                    else if (list.get(0) instanceof Double) {
+                        List<AttributeValue> avList = ((List<Double>) list).stream()
+                            .map(d -> AttributeValue.builder().n(d.toString()).build())
+                            .collect(Collectors.toList());
+                        attributeValue = AttributeValue.builder().l(avList).build();
+                    }
+                    // Handle String list (unchanged)
+                    else if (list.get(0) instanceof String) {
+                        List<AttributeValue> avList = ((List<String>) list).stream()
+                            .map(s -> AttributeValue.builder().s(s).build())
+                            .collect(Collectors.toList());
+                        attributeValue = AttributeValue.builder().l(avList).build();
+                    }
                 }
+            }
 
-                Map<String, AttributeValue> key = new HashMap<>();
-                key.put("userId", AttributeValue.builder().s(userId).build());
+            if (attributeValue != null) {
+                attributeValues.put(attributeKey, attributeValue);
+            }
+        }
+    }
 
-                GetItemRequest getItemRequest = GetItemRequest.builder()
+    // private void addAttribute(
+    //     List<String> updateList, 
+    //     Map<String, AttributeValue> attributeValues, 
+    //     Map<String, String> expressionAttributeNames,
+    //     String fieldName, 
+    //     String value
+    // ) {
+    //     if (value != null) {
+    //         String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+            
+    //         String attributeKey = ":" + cleanFieldName + "Value";
+    //         String expressionField = "#" + cleanFieldName;
+            
+    //         expressionAttributeNames.put(expressionField, cleanFieldName);
+            
+    //         updateList.add(expressionField + " = " + attributeKey);
+    //         attributeValues.put(attributeKey, AttributeValue.builder().s(value).build());
+    //     }
+    // }
+
+    // private void addAttribute(
+    //     List<String> updateList, 
+    //     Map<String, AttributeValue> attributeValues, 
+    //     Map<String, String> expressionAttributeNames,
+    //     String fieldName, 
+    //     Integer value
+    // ) {
+    //     if (value != null) {
+    //         String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+            
+    //         String attributeKey = ":" + cleanFieldName + "Value";
+    //         String expressionField = "#" + cleanFieldName;
+            
+    //         expressionAttributeNames.put(expressionField, cleanFieldName);
+            
+    //         updateList.add(expressionField + " = " + attributeKey);
+    //         attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+    //     }
+    // }
+
+    @PutMapping("/updateProfilePic")
+    public ResponseEntity<?> updateProfilePic(@RequestBody Map<String, String> payload) {
+        try {
+            String userId = payload.get("userId");
+            String profilePicUrl = payload.get("profilePicUrl");
+
+            if (userId == null || userId.trim().isEmpty() || profilePicUrl == null || profilePicUrl.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("User ID and Profile Picture URL are required");
+            }
+
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("userId", AttributeValue.builder().s(userId).build());
+
+            GetItemRequest getItemRequest = GetItemRequest.builder()
                 .tableName("profiles")
                 .key(key)
                 .build();
-                GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+            GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
 
-                if (!getItemResponse.hasItem()) {
+            if (!getItemResponse.hasItem()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
-                }
+            }
 
-                Map<String, AttributeValue> attributeValues = new HashMap<>();
-                attributeValues.put(":profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
+            Map<String, AttributeValue> attributeValues = new HashMap<>();
+            attributeValues.put(":profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
 
-                UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+            UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
                 .tableName("profiles")
                 .key(key)
                 .updateExpression("SET profilePicUrl = :profilePicUrl")
                 .expressionAttributeValues(attributeValues)
                 .build();
 
-                dynamoDbClient.updateItem(updateItemRequest);
+            dynamoDbClient.updateItem(updateItemRequest);
 
-                return ResponseEntity.ok("Profile picture updated successfully");
+            return ResponseEntity.ok("Profile picture updated successfully");
         } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
         }
-        }
-
-        /**
- * DELETE endpoint to remove a user's profile from the database.
- * 
- * @param userId The ID of the user whose profile should be deleted
- * @return HTTP 200 if deletion is successful, HTTP 404 if profile not found, or HTTP 500 if an error occurs
- */
-@DeleteMapping("/deleteProfile")
-public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
-    try {
-        // Build the key for the DynamoDB query
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put("userId", AttributeValue.builder().s(userId).build());
-
-        // Check if the profile exists
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-            .tableName("profiles")
-            .key(key)
-            .build();
-        GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
-
-        if (!getItemResponse.hasItem()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Profile not found for userId: " + userId));
-        }
-
-        // Delete the profile
-        DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
-            .tableName("profiles")
-            .key(key)
-            .build();
-        
-        dynamoDbClient.deleteItem(deleteItemRequest);
-
-        return ResponseEntity.ok(Map.of("message", "Profile deleted successfully"));
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", e.getMessage()));
     }
-}
+
+    /**
+     * DELETE endpoint to remove a user's profile from the database.
+     * 
+     * @param userId The ID of the user whose profile should be deleted
+     * @return HTTP 200 if deletion is successful, HTTP 404 if profile not found, or HTTP 500 if an error occurs
+     */
+    @DeleteMapping("/deleteProfile")
+    public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
+        try {
+            // Build the key for the DynamoDB query
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("userId", AttributeValue.builder().s(userId).build());
+
+            // Check if the profile exists
+            GetItemRequest getItemRequest = GetItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .build();
+            GetItemResponse getItemResponse = dynamoDbClient.getItem(getItemRequest);
+
+            if (!getItemResponse.hasItem()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Profile not found for userId: " + userId));
+            }
+
+            // Delete the profile
+            DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .build();
+            
+            dynamoDbClient.deleteItem(deleteItemRequest);
+
+            return ResponseEntity.ok(Map.of("message", "Profile deleted successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 
         
-        @GetMapping("/getBlockedUsers")
-        public ResponseEntity<List<String>> getBlockedUsers(@RequestParam String userId) {
+    @GetMapping("/getBlockedUsers")
+    public ResponseEntity<List<String>> getBlockedUsers(@RequestParam String userId) {
         try {
                 List<String> blockedUsers = profileService.doGetBlockedUserNames(userId);
                 return ResponseEntity.ok(blockedUsers);
@@ -464,10 +622,10 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
                 logger.error("Error fetching blocked users for userId: {}", userId, e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
-        }
+    }
 
-        @GetMapping("/isBlocked")
-        public ResponseEntity<Boolean> isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
+    @GetMapping("/isBlocked")
+    public ResponseEntity<Boolean> isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
         try {
                 boolean isBlocked = profileService.isUserBlocked(blockerId, blockedId);
                 return ResponseEntity.ok(isBlocked);
@@ -475,23 +633,23 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
                 logger.error("Error checking if user {} is blocked by {}", blockedId, blockerId, e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
-        }
+    }
 
-        /*@GetMapping("/isBlocked")
-        public boolean isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
-                try {
-                ResponseEntity<List<String>> response = getBlockedUsers(blockerId);
-                List<String> blockedUsers = response.getBody();
-                System.out.println(blockedUsers.contains(blockedId););
-                return blockedUsers.contains(blockedId);
-                } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-                }
-        }*/
+    /*@GetMapping("/isBlocked")
+    public boolean isBlocked(@RequestParam String blockerId, @RequestParam String blockedId) {
+            try {
+            ResponseEntity<List<String>> response = getBlockedUsers(blockerId);
+            List<String> blockedUsers = response.getBody();
+            System.out.println(blockedUsers.contains(blockedId););
+            return blockedUsers.contains(blockedId);
+            } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+            }
+    }*/
 
-        @PostMapping("/blockUser")
-        public ResponseEntity<?> blockUser(@RequestBody Map<String, String> requestBody) {
+    @PostMapping("/blockUser")
+    public ResponseEntity<?> blockUser(@RequestBody Map<String, String> requestBody) {
         String blockerId = requestBody.get("blockerId");
         String blockedId = requestBody.get("blockedId");
 
@@ -506,16 +664,16 @@ public ResponseEntity<?> deleteProfile(@RequestParam String userId) {
                 e.printStackTrace();
                 return ResponseEntity.badRequest().body("Failed to block user: " + e.getMessage());
         }
-        }
+    }
 
-        /*@GetMapping("/getReportedChats")
-        public List<String> getReportedChats(@RequestParam String userId) {
-                try {
-                List<String> reportedChats = chatService.doGetReportedChats(userId);
-                return reportedChats;
-                } catch (Exception e) {
-                e.printStackTrace();
-                return List.of("Error: " + e.getMessage());
-                }
-        }*/
+    /*@GetMapping("/getReportedChats")
+    public List<String> getReportedChats(@RequestParam String userId) {
+            try {
+            List<String> reportedChats = chatService.doGetReportedChats(userId);
+            return reportedChats;
+            } catch (Exception e) {
+            e.printStackTrace();
+            return List.of("Error: " + e.getMessage());
+            }
+    }*/
 }

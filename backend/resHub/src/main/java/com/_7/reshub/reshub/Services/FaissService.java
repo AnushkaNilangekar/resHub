@@ -17,7 +17,7 @@ public class FaissService {
     @Value("${faiss.api.url}")
     private String BASE_URL;
 
-    public String doAddUserVector(int userId, List<Float> vector) {
+    public String doAddUserVector(String userId, List<Double> vector) {
         Map<String, Object> payload = Map.of(
             "user_id", userId,
             "vector", vector

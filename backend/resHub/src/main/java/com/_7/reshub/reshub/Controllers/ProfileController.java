@@ -1,6 +1,7 @@
 package com._7.reshub.reshub.Controllers;
 
 import com._7.reshub.reshub.Models.Requests.ProfileRequest;
+import com._7.reshub.reshub.Services.FaissService;
 import com._7.reshub.reshub.Services.ProfileService;
 import com._7.reshub.reshub.Services.SwipeService;
 import com._7.reshub.reshub.Models.Profile;
@@ -38,6 +39,9 @@ public class ProfileController {
 
     @Autowired
     private SwipeService swipeService;
+
+    @Autowired
+    private FaissService faissService;
 
     /*
      * GET endpoint to retrieve information for a given user.
@@ -87,9 +91,11 @@ public class ProfileController {
             return ResponseEntity.badRequest().body("Email must end with .edu");
         }
 
+        String userId = request.getUserId();
+
         // Build the DynamoDB item.
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("userId", AttributeValue.builder().s(request.getUserId()).build());
+        item.put("userId", AttributeValue.builder().s(userId).build());
         item.put("email", AttributeValue.builder().s(request.getEmail()).build());
         item.put("fullName", AttributeValue.builder().s(request.getFullName()).build());
         item.put("gender", AttributeValue.builder().s(request.getGender()).build());
@@ -185,6 +191,9 @@ public class ProfileController {
                 .item(item)
                 .build();
         dynamoDbClient.putItem(putItemRequest);
+
+        // Add profile to FAISS
+        faissService.doAddUserVector(userId, normalizedWeightedPrefs);
 
         return ResponseEntity.ok("Profile created successfully");
     }

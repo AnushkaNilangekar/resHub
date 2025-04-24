@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@Service
 public class FaissService {
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -23,7 +25,11 @@ public class FaissService {
         return restTemplate.postForObject(BASE_URL + "/add_user_vector", payload, String.class);
     }
 
-    public QueryMatchesResponse doQueryMatches(List<Float> vector, int topK) {
+    public String doSyncAllUserVectors(Map<String, Object> payload) {
+        return restTemplate.postForObject(BASE_URL + "/load_all_user_vectors", payload, String.class);
+    }
+
+    public QueryMatchesResponse doQueryMatches(List<Double> vector, int topK) {
         Map<String, Object> payload = Map.of(
             "vector", vector,
             "top_k", topK

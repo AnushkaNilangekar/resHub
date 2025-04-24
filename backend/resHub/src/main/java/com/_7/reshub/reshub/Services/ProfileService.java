@@ -1,16 +1,22 @@
 package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
+
 import com._7.reshub.reshub.Models.Profile;
 import com._7.reshub.reshub.Models.ProfileMetadata;
+import com._7.reshub.reshub.Models.QueryMatchesResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
@@ -18,8 +24,10 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,6 +42,9 @@ public class ProfileService {
 
     @Autowired
     private SwipeService swipeService;
+
+    @Autowired
+    private FaissService faissService;
 
     /*
      * Handles retrieving information for the given user id and returns a Profile
@@ -59,27 +70,120 @@ public class ProfileService {
         return null;
     }
 
-    public List<Profile> doGetProfiles(String userId, String genderFilter, boolean filterOutSwipedOn) {
-        // Fetch blocked users list
-        List<String> blockedUsers = doGetBlockedUsers(userId);
+    // public List<Profile> doGetProfiles(String userId, String genderFilter, boolean filterOutSwipedOn) {
+    //     // Fetch blocked users list
+    //     List<String> blockedUsers = doGetBlockedUsers(userId);
         
-        // Scan request to fetch profiles from DynamoDB
-        ScanRequest scanRequest = ScanRequest.builder()
-            .tableName(dynamoDbConfig.getUserProfilesTableName())
-            .build();
-        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+    //     // Scan request to fetch profiles from DynamoDB
+    //     ScanRequest scanRequest = ScanRequest.builder()
+    //         .tableName(dynamoDbConfig.getUserProfilesTableName())
+    //         .build();
+    //     ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
         
-        // Convert DynamoDB items to Profile object and filter by gender and exclude logged-in user
-        List<Profile> profiles = scanResponse.items().stream()
-            .filter(item -> !item.get("userId").s().equals(userId))
-            .filter(item -> !blockedUsers.contains(item.get("userId").s()))
-            .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
-                    (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
-            .map(this::convertDynamoItemToProfile)
-            .collect(Collectors.toList());
+    //     // Convert DynamoDB items to Profile object and filter by gender and exclude logged-in user
+    //     List<Profile> profiles = scanResponse.items().stream()
+    //         .filter(item -> !item.get("userId").s().equals(userId))
+    //         .filter(item -> !blockedUsers.contains(item.get("userId").s()))
+    //         .filter(item -> "All".equalsIgnoreCase(genderFilter) || 
+    //                 (item.containsKey("gender") && item.get("gender").s().equalsIgnoreCase(genderFilter)))
+    //         .map(this::convertDynamoItemToProfile)
+    //         .collect(Collectors.toList());
     
-        return profiles;
+    //     return profiles;
+    // }
+
+    // TODO: Cache user vector in AsyncStorage on signup, login, and profile edit so we dont have to refetch every time?
+    private List<Double> getUserVector(String userId) {
+        GetItemRequest request = GetItemRequest.builder()
+            .tableName(dynamoDbConfig.getUserProfilesTableName())
+            .key(Map.of("userId", AttributeValue.builder().s(userId).build()))
+            .attributesToGet("normalizedWeightedPrefs") // Adjust if stored under a different key
+            .build();
+    
+        Map<String, AttributeValue> item = dynamoDbClient.getItem(request).item();
+    
+        if (item == null || !item.containsKey("normalizedWeightedPrefs")) {
+            return null;
+        }
+    
+        // Assuming the vector is stored as a list of numbers in a string set or list
+        List<AttributeValue> vectorValues = item.get("normalizedWeightedPrefs").l();
+    
+        return vectorValues.stream()
+            .map(attr -> Double.parseDouble(attr.n()))
+            .collect(Collectors.toList());
+    }    
+
+    public List<Profile> doGetProfiles(String userId, String genderFilter, boolean filterOutSwipedOn) {
+        List<String> blockedUsers = doGetBlockedUsers(userId);
+
+        List<Double> userVector = getUserVector(userId);
+
+        if (userVector == null || userVector.isEmpty()) {
+            return List.of();
+        }
+
+        // Query FAISS for top 100 matches
+        QueryMatchesResponse matchesResponse = faissService.doQueryMatches(userVector, 10);
+        List<String> topUserIds = matchesResponse.getUserIds();
+
+        // No matches found
+        if (topUserIds == null || topUserIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> filteredUserIds = topUserIds.stream()
+            .filter(id -> id != null)
+            .collect(Collectors.toList());
+
+        // No filtered matches found
+        if (filteredUserIds == null || filteredUserIds.isEmpty()) {
+            return List.of();
+        }
+        
+        // Convert to DynamoDB key format
+        List<Map<String, AttributeValue>> keys = filteredUserIds.stream()
+            .map(id -> Map.of("userId", AttributeValue.builder().s(String.valueOf(id)).build()))
+            .collect(Collectors.toList());
+
+        // Prepare BatchGetItemRequest
+        KeysAndAttributes keysAndAttributes = KeysAndAttributes.builder()
+            .keys(keys)
+            .build();
+
+        Map<String, KeysAndAttributes> requestItems = Map.of(
+            dynamoDbConfig.getUserProfilesTableName(), keysAndAttributes
+        );
+
+        BatchGetItemRequest batchRequest = BatchGetItemRequest.builder()
+            .requestItems(requestItems)
+            .build();
+
+        BatchGetItemResponse batchResponse = dynamoDbClient.batchGetItem(batchRequest);
+
+        List<Map<String, AttributeValue>> items = batchResponse.responses()
+            .get(dynamoDbConfig.getUserProfilesTableName());
+
+        // Filter by gender, self, and blocked users
+        Map<String, Profile> profileMap = items.stream()
+            .filter(item -> {
+                String id = item.get("userId").s();
+                return !id.equals(userId)
+                    && !blockedUsers.contains(id)
+                    && ("All".equalsIgnoreCase(genderFilter) ||
+                        (item.containsKey("gender") &&
+                        item.get("gender").s().equalsIgnoreCase(genderFilter)));
+            })
+            .map(this::convertDynamoItemToProfile)
+            .collect(Collectors.toMap(Profile::getUserId, p -> p));
+
+        // Return in FAISS order
+        return filteredUserIds.stream()
+            .map(id -> profileMap.get(String.valueOf(id)))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
+
 
     public List<Profile> doSortProfiles(String userId, List<Profile> profiles) {
         List<String> usersWhoSwipedRight = swipeService.doGetAllUsersWhoSwipedRightOn(userId);
@@ -280,5 +384,61 @@ public class ProfileService {
                 .build();
 
         dynamoDbClient.updateItem(updateRequest);
+    }
+
+    public Map<String, List<Double>> getUserIdsAndVectors() {
+        Map<String, List<Double>> userProfiles = new HashMap<>();
+        
+        try {
+            ScanRequest scanRequest = ScanRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .attributesToGet("userId", "normalizedWeightedPrefs")
+                .build();
+            
+            ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+
+            for (Map<String, AttributeValue> item : scanResponse.items()) {
+                String userId = item.get("userId").s();
+                
+                // Extract and convert normalizedWeightedPrefs (list of numbers)
+                if (item.containsKey("normalizedWeightedPrefs") && 
+                item.get("normalizedWeightedPrefs") != null && 
+                item.get("normalizedWeightedPrefs").hasL()) {
+                    List<AttributeValue> rawValues = item.get("normalizedWeightedPrefs").l();
+                    List<Double> normalizedWeightedPrefs = new ArrayList<>();
+                    
+                    for (AttributeValue value : rawValues) {
+                        normalizedWeightedPrefs.add(Double.parseDouble(value.n()));
+                    }
+                    
+                    userProfiles.put(userId, normalizedWeightedPrefs);
+                }
+            }
+            
+            // Handle pagination if there are more items
+            while (scanResponse.lastEvaluatedKey() != null && !scanResponse.lastEvaluatedKey().isEmpty()) {
+                scanRequest = scanRequest.toBuilder()
+                    .exclusiveStartKey(scanResponse.lastEvaluatedKey())
+                    .build();
+                scanResponse = dynamoDbClient.scan(scanRequest);
+                
+                for (Map<String, AttributeValue> item : scanResponse.items()) {
+                    String userId = item.get("userId").s();
+                    List<AttributeValue> rawValues = item.get("normalizedWeightedPrefs").l();
+                    List<Double> normalizedWeightedPrefs = new ArrayList<>();
+                    
+                    for (AttributeValue value : rawValues) {
+                        normalizedWeightedPrefs.add(Double.parseDouble(value.n()));
+                    }
+                    
+                    userProfiles.put(userId, normalizedWeightedPrefs);
+                }
+            }
+        } catch (DynamoDbException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching data from DynamoDB", e);
+        }
+        
+        return userProfiles;
     }
 }

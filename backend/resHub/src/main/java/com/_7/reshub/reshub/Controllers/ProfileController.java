@@ -291,26 +291,30 @@ public class ProfileController {
      @GetMapping("/getProfiles")
      public ResponseEntity<?> getProfiles(@RequestParam String userId, @RequestParam String genderFilter, @RequestParam boolean filterOutSwipedOn) {
          try {
-             List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
+            List<Profile> profiles = profileService.doGetProfiles(userId, genderFilter, filterOutSwipedOn);
+
+            if (filterOutSwipedOn) {
+                List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
+
+                profiles = profiles.stream()
+                    .filter(profile -> {
+                        Object userIdObj = profile.getUserId();
+                        return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
+                    })
+                    .collect(Collectors.toList());
+            }
  
-             if (filterOutSwipedOn) {
-                 List<String> swipedUserIds = swipeService.doGetAllSwipedOn(userId);
+            // profiles = profileService.doSortProfiles(userId, profiles);
+
+            for (Profile profile : profiles) {
+                System.out.println(profile.getFullName());
+            }
  
-                 profiles = profiles.stream()
-                 .filter(profile -> {
-                                 Object userIdObj = profile.getUserId();
-                                 return userIdObj != null && !swipedUserIds.contains(userIdObj.toString());
-                         })
-                         .collect(Collectors.toList());
-             }
- 
-             profiles = profileService.doSortProfiles(userId, profiles);
- 
-             return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
+            return ResponseEntity.ok(profiles.isEmpty() ? Collections.emptyList() : profiles);
          } catch (Exception e) {
-             e.printStackTrace();
-             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                     .body(Map.of("error", e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
          }
      }
      /**

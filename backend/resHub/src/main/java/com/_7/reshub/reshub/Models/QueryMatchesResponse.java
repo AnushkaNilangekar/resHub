@@ -1,20 +1,31 @@
 package com._7.reshub.reshub.Models;
+
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class QueryMatchesResponse {
-    private List<Integer> ids;
+
+    @JsonProperty("user_ids")
+    private List<String> userIds;
+    @JsonProperty("scores")
     private List<Float> scores;
 
-    public List<Integer> getIds() {
-        return ids;
+    public QueryMatchesResponse(List<String> userIds, List<Float> scores) {
+        this.userIds = userIds;
+        this.scores = scores;
+    }
+
+    public List<String> getUserIds() {
+        return userIds;
+    }
+
+    public void setUserIds(List<String> userIds) {
+        this.userIds = userIds;
     }
 
     public List<Float> getScores() {
         return scores;
-    }
-
-    public void setIds(List<Integer> ids) {
-        this.ids = ids;
     }
 
     public void setScores(List<Float> scores) {

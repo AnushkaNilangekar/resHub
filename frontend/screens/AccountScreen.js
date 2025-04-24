@@ -41,6 +41,11 @@ const AccountScreen = () => {
       routes: [{ name: 'Login' }],
     });
   };
+
+  // uncomment when logged into account w/ no profile issue
+  // useEffect(() => {
+  //   handleLogout();
+  // })
   
   const handleDeleteAccount = () => {
     // First confirmation alert

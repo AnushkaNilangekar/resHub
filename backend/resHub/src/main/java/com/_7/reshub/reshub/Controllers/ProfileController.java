@@ -193,47 +193,53 @@ public class ProfileController {
         List<Double> normalizedWeightedPrefs = new ArrayList<>();
         for (int i = 0; i < rawPrefs.size(); i++) {
             int preference = rawPrefs.get(i);
-            double normalizedValue;
-            double weight;
 
-            switch (i) {
-                case 0: // SmokingStatus
-                    normalizedValue = preference / Preferences.SMOKING_STATUS_MAX;
-                    weight = Preferences.SMOKING_STATUS_WEIGHT;
-                    break;
-                case 1: // CleanlinessLevel
-                    normalizedValue = preference / Preferences.CLEANLINESS_LEVEL_MAX;
-                    weight = Preferences.CLEANLINESS_LEVEL_WEIGHT;
-                    break;
-                case 2: // SleepSchedule
-                    normalizedValue = preference / Preferences.SLEEP_SCHEDULE_MAX;
-                    weight = Preferences.SLEEP_SCHEDULE_WEIGHT;
-                    break;
-                case 3: // GuestFrequency
-                    normalizedValue = preference / Preferences.GUEST_FREQUENCY_MAX;
-                    weight = Preferences.GUEST_FREQUENCY_WEIGHT;
-                    break;
-                case 4: // HasPets
-                    normalizedValue = preference / Preferences.HAS_PETS_MAX;
-                    weight = Preferences.HAS_PETS_WEIGHT;
-                    break;
-                case 5: // NoiseLevel
-                    normalizedValue = preference / Preferences.NOISE_LEVEL_MAX;
-                    weight = Preferences.NOISE_LEVEL_WEIGHT;
-                    break;
-                case 6: // SharingCommonItems
-                    normalizedValue = preference / Preferences.SHARING_COMMON_ITEMS_MAX;
-                    weight = Preferences.SHARING_COMMON_ITEMS_WEIGHT;
-                    break;
-                case 7: // DietaryPreference
-                    normalizedValue = preference / Preferences.DIETARY_PREFERENCE_MAX;
-                    weight = Preferences.DIETARY_PREFERENCE_WEIGHT;
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + i);
+            if (preference >= 0) {
+                double normalizedValue;
+                double weight;
+
+                switch (i) {
+                    case 0: // SmokingStatus
+                        normalizedValue = preference / Preferences.SMOKING_STATUS_MAX;
+                        weight = Preferences.SMOKING_STATUS_WEIGHT;
+                        break;
+                    case 1: // CleanlinessLevel
+                        normalizedValue = preference / Preferences.CLEANLINESS_LEVEL_MAX;
+                        weight = Preferences.CLEANLINESS_LEVEL_WEIGHT;
+                        break;
+                    case 2: // SleepSchedule
+                        normalizedValue = preference / Preferences.SLEEP_SCHEDULE_MAX;
+                        weight = Preferences.SLEEP_SCHEDULE_WEIGHT;
+                        break;
+                    case 3: // GuestFrequency
+                        normalizedValue = preference / Preferences.GUEST_FREQUENCY_MAX;
+                        weight = Preferences.GUEST_FREQUENCY_WEIGHT;
+                        break;
+                    case 4: // HasPets
+                        normalizedValue = preference / Preferences.HAS_PETS_MAX;
+                        weight = Preferences.HAS_PETS_WEIGHT;
+                        break;
+                    case 5: // NoiseLevel
+                        normalizedValue = preference / Preferences.NOISE_LEVEL_MAX;
+                        weight = Preferences.NOISE_LEVEL_WEIGHT;
+                        break;
+                    case 6: // SharingCommonItems
+                        normalizedValue = preference / Preferences.SHARING_COMMON_ITEMS_MAX;
+                        weight = Preferences.SHARING_COMMON_ITEMS_WEIGHT;
+                        break;
+                    case 7: // DietaryPreference
+                        normalizedValue = preference / Preferences.DIETARY_PREFERENCE_MAX;
+                        weight = Preferences.DIETARY_PREFERENCE_WEIGHT;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + i);
+                }
+
+                normalizedWeightedPrefs.add(normalizedValue * weight);
             }
-
-            normalizedWeightedPrefs.add(normalizedValue * weight);
+            else {
+                normalizedWeightedPrefs.add(-1.0);
+            }
         }
 
         return normalizedWeightedPrefs;

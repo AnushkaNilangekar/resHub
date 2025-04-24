@@ -14,6 +14,9 @@ DIM = 8
 # Lower values = less accuracy/faster
 M = 32
 
+# The default amount of user ids to return for query_matches
+DEFAULT_K = 100
+
 # HNSW indexing - mapping our own ids (userIds) to vectors
 index = faiss.IndexIDMap(faiss.IndexHNSWFlat(DIM, M))
 
@@ -30,7 +33,7 @@ class UserVectorBulk(BaseModel):
 
 class QueryVector(BaseModel):
     vector: list[float]
-    top_k: int = 100
+    top_k: int = DEFAULT_K
 
 # In-memory mappings, TODO how we store these will need to be updated when we have more users
 id_to_user = {}  # Maps integer IDs to original user_id strings

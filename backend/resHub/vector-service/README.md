@@ -41,6 +41,7 @@ At the moment, when a user does not have any value for a preference, this prefer
 
 ## Bug fixes + TODO
 - Deletion: When a user is deleted, they can still be swiped on until FAISS refreshes. We need to ensure this does not cause any errors on the backend. Not sure how we should handle this yet, since if we dont record the swipe at all the user has a chance to re-appear.
+    (Maybe store the deleted userIds in memory and filter them out in getProfiles, then clear this array on refresh)
 - Weights: The weights for each preference need to be tested and updated to ensure they are actually useful indicators.
 - Pagination: Right now we are querying 100 profiles and giving them to the user in order. We need to add the capability for the user to swipe past all of these users and then be given more (if available).
 - Liked/LastTimeActive: Due to the changes, sorting by whether the user has liked the current user and how recently active the user was does not work properly. If used now I believe it will essentially overwrite the FAISS sorting. We need to take the 100 userIds that are output and modify the score based on these factors, then re-sort these 100 cards.

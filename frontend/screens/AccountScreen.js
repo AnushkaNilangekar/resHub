@@ -33,14 +33,27 @@ const AccountScreen = () => {
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
-  const handleLogout = async () => {
-    setProfileData(null); 
-    await logout();
-    navigation.navigate({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  };
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            setProfileData(null);
+            await logout();
+            navigation.navigate({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }
+        }
+      ]
+    );
+  };  
   
   const handleDeleteAccount = () => {
     // First confirmation alert

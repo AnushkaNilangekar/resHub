@@ -6,9 +6,13 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(false);
 
   useEffect(() => {
     const checkToken = async () => {
+      if (await AsyncStorage.getItem("profileData") === "created") {
+        setProfileComplete(true);
+      }
       const token = await AsyncStorage.getItem("token");
       if (token) {
         setIsAuthenticated(true);
@@ -34,11 +38,18 @@ export const AuthProvider = ({ children }) => {
       "userId" 
     ]);
     setIsAuthenticated(false);
+    setProfileComplete(false);
   };
+
+  // Function to handle authentication when setting up the profile
+  const profileSetup = async () => {
+    await AsyncStorage.setItem("profileData", "created");
+    setProfileComplete(true);
+  }
 
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, profileComplete, login, logout, profileSetup }}>
       {children}
     </AuthContext.Provider>
   );

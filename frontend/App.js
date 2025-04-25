@@ -3,12 +3,19 @@ import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';
-import { AppState, View, Text } from 'react-native';
+import { AppState, View, Text, LogBox } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import config from "./config";
 import * as SplashScreen from 'expo-splash-screen';
 import NotificationBanner from './notifications/NotificationBanner';
+
+// TODO:
+// Disabled/ignored error log for demo only, needs to be fixed after
+
+LogBox.ignoreLogs([
+  'Text strings must be rendered within a <Text> component.'
+]);
 
 SplashScreen.preventAutoHideAsync();
 

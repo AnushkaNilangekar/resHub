@@ -123,7 +123,7 @@ public class SwipeController {
             return "Invalid swipe direction. Please use \"l\" for left or \"r\" for right.";
         }
 
-        long timestamp = Instant.now().getEpochSecond();
+        long timestamp = swipeService.doCreateMillisecondTimeStamp();
         long expirationTimestamp = LocalDate.now().plusMonths(2).atStartOfDay(ZoneOffset.UTC).toInstant()
                 .getEpochSecond();
 

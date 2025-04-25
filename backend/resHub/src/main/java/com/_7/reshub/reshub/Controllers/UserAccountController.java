@@ -40,9 +40,11 @@ public class UserAccountController {
             return ResponseEntity.badRequest().body("All fields are required.");
         }
 
-        // Validate the @purdue.edu domain
-        if (!request.getEmail().endsWith("@purdue.edu")) {
-            return ResponseEntity.badRequest().body("Email must end with @purdue.edu");
+        String email = request.getEmail();
+        String domain = "@purdue.edu";
+        // Validate that the email ends with ".edu"
+        if (!email.endsWith(domain) || email.length() <= domain.length()) {
+            return ResponseEntity.badRequest().body("Email must end with .edu and fulfill minimum length requirement.");
         }
 
         /// Check if the user already exists in DynamoDB (by email)

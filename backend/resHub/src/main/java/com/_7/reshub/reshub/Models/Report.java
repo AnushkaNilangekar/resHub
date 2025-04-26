@@ -7,10 +7,10 @@ public class Report {
     private String reportId;
     private String reporterId;
     private String reportedUserId;
+    private String reportedUserName;
     private String chatId;
     private String reason;
     private String additionalInfo;
-    private String messageContent;
     private String messageTimestamp;
     private String reportTimestamp;
     private boolean resolved;
@@ -25,16 +25,14 @@ public class Report {
 
     // Constructor with all fields
     public Report(String reportId, String reporterId, String reportedUserId, String chatId, 
-                  String reason, String additionalInfo, String messageContent, 
-                  String messageTimestamp, String reportTimestamp, boolean resolved, 
-                  String resolutionNotes, String resolutionTimestamp) {
+                  String reason, String additionalInfo, String messageTimestamp, String reportTimestamp, 
+                  boolean resolved, String resolutionNotes, String resolutionTimestamp) {
         this.reportId = reportId;
         this.reporterId = reporterId;
         this.reportedUserId = reportedUserId;
         this.chatId = chatId;
         this.reason = reason;
         this.additionalInfo = additionalInfo;
-        this.messageContent = messageContent;
         this.messageTimestamp = messageTimestamp;
         this.reportTimestamp = reportTimestamp;
         this.resolved = resolved;
@@ -67,6 +65,14 @@ public class Report {
         this.reportedUserId = reportedUserId;
     }
 
+    public String getReportedUserName() {
+        return reportedUserName;
+    }
+    
+    public void setReportedUserName(String reportedUserName) {
+        this.reportedUserName = reportedUserName;
+    }
+
     public String getChatId() {
         return chatId;
     }
@@ -89,14 +95,6 @@ public class Report {
 
     public void setAdditionalInfo(String additionalInfo) {
         this.additionalInfo = additionalInfo;
-    }
-
-    public String getMessageContent() {
-        return messageContent;
-    }
-
-    public void setMessageContent(String messageContent) {
-        this.messageContent = messageContent;
     }
 
     public String getMessageTimestamp() {

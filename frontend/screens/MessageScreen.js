@@ -218,44 +218,12 @@ const MessageScreen = ({ route }) => {
     }
   };
 
-  // Handle long press on a message
-  const handleLongPress = (message) => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Report Chat'],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: 1,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) {
-            navigateToReportScreen(message);
-          }
-        }
-      );
-    } else {
-      Alert.alert(
-        'Message Options',
-        'What would you like to do?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Report Chat', 
-            style: 'destructive', 
-            onPress: () => navigateToReportScreen(message) 
-          },
-        ]
-      );
-    }
-  };
-
-  const navigateToReportScreen = (message) => {
+  const navigateToReportScreen = () => {
     navigation.navigate('ReportScreen', {
       chatId,
       otherUserId,
       name,
-      messageContent: message?.text || '',
-      messageTimestamp: message?.createdAt || new Date().toISOString(),
+      messageTimestamp: new Date().toISOString(),
       onGoBack: () => {
         // This will be called when returning from the report screen
       }
@@ -410,7 +378,6 @@ const MessageScreen = ({ route }) => {
               inputTextSize={15}
               sendButtonBackgroundColor={otherUserExists && !isBlocked ? "rgba(255, 255, 255, 0.3)" : "rgba(100, 100, 100, 0.3)"}
               sendButtonIconColor="white"
-              onLongPress={handleLongPress}
             />
           </View>
         </KeyboardAvoidingView>

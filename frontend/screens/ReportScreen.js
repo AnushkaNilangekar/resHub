@@ -30,7 +30,7 @@ const reportReasons = [
 ];
 
 const ReportScreen = ({ route }) => {
-  const { chatId, otherUserId, name, messageContent, messageTimestamp } = route.params;
+  const { chatId, otherUserId, name, messageTimestamp } = route.params;
   const navigation = useNavigation();
   
   const [selectedReason, setSelectedReason] = useState(null);
@@ -54,42 +54,37 @@ const ReportScreen = ({ route }) => {
         reporterId: userId,
         reportedUserId: otherUserId,
         chatId: chatId,
-        reason: selectedReason,
+        reason: reportReasons.find(r => r.id === selectedReason)?.label || selectedReason,
         additionalInfo: additionalInfo.trim(),
-        messageContent: messageContent || "",
         messageTimestamp: messageTimestamp || new Date().toISOString(),
         reportTimestamp: new Date().toISOString()
       };
 
-      await axios.post(
-        `${config.API_BASE_URL}/api/reports/create`,
+      //console.log("Sending report data:", JSON.stringify(reportData, null, 2));
+
+      const response = await axios.post(
+        `${config.API_BASE_URL}/api/reports/create`, 
         reportData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
 
-
-      const data = await response.json();
-    
-    if (!response.ok) {
-      if (response.status === 409) {
-        // 409 Conflict - already reported
-        Alert.alert(
-          "Already Reported",
-          "You have already reported this message. Thank you for helping keep our community safe.",
-          [{ text: "OK", onPress: () => navigation.goBack() }]
-        );
-        return;
-      }
-      throw new Error(data.message || "Unknown error occurred");
-    }
+      //console.log("Response received:", response.data);
 
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error submitting report:", error);
+      if (error.response) {
+        // The server responded with a status code outside the 2xx range
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", JSON.stringify(error.response.headers, null, 2));
+      }
+      
       Alert.alert(
         "Error",
         "There was a problem submitting your report. Please try again later."
@@ -100,13 +95,9 @@ const ReportScreen = ({ route }) => {
   };
 
   const handleClose = () => {
-    navigation.navigate('MessageScreen', { 
-      chatId, 
-      otherUserId, 
-      name,
-      onGoBack: route.params?.onGoBack
-    });
+    navigation.navigate('Main', { screen: 'Chats' });
   };
+  
 
   if (isSubmitted) {
     return (

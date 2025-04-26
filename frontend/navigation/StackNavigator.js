@@ -12,7 +12,8 @@ import MessageScreen from "../screens/MessageScreen";
 import ReportScreen from "../screens/ReportScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
-//import ChatsScreen from "../screens/ChatScreen";
+import ChatScreen from "../screens/ChatScreen";
+import BlockedReportedScreen from "../screens/BlockedReportedScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -48,6 +49,8 @@ const StackNavigator = () => {
             options={{ headerShown: true }}  
             />
             <Stack.Screen name="ReportScreen" component={ReportScreen} />
+            <Stack.Screen name="ChatScreen" component={ChatScreen} />
+            <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />
         </>
       )}
     </Stack.Navigator>

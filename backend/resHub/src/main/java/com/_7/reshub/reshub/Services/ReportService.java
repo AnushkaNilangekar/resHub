@@ -11,16 +11,11 @@ import org.springframework.stereotype.Service;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +39,6 @@ public class ReportService {
     private final String resHubEmail = "ResHub2025@gmail.com";
 
     public Report createReport(Report report) {
-        // Check if this user has already reported this message
-        if (hasUserAlreadyReportedMessage(report.getReporterId(), report.getChatId(), report.getMessageTimestamp())) {
-            throw new IllegalStateException("You have already reported this message");
-        }
         
         // Set any missing fields
         if (report.getReportId() == null) {
@@ -72,61 +63,14 @@ public class ReportService {
         dynamoDbClient.putItem(putItemRequest);
         
         // Send emails
-        sendUserConfirmationEmail(report);
-        sendAdminNotificationEmail(report);
-        
-        return report;
-    }
-    
-    public boolean hasUserAlreadyReportedMessage(String reporterId, String chatId, String messageTimestamp) {
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put("#reporterId", "reporterId");
-        expressionAttributeNames.put("#chatId", "chatId");
-        expressionAttributeNames.put("#messageTimestamp", "messageTimestamp");
-        
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":reporterId", AttributeValue.builder().s(reporterId).build());
-        expressionAttributeValues.put(":chatId", AttributeValue.builder().s(chatId).build());
-        expressionAttributeValues.put(":messageTimestamp", AttributeValue.builder().s(messageTimestamp).build());
-        
-        ScanRequest scanRequest = ScanRequest.builder()
-            .tableName(dynamoDbConfig.getReportsTableName())
-            .filterExpression("#reporterId = :reporterId AND #chatId = :chatId AND #messageTimestamp = :messageTimestamp")
-            .expressionAttributeNames(expressionAttributeNames)
-            .expressionAttributeValues(expressionAttributeValues)
-            .build();
-        
-        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        return !scanResponse.items().isEmpty();
-    }
-    
-    public List<Report> getAllReports() {
-        ScanRequest scanRequest = ScanRequest.builder()
-            .tableName(dynamoDbConfig.getReportsTableName())
-            .build();
-            
-        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        
-        return scanResponse.items().stream()
-            .map(this::convertDynamoItemToReport)
-            .collect(Collectors.toList());
-    }
-    
-    public Report getReportById(String reportId) {
-        Map<String, AttributeValue> key = Map.of("reportId", AttributeValue.builder().s(reportId).build());
-        
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-            .tableName(dynamoDbConfig.getReportsTableName())
-            .key(key)
-            .build();
-            
-        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
-        
-        if (response.hasItem()) {
-            return convertDynamoItemToReport(response.item());
+        try {
+            sendUserConfirmationEmail(report);
+            sendAdminNotificationEmail(report);
+        } catch (Exception e) {
+            System.err.println("Error sending notification emails: " + e.getMessage());
         }
         
-        return null;
+        return report;
     }
     
     public List<Report> getReportsByReporter(String reporterId) {
@@ -144,58 +88,20 @@ public class ReportService {
             .build();
             
         ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        
-        return scanResponse.items().stream()
+    
+        // report with reported user's full name
+        List<Report> reports = scanResponse.items().stream()
             .map(this::convertDynamoItemToReport)
             .collect(Collectors.toList());
-    }
     
-    public List<Report> getReportsByReportedUser(String reportedUserId) {
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put("#reportedUserId", "reportedUserId");
-        
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":reportedUserId", AttributeValue.builder().s(reportedUserId).build());
-        
-        ScanRequest scanRequest = ScanRequest.builder()
-            .tableName(dynamoDbConfig.getReportsTableName())
-            .filterExpression("#reportedUserId = :reportedUserId")
-            .expressionAttributeNames(expressionAttributeNames)
-            .expressionAttributeValues(expressionAttributeValues)
-            .build();
-            
-        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-        
-        return scanResponse.items().stream()
-            .map(this::convertDynamoItemToReport)
-            .collect(Collectors.toList());
-    }
-    
-    public Report resolveReport(String reportId, String resolutionNotes) {
-        Report report = getReportById(reportId);
-        if (report != null) {
-            report.setResolved(true);
-            report.setResolutionNotes(resolutionNotes);
-            report.setResolutionTimestamp(Instant.now().toString());
-            
-            Map<String, AttributeValue> key = Map.of("reportId", AttributeValue.builder().s(reportId).build());
-            
-            Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-            expressionAttributeValues.put(":resolved", AttributeValue.builder().bool(true).build());
-            expressionAttributeValues.put(":notes", AttributeValue.builder().s(resolutionNotes).build());
-            expressionAttributeValues.put(":timestamp", AttributeValue.builder().s(report.getResolutionTimestamp()).build());
-            
-            UpdateItemRequest updateRequest = UpdateItemRequest.builder()
-                .tableName(dynamoDbConfig.getReportsTableName())
-                .key(key)
-                .updateExpression("SET resolved = :resolved, resolutionNotes = :notes, resolutionTimestamp = :timestamp")
-                .expressionAttributeValues(expressionAttributeValues)
-                .build();
-                
-            dynamoDbClient.updateItem(updateRequest);
+        // For each report, set reported user name
+        for (Report report : reports) {
+            String fullName = profileService.getFullNameForUserId(report.getReportedUserId());
+            report.setReportedUserName(fullName);
         }
-        return report;
-    }
+    
+        return reports;
+    }    
     
     private Map<String, AttributeValue> convertReportToDynamoItem(Report report) {
         Map<String, AttributeValue> item = new HashMap<>();
@@ -210,10 +116,6 @@ public class ReportService {
         
         if (report.getAdditionalInfo() != null) {
             item.put("additionalInfo", AttributeValue.builder().s(report.getAdditionalInfo()).build());
-        }
-        
-        if (report.getMessageContent() != null) {
-            item.put("messageContent", AttributeValue.builder().s(report.getMessageContent()).build());
         }
         
         if (report.getMessageTimestamp() != null) {
@@ -246,10 +148,6 @@ public class ReportService {
             report.setAdditionalInfo(item.get("additionalInfo").s());
         }
         
-        if (item.containsKey("messageContent")) {
-            report.setMessageContent(item.get("messageContent").s());
-        }
-        
         if (item.containsKey("messageTimestamp")) {
             report.setMessageTimestamp(item.get("messageTimestamp").s());
         }
@@ -272,10 +170,13 @@ public class ReportService {
     private void sendUserConfirmationEmail(Report report) {
         try {
             Profile reporter = profileService.doGetProfile(report.getReporterId());
+            //System.out.println("reporter: "+ reporter);
+            //System.out.println("reporter email: "+ reporter.getEmail());
             if (reporter != null && reporter.getEmail() != null) {
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setFrom(resHubEmail);
                 message.setTo(reporter.getEmail());
+                //System.out.println("reporter email" + reporter.getEmail());
                 message.setSubject("Your ResHub Report Confirmation");
                 message.setText(
                     "Hello " + reporter.getFullName() + ",\n\n" +
@@ -323,10 +224,6 @@ public class ReportService {
                 (report.getAdditionalInfo() != null && !report.getAdditionalInfo().isEmpty() 
                     ? report.getAdditionalInfo()
                     : "None provided") + "\n\n" +
-                "Message Content:\n" +
-                (report.getMessageContent() != null && !report.getMessageContent().isEmpty()
-                    ? report.getMessageContent()
-                    : "No specific message was reported") + "\n\n" +
                 "Please review this report and take appropriate action.\n\n" +
                 "This is an automated message."
             );

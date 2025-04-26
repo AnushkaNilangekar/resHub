@@ -116,6 +116,7 @@ public class ProfileService {
         return new Profile(
             item.getOrDefault("userId", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("fullName", AttributeValue.builder().s("").build()).s(),
+            item.getOrDefault("email", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("gender", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("major", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("minor", AttributeValue.builder().s("").build()).s(),
@@ -213,7 +214,7 @@ public class ProfileService {
     }
 
     // Helper method to fetch the full name for a given user ID
-    private String getFullNameForUserId(String userId) {
+    public String getFullNameForUserId(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()

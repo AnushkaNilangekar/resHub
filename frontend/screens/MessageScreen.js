@@ -244,6 +244,21 @@ const MessageScreen = ({ route }) => {
     });
   };
 
+  const confirmReportChat = () => {
+    Alert.alert(
+      "Report Chat",
+      "Are you sure you want to report this chat to the ResHub team? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: handleReportChat
+        }
+      ]
+    );
+  };  
+
   // Handle the report button press in the header
   const handleReportChat = () => {
     navigateToReportScreen();
@@ -315,7 +330,7 @@ const MessageScreen = ({ route }) => {
           <View style={styles.headerButtons}>
             <TouchableOpacity
               style={styles.headerButton}
-              onPress={handleReportChat}
+              onPress={confirmReportChat}
             >
               <Ionicons name="flag-outline" size={22} color="#fff" />
             </TouchableOpacity>

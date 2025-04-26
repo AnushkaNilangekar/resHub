@@ -36,14 +36,15 @@ public class UserAccountController {
         if (request.getFirstName() == null || request.getFirstName().trim().isEmpty() ||
             request.getLastName() == null || request.getLastName().trim().isEmpty() ||
             request.getEmail() == null || request.getEmail().trim().isEmpty() ||
-            request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty() ||
             request.getPassword() == null || request.getPassword().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("All fields are required.");
         }
 
-        // Validate the @purdue.edu domain
-        if (!request.getEmail().endsWith("@purdue.edu")) {
-            return ResponseEntity.badRequest().body("Email must end with @purdue.edu");
+        String email = request.getEmail();
+        String domain = "@purdue.edu";
+        // Validate that the email ends with ".edu"
+        if (!email.endsWith(domain) || email.length() <= domain.length()) {
+            return ResponseEntity.badRequest().body("Email must end with .edu and fulfill minimum length requirement.");
         }
 
         /// Check if the user already exists in DynamoDB (by email)
@@ -73,7 +74,6 @@ public class UserAccountController {
         newItem.put("email", AttributeValue.builder().s(request.getEmail()).build());
         newItem.put("firstName", AttributeValue.builder().s(request.getFirstName()).build());
         newItem.put("lastName", AttributeValue.builder().s(request.getLastName()).build());
-        newItem.put("phoneNumber", AttributeValue.builder().s(request.getPhoneNumber()).build());
         newItem.put("password", AttributeValue.builder().s(hashedPassword).build());
 
         // Put the item in DynamoDB

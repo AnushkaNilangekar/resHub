@@ -79,9 +79,11 @@ public class ProfileController {
             return ResponseEntity.badRequest().body("All fields are required.");
         }
 
+        String email = request.getEmail();
+        String domain = "@purdue.edu";
         // Validate that the email ends with ".edu"
-        if (!request.getEmail().endsWith(".edu")) {
-            return ResponseEntity.badRequest().body("Email must end with .edu");
+        if (!email.endsWith(domain) || email.length() <= domain.length()) {
+            return ResponseEntity.badRequest().body("Email must end with .edu and fulfill minimum length requirement.");
         }
 
         // Build the DynamoDB item.
@@ -154,6 +156,16 @@ public class ProfileController {
             profilePicUrl = "https://reshub-profile-pics.s3.amazonaws.com/default-avatar.jpg";
         }
         item.put("profilePicUrl", AttributeValue.builder().s(profilePicUrl).build());
+
+        item.put("notifVolume", AttributeValue.builder()
+        .n(request.getNotifVolume() != null ? String.valueOf(request.getNotifVolume()) : "1.0")
+        .build());
+
+        item.put("matchSoundEnabled", AttributeValue.builder()
+        .bool(request.getMatchSoundEnabled() != null ? request.getMatchSoundEnabled() : true).build());
+
+        item.put("messageSoundEnabled", AttributeValue.builder()
+        .bool(request.getMessageSoundEnabled() != null ? request.getMessageSoundEnabled() : true).build());
 
         // Save the item to the DynamoDB table.
         PutItemRequest putItemRequest = PutItemRequest.builder()
@@ -312,6 +324,12 @@ public class ProfileController {
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateSharingCommonItems", request.getRoommateSharingCommonItems());
             addAttribute(updateList, attributeValues, expressionAttributeNames, "roommateDietaryPreference", request.getRoommateDietaryPreference());
 
+            //Notifs
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "notifVolume", request.getNotifVolume());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "matchSoundEnabled", request.getMatchSoundEnabled());
+            addAttribute(updateList, attributeValues, expressionAttributeNames, "messageSoundEnabled", request.getMessageSoundEnabled());
+            
+            
             if (updateList.isEmpty()) {
                 return ResponseEntity.badRequest().body("No fields to update");
             }
@@ -337,7 +355,7 @@ public class ProfileController {
         }
     }
      
-        //helper methods
+   //helper (overload) methods
     private void addAttribute(
         List<String> updateList, 
         Map<String, AttributeValue> attributeValues, 
@@ -375,6 +393,88 @@ public class ProfileController {
                 
                 updateList.add(expressionField + " = " + attributeKey);
                 attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+        }
+        }
+
+        private void addAttribute(
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
+        Map<String, String> expressionAttributeNames,
+        String fieldName,
+        Double value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().n(value.toString()).build());
+        }
+        }
+
+        private void addAttribute(
+        List<String> updateList,
+        Map<String, AttributeValue> attributeValues,
+        Map<String, String> expressionAttributeNames,
+        String fieldName,
+        Boolean value
+        ) {
+        if (value != null) {
+                String cleanFieldName = fieldName.startsWith("#") ? fieldName.substring(1) : fieldName;
+                String attributeKey = ":" + cleanFieldName + "Value";
+                String expressionField = "#" + cleanFieldName;
+
+                expressionAttributeNames.put(expressionField, cleanFieldName);
+                updateList.add(expressionField + " = " + attributeKey);
+                attributeValues.put(attributeKey, AttributeValue.builder().bool(value).build());
+        }
+        }
+
+
+        @PutMapping("/updateCredentials")
+        public ResponseEntity<?> updateProfileCredentials(@RequestParam String userId, @RequestBody Map<String, String> payload) {
+        try {
+                String newEmail = payload.get("email");
+                String newPassword = payload.get("password");
+
+                if ((newEmail == null || newEmail.isBlank()) && (newPassword == null || newPassword.isBlank())) {
+                return ResponseEntity.badRequest().body("At least one of email or password must be provided");
+                }
+
+                Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+                Map<String, String> updates = new HashMap<>();
+                Map<String, AttributeValue> attributeValues = new HashMap<>();
+
+                if (newEmail != null && !newEmail.isBlank()) {
+                updates.put("email", ":email");
+                attributeValues.put(":email", AttributeValue.builder().s(newEmail).build());
+                }
+
+                if (newPassword != null && !newPassword.isBlank()) {
+                updates.put("password", ":password");
+                attributeValues.put(":password", AttributeValue.builder().s(newPassword).build());
+                }
+
+                String updateExpression = "SET " + String.join(", ", updates.entrySet().stream()
+                .map(entry -> entry.getKey() + " = " + entry.getValue())
+                .toList());
+
+                UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                .tableName("profiles")
+                .key(key)
+                .updateExpression(updateExpression)
+                .expressionAttributeValues(attributeValues)
+                .build();
+
+                dynamoDbClient.updateItem(updateItemRequest);
+                return ResponseEntity.ok("Profile credentials updated successfully");
+
+        } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
         }
         }
 

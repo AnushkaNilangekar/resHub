@@ -15,21 +15,17 @@ public class DynamoDbConfig {
     @Value("${dynamodb.swipe.log.table.name}")
     private String swipeLogTableName;
 
-    // dynamodb.user.table.name in application.properties
-    @Value("${dynamodb.user.table.name}")
-    private String usersTableName;
-
     // dynamodb.userA.table.name in application.properties
     @Value("${dynamodb.userA.table.name}")
     private String usersAccountsTableName;
-    
+
     // dynamodb.user.table.name in application.properties
     @Value("${dynamodb.user.profiles.table.name}")
     private String userProfilesTableName;
 
     // dynamodb.chats.table.name in application.properties
     @Value("${dynamodb.chats.table.name}")
-    private String chatsTableName; 
+    private String chatsTableName;
 
     // dynamodb.messages.table.name in application.properties
     @Value("${dynamodb.messages.table.name}")
@@ -47,10 +43,6 @@ public class DynamoDbConfig {
         return swipeLogTableName;
     }
 
-    public String getUsersTableName() {
-        return usersTableName;
-    }
-
     public String getUserAccountsTableName() {
         return usersAccountsTableName;
     }
@@ -60,15 +52,15 @@ public class DynamoDbConfig {
     }
 
     public String getChatsTableName() {
-        return chatsTableName;  // New getter for chats table
+        return chatsTableName; // New getter for chats table
     }
 
     public String getMessagesTableName() {
-        return messagesTableName;  // New getter for chats table
+        return messagesTableName; // New getter for chats table
     }
 
     public String getNotificationsTableName() {
-        return notificationsTableName;  // New getter for notifications table
+        return notificationsTableName; // New getter for notifications table
     }
 
     public String getReportsTableName() {

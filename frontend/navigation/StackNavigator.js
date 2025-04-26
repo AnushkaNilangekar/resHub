@@ -19,7 +19,7 @@ import BlockedReportedScreen from "../screens/BlockedReportedScreen";
 const Stack = createNativeStackNavigator();
 
 const StackNavigator = () => {
-  const { isAuthenticated } = useContext(AuthContext); // Get authentication status
+  const { isAuthenticated, profileComplete } = useContext(AuthContext); // Get authentication status
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isAuthenticated ? (
@@ -30,20 +30,19 @@ const StackNavigator = () => {
           <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
           <Stack.Screen name="ResetPassword" component={ResetPassword} />
         </>
-      ) : (
+      ) : profileComplete ? (
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
-          <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
           <Stack.Screen 
-                name="Settings" 
-                component={SettingsScreen} 
-                options={{
-                    title: 'Profile Settings',
-                    headerBackTitle: 'Back'
-                }}
-            />
-            <Stack.Screen
+            name="Settings" 
+            component={SettingsScreen} 
+            options={{
+              title: 'Profile Settings',
+              headerBackTitle: 'Back'
+            }}
+          />
+          <Stack.Screen
             name="MessageScreen"
             component={MessageScreen}
             options={{ headerShown: true }}  
@@ -51,6 +50,10 @@ const StackNavigator = () => {
             <Stack.Screen name="ReportScreen" component={ReportScreen} />
             <Stack.Screen name="ChatScreen" component={ChatScreen} />
             <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
         </>
       )}
     </Stack.Navigator>

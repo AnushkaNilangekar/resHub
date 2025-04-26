@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
-    Text, 
+    Text,
+    Switch, 
     StyleSheet, 
     ScrollView, 
     TouchableOpacity, 
@@ -19,10 +20,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
 
 const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
-
     return (
         <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{label}</Text>
@@ -39,7 +40,6 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) 
                     {selectedValue || `Select ${label}`}
                 </Text>
             </TouchableOpacity>
-
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -88,9 +88,11 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) 
     );
 };
 
+
 const SettingsScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [focusedInput, setFocusedInput] = useState(null);
+    
     // Personal Info States
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
@@ -106,7 +108,6 @@ const SettingsScreen = ({ navigation }) => {
         "Reading", "Hiking", "Gaming", "Cooking", 
         "Traveling", "Sports", "Music", "Art", "Working Out"
     ];
-
     const toggleHobby = (hobby) => {
         if (hobbies.includes(hobby)) {
           setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
@@ -135,6 +136,21 @@ const SettingsScreen = ({ navigation }) => {
     const [roommateNoiseTolerance, setRoommateNoiseTolerance] = useState('');
     const [roommateSharingCommonItems, setRoommateSharingCommonItems] = useState('');
     const [roommateDietaryPreference, setRoommateDietaryPreference] = useState('');
+
+    //Notification Volume States
+    const [notifVolume, setNotifVolume] = useState(1);
+    const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
+    const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
+
+    //Email and Password Editing States
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const isEmailValid = email === '' || email.endsWith('@purdue.edu');
+    const isPasswordValid = password === '' || (password.length >= 8 && password === confirmPassword);
+    const isFormValid = isEmailValid && isPasswordValid && (email !== '' || password !== '');
 
     useEffect(() => {
         fetchUserProfile();
@@ -203,6 +219,12 @@ const SettingsScreen = ({ navigation }) => {
             setRoommateSharingCommonItems(profile.roommateSharingCommonItems || '');
             setRoommateDietaryPreference(profile.roommateDietaryPreference || '');
 
+            //Set notification sounds
+            setNotifVolume(profile.notifVolume ?? 1);
+            setMatchSoundEnabled(profile.matchSoundEnabled ?? true);
+            setMessageSoundEnabled(profile.messageSoundEnabled ?? true);
+
+
         } catch (error) {
             console.error('Error fetching profile:', error);
             Alert.alert('Error', 'Could not fetch profile details');
@@ -252,7 +274,13 @@ const SettingsScreen = ({ navigation }) => {
                 roommatePetPreference,
                 roommateNoiseTolerance,
                 roommateSharingCommonItems,
-                roommateDietaryPreference
+                roommateDietaryPreference,
+
+                //Notif Volume
+                notifVolume,
+                matchSoundEnabled,
+                messageSoundEnabled,
+
             };
 
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
@@ -267,6 +295,36 @@ const SettingsScreen = ({ navigation }) => {
             setSaving(false);
         }
     };
+
+    const handleCredentialUpdate = async () => {
+        try {
+          const userId = await AsyncStorage.getItem('userId');
+          const token = await AsyncStorage.getItem('token');
+      
+          const updateData = {};
+          if (email) updateData.email = email;
+          if (password) updateData.password = password;
+      
+          // send to both endpoints
+          await axios.put(`${config.API_BASE_URL}/api/updateCredentials?userId=${userId}`, updateData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+      
+          await axios.put(`${config.API_BASE_URL}/api/updateAccountCredentials?userId=${userId}`, updateData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+      
+          Alert.alert('Success', 'Credentials updated successfully!');
+
+          setPassword('');
+          setConfirmPassword('');
+          setShowPassword(false);
+          setShowConfirmPassword(false);
+        } catch (error) {
+          console.error('Credential update error:', error);
+          Alert.alert('Error', error.response?.data?.error || 'Failed to update credentials');
+        }
+      };      
 
     if (loading) {
         return (
@@ -667,6 +725,165 @@ const SettingsScreen = ({ navigation }) => {
                         />
                     </View>
 
+                    { /* Notif Section */ }
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="notifications" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Notification Preferences</Text>
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Notification Volume</Text>
+                            <Slider
+                            style={{ width: '100%', height: 40 }}
+                            minimumValue={0}
+                            maximumValue={1}
+                            step={0.01}
+                            value={notifVolume}
+                            onValueChange={setNotifVolume}
+                            minimumTrackTintColor="#FFFFFF"
+                            maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
+                            thumbTintColor="#FFFFFF"
+                            />
+                            <Text style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                            Volume: {Math.round(notifVolume * 100)}%
+                            </Text>
+                        </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Match Notification Sound</Text>
+                        <Switch
+                            value={matchSoundEnabled}
+                            onValueChange={setMatchSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={matchSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
+                        </View>
+
+                        <View style={styles.toggleRow}>
+                        <Text style={styles.toggleLabel}>  Message Notification Sound</Text>
+                        <Switch
+                            value={messageSoundEnabled}
+                            onValueChange={setMessageSoundEnabled}
+                            trackColor={{ false: '#ccc', true: '#9D67C1' }}
+                            thumbColor={messageSoundEnabled ? '#FFFFFF' : '#888'}
+                            ios_backgroundColor="#ccc"
+                        />
+                        </View>
+                    </View>
+
+                    {/* Edit Password and Email Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Login Credentials</Text>
+                        </View>
+
+                        {/* Email Field */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Email</Text>
+                            <View style={styles.inputWrapper}>
+                            <Ionicons name="mail-outline" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                placeholder="Enter new email"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            </View>
+                        </View>
+
+                        {/* New Password Field */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>New Password</Text>
+                            <View style={styles.inputWrapper}>
+                            <Ionicons name="key-outline" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                value={password}
+                                onChangeText={setPassword}
+                                placeholder="Enter new password"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                secureTextEntry={!showPassword}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons
+                                name={showPassword ? "eye-off" : "eye"}
+                                size={20}
+                                color="rgba(255, 255, 255, 0.7)"
+                                style={{ paddingHorizontal: 10 }}
+                                />
+                            </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Confirm Password Field */}
+                        {password.length > 0 && (
+                            <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Confirm Password</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="key" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                                <TextInput
+                                style={styles.input}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholder="Re-enter new password"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                secureTextEntry={!showConfirmPassword}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                />
+                                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                <Ionicons
+                                    name={showConfirmPassword ? "eye-off" : "eye"}
+                                    size={20}
+                                    color="rgba(255, 255, 255, 0.7)"
+                                    style={{ paddingHorizontal: 10 }}
+                                />
+                                </TouchableOpacity>
+                            </View>
+                            </View>
+                        )}
+
+                        {/* Submit Button */}
+                        <TouchableOpacity
+                            style={[
+                                styles.saveButton, 
+                                { backgroundColor: isFormValid ? '#8B5CF6' : '#ccc' }
+                              ]}
+                            onPress={() => {
+                            if (password.length > 0) {
+                                if (password !== confirmPassword) {
+                                Alert.alert("Password Mismatch", "Passwords do not match.");
+                                return;
+                                } else if (password.length < 8) {
+                                Alert.alert("Weak Password", "Password must be at least 8 characters.");
+                                return;
+                                }
+                            }
+
+                            Alert.alert(
+                                "Confirm Update",
+                                "Are you sure you want to update your login credentials?",
+                                [
+                                { text: "Cancel", style: "cancel" },
+                                { text: "Yes", onPress: handleCredentialUpdate }
+                                ]
+                            );
+                            }}
+                        >
+                            <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" style={styles.saveButtonIcon} />
+                            <Text style={styles.updateCredentialsButtonText}>Update Credentials</Text>
+                        </TouchableOpacity>
+                        </View>
+
                     {/* Save Button */}
                     <TouchableOpacity 
                         style={styles.saveButton} 
@@ -902,24 +1119,31 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     saveButton: {
-        backgroundColor: '#4ade80',
-        paddingVertical: 16,
-        borderRadius: 12,
+        backgroundColor: '#8B5CF6',
+        width: '48%',
+        alignSelf: 'center',
+        paddingVertical: 10,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 20,
-        marginBottom: 30,
+        marginTop: 16,       
+        marginBottom: 20,
         flexDirection: 'row',
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
     },
     saveButtonText: {
         color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 16,         
+        fontWeight: '600',
+    }, 
+    updateCredentialsButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,         
+        fontWeight: '600',
     },
     saveButtonIcon: {
         marginRight: 10,
@@ -933,6 +1157,24 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 16,
     },
+    toggleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        marginHorizontal: 16,
+        marginVertical: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+    }, 
+    toggleLabel: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '500',
+    },      
 });
 
 export default SettingsScreen;

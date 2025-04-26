@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { ScrollView, Alert, StyleSheet } from 'react-native';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
@@ -10,8 +10,10 @@ import UploadProfilePic from './UploadProfilePic';
 import config from '../config';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from '../context/AuthContext';
 
-const ProfileSetupScreen = ({ navigation, route }) => {
+const ProfileSetupScreen = ({ navigation }) => {
+    const {profileSetup, logout} = useContext(AuthContext);  
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
@@ -196,8 +198,9 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             });
             if (response.status === 200) {
 
+                profileSetup();
+
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Main', { screen: 'Home' });
             }
         } catch (error) {
             console.error('Profile creation error:', error.response || error);

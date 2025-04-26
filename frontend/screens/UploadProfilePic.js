@@ -17,6 +17,7 @@ import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const UploadProfilePic = ({ onPictureUploaded, handleSubmit, handleBack }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -431,7 +432,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
     paddingVertical: 15,
-    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: RFPercentage(1.5),
     fontWeight: 'bold',
     letterSpacing: 1,
   },
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: RFPercentage(1.5),
     fontWeight: 'bold',
     letterSpacing: 1,
   },
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: RFPercentage(1.5),
     fontWeight: 'bold',
     letterSpacing: 1,
   },

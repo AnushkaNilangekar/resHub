@@ -31,7 +31,6 @@ const MessageScreen = ({ route }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
   const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
-  
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -195,6 +194,21 @@ const MessageScreen = ({ route }) => {
       setIsBlocked(isBlocked);
   };
 
+  const confirmBlockUser = () => {
+    Alert.alert(
+      "Block User",
+      "Are you sure you want to block this user? You will no longer be able to send or receive messages.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: handleBlockUser
+        }
+      ]
+    );
+  };  
+
   const handleBlockUser = async () => {
     if (isBlocked) {
       Alert.alert('Already Blocked', 'You have already blocked this user.');
@@ -262,6 +276,7 @@ const MessageScreen = ({ route }) => {
 
     const interval = setInterval(() => {
       fetchMessages(); // Fetch messages every 5 seconds
+      markMessagesRead(); // Mark messages as read every 5 seconds
     }, 5000);
 
     return () => {
@@ -271,6 +286,8 @@ const MessageScreen = ({ route }) => {
       }
     };
   }, [chatId, checkUserExists, otherUserId]);
+
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -304,7 +321,7 @@ const MessageScreen = ({ route }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerButton}
-              onPress={handleBlockUser}
+              onPress={confirmBlockUser}
             >
               <Ionicons name="ban-outline" size={22} color="#fff" />
             </TouchableOpacity>

@@ -33,6 +33,7 @@ const ChatScreen = () => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [currentUserName, setCurrentUserName] = useState('');
 
   const MAX_MESSAGE_LENGTH = 25;
 
@@ -98,29 +99,62 @@ const ChatScreen = () => {
           }
         });
 
-        const { otherUserId, lastMessage, unreadCount, lastMessageSender } = response.data;
+        const { otherUserId, lastMessage, unreadCount, lastMessageSender, groupName, isGroupChat } = response.data;
 
-        // Get profile info for the other user
-        const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+        if (isGroupChat === "false") {
+          // Get profile info for the other user
+          const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+            params: {
+              userId: otherUserId, // Assuming email is used as the userId for the profile
+            },
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            }
+          });
+          const { fullName, profilePicUrl } = profileResponse.data;
+          chatDetails.push({
+            chatId,
+            fullName,
+            profilePicUrl,
+            lastMessage,
+            otherUserId,
+            unreadCount,
+            lastMessageSender,
+            isGroupChat
+          });
+ 
+        } else {
+          // For group chats, use the group name and a placeholder for the profile picture
+          chatDetails.push({
+            chatId,
+            fullName: groupName,
+            profilePicUrl: null, // Placeholder for group chat
+            lastMessage,
+            otherUserId: null,
+            unreadCount,
+            lastMessageSender,
+            isGroupChat,
+          });
+
+        }
+
+        // console.log(currentUserId)
+
+        const userId1 = await AsyncStorage.getItem("userId");
+
+        const profileResponseOne = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
-            userId: otherUserId, // Assuming email is used as the userId for the profile
+            userId: userId1, // Assuming email is used as the userId for the profile
           },
           headers: {
             'Authorization': `Bearer ${token}`,
           }
         });
 
-        const { fullName, profilePicUrl } = profileResponse.data;
+        setCurrentUserName(profileResponseOne.data.fullName);
 
-        chatDetails.push({
-          chatId,
-          fullName,
-          profilePicUrl,
-          lastMessage,
-          otherUserId,
-          unreadCount,
-          lastMessageSender,
-        });
+
+       
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
         setError('Unable to load some chat details. Please try again.');
@@ -138,9 +172,9 @@ const ChatScreen = () => {
 
     if (chatIds.length > 0) {
       const details = await getChatDetails(chatIds);
-      setChats([...details]);
+      setChats([{ isCreateGroup: true, chatId: 'create-group-chat' }, ...details]);
     } else {
-      setChats([]);
+      setChats([{ isCreateGroup: true, chatId: 'create-group-chat' }]);
       console.log('No chats found.');
     }
 
@@ -152,6 +186,23 @@ const ChatScreen = () => {
       await axios.post(`${config.API_BASE_URL}/api/users/unMatch`, {
         userId: currentUserId,
         matchUserId: otherUserId,
+        chatId: chatId,
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+  
+      setChats(prevChats => prevChats.filter(chat => chat.chatId !== chatId));
+    } catch (error) {
+      console.error("Error unmatching:", error);
+      setError('Unable to unmatch. Please try again.');
+    }
+  };
+
+  const handleLeaveChat = async (chatId) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      await axios.post(`${config.API_BASE_URL}/api/users/leaveChat`, {
+        userId: currentUserId,
         chatId: chatId,
       }, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -289,6 +340,23 @@ const ChatScreen = () => {
               data={chats}
               keyExtractor={(item) => item.chatId.toString()}
               renderItem={({ item }) => {
+                if (item.isCreateGroup) {
+                  return (
+                    <TouchableOpacity
+                      style={styles.chatCard}
+                      onPress={() => navigation.navigate("CreateGroupScreen", { chatList: chats })}
+                    >
+                      <View style={styles.profileContainer}>
+                        <View style={styles.profilePlaceholder}>
+                          <Ionicons name="add" size={32} color="rgba(255, 255, 255, 0.9)" />
+                        </View>
+                      </View>
+                      <View style={styles.textContainer}>
+                        <Text style={styles.createGroupText}>Create Group Chat</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }
                 const isUnreadForCurrentUser = currentUserId
                   ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
                   : false;
@@ -298,16 +366,24 @@ const ChatScreen = () => {
                       styles.chatCard,
                       isUnreadForCurrentUser && styles.unreadChatCard
                     ]}
-                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: currentUserName, otherName: item.fullName })}
                   >
                     <View style={styles.profileContainer}>
-                      {item.profilePicUrl ? (
-                        <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-                      ) : (
+                    {item.isGroupChat === "true" ? (
+                      <TouchableOpacity
+                        onPress={() => navigation.navigate("GroupParticipantsScreen", { chatId: item.chatId })}
+                      >
                         <View style={styles.profilePlaceholder}>
-                          <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                          <Ionicons name="people-outline" size={40} color="rgba(255, 255, 255, 0.8)" />
                         </View>
-                      )}
+                      </TouchableOpacity>
+                    ) : item.profilePicUrl && item.profilePicUrl.trim() !== "" ? (
+                      <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                    ) : (
+                      <View style={styles.profilePlaceholder}>
+                        <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                      </View>
+                    )}
                       {isUnreadForCurrentUser && (
                         <View style={styles.unreadBadge}>
                           <Text style={styles.unreadBadgeText}>
@@ -317,7 +393,9 @@ const ChatScreen = () => {
                       )}
                     </View>
                     <View style={styles.textContainer}>
-                      <Text style={styles.fullName}>{item.fullName}</Text>
+                      <Text style={styles.fullName} numberOfLines={1}>
+                        {item.fullName}
+                      </Text>
                       <Text style={styles.lastMessage} numberOfLines={1}>
                         {truncateMessage(item.lastMessage)}
                       </Text>
@@ -325,19 +403,34 @@ const ChatScreen = () => {
                   </TouchableOpacity>
                 );
               }}
-              renderHiddenItem={({ item }) => (
-                <View style={styles.hiddenItemContainer}>
-                  <TouchableOpacity
-                    style={styles.unmatchButton}
-                    onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
-                  >
-                    <View style={styles.unmatchIconContainer}>
-                      <Ionicons name="trash-outline" size={24} color="#fff" />
-                    </View>
-                    <Text style={styles.unmatchText}>Unmatch</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              renderHiddenItem={({ item }) => {
+                if (item.isCreateGroup) return null;
+                return (
+                  <View style={styles.hiddenItemContainer}>
+                    {item.isGroupChat === 'true' ? (
+                      <TouchableOpacity
+                        style={styles.unmatchButton}
+                        onPress={() => handleLeaveChat(item.chatId)}
+                      >
+                        <View style={styles.unmatchIconContainer}>
+                          <Ionicons name="exit-outline" size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.unmatchText}>Leave</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.unmatchButton}
+                        onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
+                      >
+                        <View style={styles.unmatchIconContainer}>
+                          <Ionicons name="trash-outline" size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.unmatchText}>Unmatch</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              }}
               leftOpenValue={0}
               rightOpenValue={-110}
               disableRightSwipe={true}
@@ -359,6 +452,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#4c6ef5',
+  },
+  createGroupText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlignVertical: 'center', // vertical alignment (Android only)
+    textAlign: 'left', // keep horizontal alignment same as others
   },
   gradient: {
     flex: 1,

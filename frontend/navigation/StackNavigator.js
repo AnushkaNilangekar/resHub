@@ -11,7 +11,11 @@ import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
-//import ChatsScreen from "../screens/ChatScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
+import NameGroupScreen from "../screens/NameGroupScreen";
+import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
+// // import MatchesScreen from "../screens/MatchesScreen";
+// import ChatScreen from "../screens/ChatScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -32,6 +36,9 @@ const StackNavigator = () => {
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
+          <Stack.Screen name="GroupParticipantsScreen" component={GroupParticipantsScreen} />
+          {/* <Stack.Screen name="ChatScreen" component={ChatScreen} /> */}
+          {/* <Stack.Screen name="MatchesScreen" component={MatchesScreen} /> */}
           <Stack.Screen 
             name="Settings" 
             component={SettingsScreen} 
@@ -44,6 +51,16 @@ const StackNavigator = () => {
             name="MessageScreen"
             component={MessageScreen}
             options={{ headerShown: true }}  
+          />
+          <Stack.Screen
+            name="CreateGroupScreen"
+            component={CreateGroupScreen}
+            // options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="NameGroupScreen"
+            component={NameGroupScreen}
+            // options={{ headerShown: true }}
           />
         </>
       ) : (

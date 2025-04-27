@@ -20,7 +20,7 @@ import config from "../config";
 import { LinearGradient } from 'expo-linear-gradient';
 
 const MessageScreen = ({ route }) => {
-  const { chatId, otherUserId, name } = route.params;
+  const { chatId, otherUserId, name, otherName } = route.params;
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [token, setToken] = useState("");
@@ -99,6 +99,7 @@ const MessageScreen = ({ route }) => {
             name: msg.name,
           },
         }));
+        
 
         setMessages(formattedMessages);
       } else {
@@ -279,7 +280,7 @@ const MessageScreen = ({ route }) => {
             <View style={styles.iconContainer}>
               <Ionicons name="person" size={24} color="#fff" />
             </View>
-            <Text style={styles.headerTitle}>{name}</Text>
+            <Text style={styles.headerTitle}>{otherName}</Text>
           </View>
           <TouchableOpacity
             style={styles.blockButton}
@@ -322,7 +323,7 @@ const MessageScreen = ({ route }) => {
               themeColor="#4c6ef5"
               themeTextColor="white"
               showSenderAvatar={false}
-              showReceiverAvatar={false}
+              showReceiverAvatar={true}
               inputBorderColor="rgba(255, 255, 255, 0.3)"
               disabled={!otherUserExists || isBlocked || isCurrentUserBlocked}
               inputBackgroundColor={otherUserExists && !isBlocked && !isCurrentUserBlocked ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}

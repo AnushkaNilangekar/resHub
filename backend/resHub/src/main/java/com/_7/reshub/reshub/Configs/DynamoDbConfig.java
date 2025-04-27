@@ -39,6 +39,10 @@ public class DynamoDbConfig {
     @Value("${dynamodb.reports.table.name}")
     private String reportsTableName;
 
+    // dynamodb.forumPosts.table.name in application.properties
+    @Value("${dynamodb.forumPosts.table.name}")
+    private String forumPostsTableName;
+
     public String getSwipeLogTableName() {
         return swipeLogTableName;
     }
@@ -65,6 +69,10 @@ public class DynamoDbConfig {
 
     public String getReportsTableName() {
         return reportsTableName;
+    }
+
+    public String getForumPostsTableName() {
+        return forumPostsTableName;
     }
 
     /*

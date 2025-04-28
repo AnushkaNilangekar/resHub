@@ -24,7 +24,6 @@ import Slider from '@react-native-community/slider';
 
 const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) => {
     const [modalVisible, setModalVisible] = useState(false);
-
     return (
         <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{label}</Text>
@@ -41,7 +40,6 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) 
                     {selectedValue || `Select ${label}`}
                 </Text>
             </TouchableOpacity>
-
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -90,9 +88,11 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange, icon }) 
     );
 };
 
+
 const SettingsScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [focusedInput, setFocusedInput] = useState(null);
+    
     // Personal Info States
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
@@ -108,7 +108,6 @@ const SettingsScreen = ({ navigation }) => {
         "Reading", "Hiking", "Gaming", "Cooking", 
         "Traveling", "Sports", "Music", "Art", "Working Out"
     ];
-
     const toggleHobby = (hobby) => {
         if (hobbies.includes(hobby)) {
           setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
@@ -138,19 +137,23 @@ const SettingsScreen = ({ navigation }) => {
     const [roommateSharingCommonItems, setRoommateSharingCommonItems] = useState('');
     const [roommateDietaryPreference, setRoommateDietaryPreference] = useState('');
 
-    // Blocked Users and Reported Chats
-    const [blockedUsers, setBlockedUsers] = useState([]);
-    const [reportedChats, setReportedChats] = useState([]);
-
-    //Notifications
+    //Notification Volume States
     const [notifVolume, setNotifVolume] = useState(1);
     const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
     const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
 
+    //Email and Password Editing States
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const isEmailValid = email === '' || email.endsWith('@purdue.edu');
+    const isPasswordValid = password === '' || (password.length >= 8 && password === confirmPassword);
+    const isFormValid = isEmailValid && isPasswordValid && (email !== '' || password !== '');
+
     useEffect(() => {
         fetchUserProfile();
-        fetchBlockedUsers();
-        //fetchReportedChats();
     }, []);
 
     const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false, icon }) => (
@@ -293,41 +296,35 @@ const SettingsScreen = ({ navigation }) => {
         }
     };
 
-    const fetchBlockedUsers = async () => {
+    const handleCredentialUpdate = async () => {
         try {
-            const userId = await AsyncStorage.getItem('userId');
-            const token = await AsyncStorage.getItem('token');
-    
-            const response = await axios.get(`${config.API_BASE_URL}/api/getBlockedUsers`, {
-                params: { userId: userId },
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-    
-            if (response.data.error) {
-                console.error('Error fetching blocked users:', response.data.error);
-                return;
-            }
-    
-            setBlockedUsers(response.data);
+          const userId = await AsyncStorage.getItem('userId');
+          const token = await AsyncStorage.getItem('token');
+      
+          const updateData = {};
+          if (email) updateData.email = email;
+          if (password) updateData.password = password;
+      
+          // send to both endpoints
+          await axios.put(`${config.API_BASE_URL}/api/updateCredentials?userId=${userId}`, updateData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+      
+          await axios.put(`${config.API_BASE_URL}/api/updateAccountCredentials?userId=${userId}`, updateData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+      
+          Alert.alert('Success', 'Credentials updated successfully!');
+
+          setPassword('');
+          setConfirmPassword('');
+          setShowPassword(false);
+          setShowConfirmPassword(false);
         } catch (error) {
-            console.error('Error fetching blocked users:', error);
+          console.error('Credential update error:', error);
+          Alert.alert('Error', error.response?.data?.error || 'Failed to update credentials');
         }
-    };
-    
-    
-    /*const fetchReportedChats = async () => {
-        try {
-            const userId = await AsyncStorage.getItem('userId');
-            const token = await AsyncStorage.getItem('token');
-            const response = await axios.get(`${config.API_BASE_URL}/api/users/reportedChats`, {
-                params: { userId: userId },
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setReportedChats(response.data);
-        } catch (error) {
-            console.error('Error fetching reported chats:', error);
-        }
-    };*/
+      };      
 
     if (loading) {
         return (
@@ -776,55 +773,116 @@ const SettingsScreen = ({ navigation }) => {
                         </View>
                     </View>
 
-                    {/* Blocked Users Section */}
+                    {/* Edit Password and Email Section */}
                     <View style={styles.sectionContainer}>
                         <View style={styles.sectionHeader}>
-                            <Ionicons name="ban" size={22} color="#FFFFFF" />
-                            <Text style={styles.sectionTitle}>Blocked Users</Text>
+                            <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
+                            <Text style={styles.sectionTitle}>Login Credentials</Text>
                         </View>
-                        {blockedUsers.length > 0 ? (
-                            <FlatList
-                                data={blockedUsers}
-                                renderItem={({ item }) => (
-                                    <View style={styles.blockedUserItem}>
-                                        <Text style={styles.blockedUserText}>{item}</Text>
-                                    </View>
-                                )}
-                                keyExtractor={(item) => item}
-                                scrollEnabled={false}
-                                nestedScrollEnabled={true}
-                            />
-                        ) : (
-                            <View style={styles.noDataContainer}>
-                                <Text style={styles.noDataText}>No users blocked.</Text>
-                            </View>
-                        )}
-                    </View>
 
-                    {/* Reported Chats Section */}
-                    <View style={styles.sectionContainer}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="alert-circle" size={22} color="#FFFFFF" />
-                            <Text style={styles.sectionTitle}>Reported Chats</Text>
-                        </View>
-                        {reportedChats.length > 0 ? (
-                            <FlatList
-                                data={reportedChats}
-                                renderItem={({ item }) => (
-                                    <View style={styles.reportedChatItem}>
-                                        <Text style={styles.reportedChatText}>{item.chatId}</Text>
-                                    </View>
-                                )}
-                                keyExtractor={(item) => item.chatId}
-                                scrollEnabled={false}
-                                nestedScrollEnabled={true}
+                        {/* Email Field */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Email</Text>
+                            <View style={styles.inputWrapper}>
+                            <Ionicons name="mail-outline" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                placeholder="Enter new email"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                autoCapitalize="none"
+                                autoCorrect={false}
                             />
-                        ) : (
-                            <View style={styles.noDataContainer}>
-                                <Text style={styles.noDataText}>No reported chats.</Text>
+                            </View>
+                        </View>
+
+                        {/* New Password Field */}
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>New Password</Text>
+                            <View style={styles.inputWrapper}>
+                            <Ionicons name="key-outline" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                value={password}
+                                onChangeText={setPassword}
+                                placeholder="Enter new password"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                secureTextEntry={!showPassword}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons
+                                name={showPassword ? "eye-off" : "eye"}
+                                size={20}
+                                color="rgba(255, 255, 255, 0.7)"
+                                style={{ paddingHorizontal: 10 }}
+                                />
+                            </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Confirm Password Field */}
+                        {password.length > 0 && (
+                            <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Confirm Password</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="key" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.inputIcon} />
+                                <TextInput
+                                style={styles.input}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholder="Re-enter new password"
+                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                secureTextEntry={!showConfirmPassword}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                />
+                                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                <Ionicons
+                                    name={showConfirmPassword ? "eye-off" : "eye"}
+                                    size={20}
+                                    color="rgba(255, 255, 255, 0.7)"
+                                    style={{ paddingHorizontal: 10 }}
+                                />
+                                </TouchableOpacity>
+                            </View>
                             </View>
                         )}
-                    </View>
+
+                        {/* Submit Button */}
+                        <TouchableOpacity
+                            style={[
+                                styles.saveButton, 
+                                { backgroundColor: isFormValid ? '#8B5CF6' : '#ccc' }
+                              ]}
+                            onPress={() => {
+                            if (password.length > 0) {
+                                if (password !== confirmPassword) {
+                                Alert.alert("Password Mismatch", "Passwords do not match.");
+                                return;
+                                } else if (password.length < 8) {
+                                Alert.alert("Weak Password", "Password must be at least 8 characters.");
+                                return;
+                                }
+                            }
+
+                            Alert.alert(
+                                "Confirm Update",
+                                "Are you sure you want to update your login credentials?",
+                                [
+                                { text: "Cancel", style: "cancel" },
+                                { text: "Yes", onPress: handleCredentialUpdate }
+                                ]
+                            );
+                            }}
+                        >
+                            <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" style={styles.saveButtonIcon} />
+                            <Text style={styles.updateCredentialsButtonText}>Update Credentials</Text>
+                        </TouchableOpacity>
+                        </View>
 
                     {/* Save Button */}
                     <TouchableOpacity 
@@ -1061,73 +1119,62 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     saveButton: {
-        backgroundColor: '#4ade80',
-        paddingVertical: 16,
-        borderRadius: 12,
+        backgroundColor: '#8B5CF6',
+        width: '48%',
+        alignSelf: 'center',
+        paddingVertical: 10,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 20,
-        marginBottom: 30,
+        marginTop: 16,       
+        marginBottom: 20,
         flexDirection: 'row',
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
     },
     saveButtonText: {
         color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 16,         
+        fontWeight: '600',
+    }, 
+    updateCredentialsButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,         
+        fontWeight: '600',
     },
     saveButtonIcon: {
         marginRight: 10,
     },
-    blockedUserItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-        },
-        blockedUserText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        },
-        reportedChatItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-        },
-        reportedChatText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        },
-        noDataText: {
+    noDataText: {
         color: '#FFFFFF',
         fontSize: 16,
         marginTop: 10,
-        },
-        noDataContainer: {
-            paddingVertical: 15,
-            paddingHorizontal: 16,
-        },
-        toggleRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: 12,
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            marginHorizontal: 16,
-            marginVertical: 10,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.15)',
-        }, 
-        toggleLabel: {
-            color: '#FFFFFF',
-            fontSize: 15,
-            fontWeight: '500',
-        },          
+    },
+    noDataContainer: {
+        paddingVertical: 15,
+        paddingHorizontal: 16,
+    },
+    toggleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        marginHorizontal: 16,
+        marginVertical: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+    }, 
+    toggleLabel: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '500',
+    },      
 });
 
 export default SettingsScreen;

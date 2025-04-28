@@ -33,14 +33,27 @@ const AccountScreen = () => {
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
-  const handleLogout = async () => {
-    setProfileData(null); 
-    await logout();
-    navigation.navigate({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  };
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            setProfileData(null);
+            await logout();
+            navigation.navigate({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }
+        }
+      ]
+    );
+  };  
   
   const handleDeleteAccount = () => {
     // First confirmation alert
@@ -358,6 +371,14 @@ const AccountScreen = () => {
             >
               <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.blockedReportedButton}
+              onPress={() => navigation.navigate('BlockedReported')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="ban-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
           {/* Profile Picture */}
@@ -571,6 +592,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 30,
   },
+  blockedReportedButton: {
+    position: 'absolute',
+    right: 20,
+    top: 60,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 30,
+  },
+  
   profileImageContainer: {
     alignItems: 'center',
     marginBottom: 20,

@@ -49,7 +49,7 @@ public class UserService {
     private JavaMailSender mailSender;
 
     @Autowired
-    private DynamoDbService dynamoDbService;
+    private PasswordResetService passwordResetService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -91,7 +91,7 @@ public class UserService {
                 return "Invalid email address.";
             }
             // Check if user exists
-            Map<String, AttributeValue> user = dynamoDbService.getUserByEmail(email);
+            Map<String, AttributeValue> user = passwordResetService.getUserByEmail(email);
             if (user == null) {
                 return "If this email is associated with an account, you will receive a reset token.";
             }
@@ -100,7 +100,7 @@ public class UserService {
             long expirationTime = Instant.now().getEpochSecond() + TOKEN_EXPIRATION_TIME;
 
             // Save token with expiration
-            dynamoDbService.savePasswordResetToken(email, resetToken, expirationTime);
+            passwordResetService.savePasswordResetToken(email, resetToken, expirationTime);
 
             // Send reset email
             sendPasswordResetEmail(email, resetToken);
@@ -139,7 +139,7 @@ public class UserService {
             String newPassword = request.getNewPassword();
 
             // Retrieve token details
-            Map<String, AttributeValue> user = dynamoDbService.getUserByResetToken(token);
+            Map<String, AttributeValue> user = passwordResetService.getUserByResetToken(token);
             if (user == null) {
                 return false;
             }
@@ -154,10 +154,10 @@ public class UserService {
             // Update user password
             String email = user.get("email").s();
             String encodedPassword = passwordEncoder.encode(newPassword);
-            dynamoDbService.updateUserPassword(email, encodedPassword);
+            passwordResetService.updateUserPassword(email, encodedPassword);
 
             // Clear reset token after use
-            dynamoDbService.clearPasswordResetToken(email);
+            passwordResetService.clearPasswordResetToken(email);
 
             return true;
         } catch (Exception e) {
@@ -727,34 +727,6 @@ public class UserService {
         // Send Message Notification
         sendMessageNotification(chatId, createdAt, userId, name, text);
 
-        /*
-        // Get the other user's ID to notify them
-        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
-        GetItemRequest getItemRequest = GetItemRequest.builder()
-                .tableName(dynamoDbConfig.getChatsTableName())
-                .key(key)
-                .build();
-        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
-        
-        if (response.hasItem()) {
-            Map<String, AttributeValue> item = response.item();
-            AttributeValue participantsAttribute = item.get("participants");
-            
-            if (participantsAttribute != null && participantsAttribute.l() != null) {
-                // Find the recipient ID
-                String recipientId = participantsAttribute.l().stream()
-                        .map(AttributeValue::s)
-                        .filter(id -> !id.equals(userId))
-                        .findFirst()
-                        .orElse(null);
-                        
-                if (recipientId != null) {
-                    // Send notification for new message
-                    String previewText = text.substring(0, Math.min(text.length(), 30));
-                    notificationService.notifyNewMessage(recipientId, userId, name, previewText);
-                }
-            }
-        }*/
     }
 
     private void sendMessageNotification(String chatId, String createdAt, String userId, String name, String text) {
@@ -861,7 +833,7 @@ public class UserService {
             return Collections.emptyList();
         }
 
-        logger.info("Fetching messages for chatId: " + chatId);
+        //logger.info("Fetching messages for chatId: " + chatId);
 
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(dynamoDbConfig.getMessagesTableName())
@@ -872,8 +844,8 @@ public class UserService {
 
         QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
 
-        logger.info("getMessages: " + queryResponse.items().size()
-                + " items returned for chatId " + chatId);
+        /*logger.info("getMessages: " + queryResponse.items().size()
+                + " items returned for chatId " + chatId);*/
         return queryResponse.items().stream()
                 .map(this::convertToSimpleMap) // Convert DynamoDB response to a simple Map<String, String>
                 .toList();

@@ -9,14 +9,16 @@ import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
 import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
+import ReportScreen from "../screens/ReportScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
 import NameGroupScreen from "../screens/NameGroupScreen";
 import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-// // import MatchesScreen from "../screens/MatchesScreen";
-// import ChatScreen from "../screens/ChatScreen";
+import ChatScreen from "../screens/ChatScreen";
+import BlockedReportedScreen from "../screens/BlockedReportedScreen";
+
 
 
 const Stack = createNativeStackNavigator();
@@ -64,6 +66,10 @@ const StackNavigator = () => {
             component={NameGroupScreen}
             // options={{ headerShown: true }}
           />
+            />
+            <Stack.Screen name="ReportScreen" component={ReportScreen} />
+            <Stack.Screen name="ChatScreen" component={ChatScreen} />
+            <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />
         </>
       ) : (
         <>

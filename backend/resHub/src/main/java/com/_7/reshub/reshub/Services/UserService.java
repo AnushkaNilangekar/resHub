@@ -2,7 +2,9 @@ package com._7.reshub.reshub.Services;
 
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 import com._7.reshub.reshub.Models.PasswordResetRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,9 +19,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
-//import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
-//import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
-//import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
+
 import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -51,6 +51,9 @@ public class UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Value("${botpress.bot.user.id}")
+    private String botUserId;
 
     /*
      * Handles retrieving the user ids of the given user's matches.
@@ -509,6 +512,16 @@ public class UserService {
         }
     }
 
+    public String createChat(String user1Id, String user2Id)
+    {
+        return createAnyChat(user1Id, user2Id, false, "");
+    }
+
+    public String createBotChat(String user1Id, String user2Id, String userKey)
+    {
+        return createAnyChat(user1Id, user2Id, true, userKey);
+    }
+
     /*
      * Create a new chat between two users.
      * 
@@ -518,7 +531,7 @@ public class UserService {
      * 
      * @return The ID of the created chat
      */
-    public String createChat(String user1Id, String user2Id) {
+    public String createAnyChat(String user1Id, String user2Id, boolean isBotChat, String userKey) {
         // Step 1: Generate a new chat ID (this can be a UUID or a timestamp-based ID)
         String chatId = UUID.randomUUID().toString();
         System.out.println("Generated Chat ID: " + chatId); // Debugging line
@@ -533,6 +546,10 @@ public class UserService {
                         AttributeValue.builder().s(user2Id).build()))
                 .build());
         chatItem.put("updatedAt", AttributeValue.builder().s(String.valueOf(System.currentTimeMillis())).build());
+        if (isBotChat)
+        {
+            chatItem.put("userKey", AttributeValue.builder().s(userKey).build());
+        }
 
         System.out.println("Chat Item: " + chatItem); // Debugging line
 
@@ -551,9 +568,17 @@ public class UserService {
 
         // Step 3: Update both users' profiles to add this chat ID to their 'chats' list
         try {
-            updateUserChats(user1Id, chatId);
-            updateUserChats(user2Id, chatId);
-            System.out.println("User chats updated for: " + user1Id + " and " + user2Id); // Debugging line
+            if (!user1Id.equals(botUserId))
+            {
+                updateUserChats(user1Id, chatId);
+                System.out.println("User chats updated for: " + user1Id);
+            }
+
+            if (!user2Id.equals(botUserId))
+            {
+                updateUserChats(user2Id, chatId);
+                System.out.println("User chats updated for: " + user2Id);
+            }
         } catch (Exception e) {
             System.err.println("Error updating user chats: " + e.getMessage()); // Debugging error
             e.printStackTrace();
@@ -610,7 +635,10 @@ public class UserService {
         }
 
         // Send Message Notification
-        sendMessageNotification(chatId, createdAt, userId, name, text);
+        if (!userId.equals(botUserId))
+        {
+            sendMessageNotification(chatId, createdAt, userId, name, text);
+        }
 
         /*
         // Get the other user's ID to notify them
@@ -640,6 +668,28 @@ public class UserService {
                 }
             }
         }*/
+    }
+
+    public String getUserKey(String chatId) {
+        Map<String, AttributeValue> key = Map.of("chatId", AttributeValue.builder().s(chatId).build());
+
+        GetItemRequest getItemRequest = GetItemRequest.builder()
+            .tableName(dynamoDbConfig.getChatsTableName())
+            .key(key)
+            .build();
+
+        GetItemResponse response = dynamoDbClient.getItem(getItemRequest);
+
+        if (response.hasItem()) {
+            Map<String, AttributeValue> item = response.item();
+            AttributeValue userKeyValue = item.get("userKey");
+    
+            if (userKeyValue != null) {
+                return userKeyValue.s();
+            }
+        }
+
+        return null;
     }
 
     private void sendMessageNotification(String chatId, String createdAt, String userId, String name, String text) {

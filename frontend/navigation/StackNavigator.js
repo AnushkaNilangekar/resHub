@@ -14,6 +14,7 @@ import SplashScreen from  "../screens/SplashScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
 import NameGroupScreen from "../screens/NameGroupScreen";
 import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 // // import MatchesScreen from "../screens/MatchesScreen";
 // import ChatScreen from "../screens/ChatScreen";
 
@@ -37,6 +38,7 @@ const StackNavigator = () => {
           <Stack.Screen name="Main" component={BottomTabNavigator} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
           <Stack.Screen name="GroupParticipantsScreen" component={GroupParticipantsScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           {/* <Stack.Screen name="ChatScreen" component={ChatScreen} /> */}
           {/* <Stack.Screen name="MatchesScreen" component={MatchesScreen} /> */}
           <Stack.Screen 

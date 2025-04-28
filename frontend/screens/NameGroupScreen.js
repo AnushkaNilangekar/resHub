@@ -28,9 +28,7 @@ const NameGroupScreen = () => {
       ];   
     
     const token = await AsyncStorage.getItem("token");
-    console.log(token);
 
-    console.log(config.API_BASE_URL)
 
     try {
 
@@ -85,14 +83,9 @@ const NameGroupScreen = () => {
     } catch (error) {
     console.error("Error creating group:", error);
     alert("Failed to create group chat.");
+    navigation.navigate('Main', { screen: 'Chats' })
+    
     }
-      
-
-    // Example: Send to backend or navigate to group chat
-    console.log("Creating group:", groupName);
-    console.log("Members:", selectedUsers);
-
-    navigation.navigate("ChatScreen"); // or navigate to the group chat screen
   };
 
   return (

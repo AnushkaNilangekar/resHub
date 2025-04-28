@@ -377,12 +377,18 @@ const ChatScreen = () => {
                           <Ionicons name="people-outline" size={40} color="rgba(255, 255, 255, 0.8)" />
                         </View>
                       </TouchableOpacity>
-                    ) : item.profilePicUrl && item.profilePicUrl.trim() !== "" ? (
-                      <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
                     ) : (
-                      <View style={styles.profilePlaceholder}>
-                        <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
-                      </View>
+                      <TouchableOpacity
+                        onPress={() => navigation.navigate("ProfileScreen", { userId: item.otherUserId })}
+                      >
+                        {item.profilePicUrl && item.profilePicUrl.trim() !== "" ? (
+                          <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                        ) : (
+                          <View style={styles.profilePlaceholder}>
+                            <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
                     )}
                       {isUnreadForCurrentUser && (
                         <View style={styles.unreadBadge}>

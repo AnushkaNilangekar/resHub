@@ -12,6 +12,7 @@ import MessageScreen from "../screens/MessageScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
 //import ChatsScreen from "../screens/ChatScreen";
+import BotChatScreen from "../screens/BotMessageScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -45,6 +46,8 @@ const StackNavigator = () => {
             component={MessageScreen}
             options={{ headerShown: true }}  
           />
+          <Stack.Screen name="BotChatScreen" component={BotChatScreen} 
+          options={{ headerShown: true, title: 'Bot Assistant' }} />
         </>
       ) : (
         <>

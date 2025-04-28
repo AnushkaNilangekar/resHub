@@ -546,11 +546,10 @@ public class UserService {
                         AttributeValue.builder().s(user2Id).build()))
                 .build());
         chatItem.put("updatedAt", AttributeValue.builder().s(String.valueOf(System.currentTimeMillis())).build());
-        if (isBotChat)
-        {
+        if (isBotChat && userKey != null && !userKey.isEmpty()) {
             chatItem.put("userKey", AttributeValue.builder().s(userKey).build());
         }
-
+        
         System.out.println("Chat Item: " + chatItem); // Debugging line
 
         // Insert the new chat into the 'chats' table
@@ -941,7 +940,7 @@ public class UserService {
         }
     }
 
-    private void deleteMessagesByChatId(String chatId) {
+    public void deleteMessagesByChatId(String chatId) {
         QueryRequest queryRequest = QueryRequest.builder()
             .tableName(dynamoDbConfig.getMessagesTableName())
             .keyConditionExpression("chatId = :chatId")

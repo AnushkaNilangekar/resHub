@@ -12,8 +12,10 @@ import {
   Platform,
   Animated,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons'; // Added for better bot icon
 import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -143,7 +145,6 @@ const ChatScreen = () => {
       setChats([]);
       console.log('No chats found.');
     }
-
   }
 
   const confirmUnmatch = (chatId, otherUserId) => {
@@ -238,6 +239,13 @@ const ChatScreen = () => {
     );
   };
 
+  // Bot icon component for consistent styling
+  const BotIcon = ({ size = 40 }) => (
+    <View style={styles.botIconContainer}>
+      <FontAwesome5 name="robot" size={size * 0.65} color="#fff" />
+    </View>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -248,12 +256,11 @@ const ChatScreen = () => {
           end={{ x: 0, y: 1 }}
           locations={[0, 0.4, 0.7, 1]}
         >
-          <LoadingItem itemLoading="Chat" />
+          <LoadingItem itemLoading="Chats" />
         </LinearGradient>
       </SafeAreaView>
     );
   }
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -272,6 +279,12 @@ const ChatScreen = () => {
             </View>
             <Text style={styles.headerTitle}>Chats</Text>
           </View>
+          <TouchableOpacity
+            style={styles.supportButton}
+            onPress={() => navigation.navigate("BotChatScreen")}
+          >
+            <BotIcon size={24} />
+          </TouchableOpacity>
         </View>
         
         {error ? (
@@ -299,67 +312,100 @@ const ChatScreen = () => {
               <Text style={styles.noMatchesSubText}>
                 Start matching with people to begin conversations
               </Text>
+              
+              <TouchableOpacity
+                style={styles.botChatButton}
+                onPress={() => navigation.navigate("BotChatScreen")}
+              >
+                <BotIcon size={22} />
+                <Text style={styles.botChatButtonText}>Chat with Support Bot</Text>
+              </TouchableOpacity>
             </ScrollView>
           ) : (
-            <SwipeListView
-              data={chats}
-              keyExtractor={(item) => item.chatId.toString()}
-              renderItem={({ item }) => {
-                const isUnreadForCurrentUser = currentUserId
-                  ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-                  : false;
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.chatCard,
-                      isUnreadForCurrentUser && styles.unreadChatCard
-                    ]}
-                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+            <>
+              <TouchableOpacity
+                style={styles.botChatCard}
+                onPress={() => navigation.navigate("BotChatScreen")}
+              >
+                <View style={styles.profileContainer}>
+                  <LinearGradient
+                    colors={['#6C5CE7', '#45aaf2']}
+                    style={styles.botProfileBackground}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    borderRadius={30}
                   >
-                    <View style={styles.profileContainer}>
-                      {item.profilePicUrl ? (
-                        <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-                      ) : (
-                        <View style={styles.profilePlaceholder}>
-                          <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
-                        </View>
-                      )}
-                      {isUnreadForCurrentUser && (
-                        <View style={styles.unreadBadge}>
-                          <Text style={styles.unreadBadgeText}>
-                            {parseInt(item.unreadCount)}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.textContainer}>
-                      <Text style={styles.fullName}>{item.fullName}</Text>
-                      <Text style={styles.lastMessage} numberOfLines={1}>
-                        {truncateMessage(item.lastMessage)}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              }}
-              renderHiddenItem={({ item }) => (
-                <View style={styles.hiddenItemContainer}>
-                  <TouchableOpacity
-                    style={styles.unmatchButton}
-                    onPress={() => confirmUnmatch(item.chatId, item.otherUserId)}
-                  >
-                    <View style={styles.unmatchIconContainer}>
-                      <Ionicons name="trash-outline" size={24} color="#fff" />
-                    </View>
-                    <Text style={styles.unmatchText}>Unmatch</Text>
-                  </TouchableOpacity>
+                    <BotIcon size={40} />
+                  </LinearGradient>
                 </View>
-              )}
-              leftOpenValue={0}
-              rightOpenValue={-110}
-              disableRightSwipe={true}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
-              contentContainerStyle={styles.listContent}
-            />
+                <View style={styles.textContainer}>
+                  <Text style={styles.botName}>Support Bot</Text>
+                  <Text style={styles.botMessage} numberOfLines={1}>
+                    Get help with any questions you have
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              
+              <SwipeListView
+                data={chats}
+                keyExtractor={(item) => item.chatId.toString()}
+                renderItem={({ item }) => {
+                  const isUnreadForCurrentUser = currentUserId
+                    ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+                    : false;
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.chatCard,
+                        isUnreadForCurrentUser && styles.unreadChatCard
+                      ]}
+                      onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+                    >
+                      <View style={styles.profileContainer}>
+                        {item.profilePicUrl ? (
+                          <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                        ) : (
+                          <View style={styles.profilePlaceholder}>
+                            <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                          </View>
+                        )}
+                        {isUnreadForCurrentUser && (
+                          <View style={styles.unreadBadge}>
+                            <Text style={styles.unreadBadgeText}>
+                              {parseInt(item.unreadCount)}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.textContainer}>
+                        <Text style={styles.fullName}>{item.fullName}</Text>
+                        <Text style={styles.lastMessage} numberOfLines={1}>
+                          {truncateMessage(item.lastMessage)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }}
+                renderHiddenItem={({ item }) => (
+                  <View style={styles.hiddenItemContainer}>
+                    <TouchableOpacity
+                      style={styles.unmatchButton}
+                      onPress={() => confirmUnmatch(item.chatId, item.otherUserId)}
+                    >
+                      <View style={styles.unmatchIconContainer}>
+                        <Ionicons name="trash-outline" size={24} color="#fff" />
+                      </View>
+                      <Text style={styles.unmatchText}>Unmatch</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                leftOpenValue={0}
+                rightOpenValue={-110}
+                disableRightSwipe={true}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+                contentContainerStyle={styles.listContent}
+              />
+            </>
           )}
         </View>
       </LinearGradient>
@@ -389,6 +435,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 30,
     marginTop: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   headerContent: {
     flexDirection: 'row',
@@ -415,6 +464,28 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
+  },
+  // Bot icon styles
+  botIconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  supportButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   errorContainer: {
     flexDirection: 'row',
@@ -489,6 +560,74 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
     textAlign: 'center',
     maxWidth: '80%',
+  },
+  // Bot chat button on empty screen
+  botChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "rgba(108, 92, 231, 0.8)",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginTop: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  botChatButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  // Bot chat card
+  botChatCard: {
+    width: "100%",
+    backgroundColor: "rgba(108, 92, 231, 0.35)",
+    marginBottom: 15,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    height: 85,
+  },
+  botProfileBackground: {
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.7)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  botName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#fff",
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  botMessage: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontStyle: 'italic',
   },
   chatCard: {
     width: "100%",

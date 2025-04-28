@@ -186,6 +186,17 @@ public class BotpressController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/clearBotChat")
+    public ResponseEntity<Map<String, String>> clearBotChat(@RequestParam String conversationId) {
+        try {
+            userService.deleteMessagesByChatId(conversationId);
+            return ResponseEntity.ok(Map.of("message", "Bot chat history cleared successfully."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to clear bot chat history."));
+        }
+    }
+    
     /**
      * Internal method to create a new Botpress user
      */

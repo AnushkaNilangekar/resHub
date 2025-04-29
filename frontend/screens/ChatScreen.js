@@ -15,7 +15,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons'; // Added for better bot icon
+import { FontAwesome5 } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -56,9 +56,6 @@ const ChatScreen = () => {
     }
   }, [error, fadeAnim]);
 
-  /*
-  * Gets a list of the chat ids for the current user
-  */
   async function getChats() {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -80,9 +77,6 @@ const ChatScreen = () => {
     }
   }
 
-  /*
-  * Gets the last message and other user details for each chat
-  */
   async function getChatDetails(chatIds) {
     const chatDetails = [];
 
@@ -105,7 +99,7 @@ const ChatScreen = () => {
         // Get profile info for the other user
         const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
           params: {
-            userId: otherUserId, // Assuming email is used as the userId for the profile
+            userId: otherUserId,
           },
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -132,9 +126,6 @@ const ChatScreen = () => {
     return chatDetails;
   }
 
-  /*
-  * Fetches the chat details and populates the UI
-  */
   async function getChatInformation() {
     const chatIds = await getChats();
 
@@ -148,7 +139,6 @@ const ChatScreen = () => {
   }
 
   const confirmUnmatch = (chatId, otherUserId) => {
-    // First confirmation alert
     Alert.alert(
       "Unmatch User",
       "Are you sure you want to unmatch? This will remove your connection.",
@@ -246,6 +236,32 @@ const ChatScreen = () => {
     </View>
   );
 
+  // Enhanced component for Support Bot Card
+  const SupportBotCard = () => (
+    <TouchableOpacity
+      style={styles.botChatCard}
+      onPress={() => navigation.navigate("BotChatScreen")}
+    >
+      <View style={styles.profileContainer}>
+        <LinearGradient
+          colors={['#6C5CE7', '#45aaf2']}
+          style={styles.botProfileBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          borderRadius={30}
+        >
+          <BotIcon size={40} />
+        </LinearGradient>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.botName}>Support Bot</Text>
+        <Text style={styles.botMessage} numberOfLines={1}>
+          Get help with any questions you have
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -286,24 +302,26 @@ const ChatScreen = () => {
             <BotIcon size={24} />
           </TouchableOpacity>
         </View>
-        
+  
         {error ? (
-          <Animated.View 
-            style={[
-              styles.errorContainer, 
-              { opacity: fadeAnim }
-            ]}
-          >
+          <Animated.View style={[styles.errorContainer, { opacity: fadeAnim }]}>
             <Ionicons name="alert-circle-outline" size={18} color="#FF6B6B" />
             <Text style={styles.error}>{error}</Text>
           </Animated.View>
         ) : null}
-
+  
         <View style={styles.contentContainer}>
           {chats.length === 0 ? (
-            <ScrollView 
-              contentContainerStyle={styles.noMatchesContainer} 
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+            <ScrollView
+              contentContainerStyle={styles.noMatchesContainer}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={["#fff"]}
+                  tintColor="#fff"
+                />
+              }
             >
               <View style={styles.emptyStateIconContainer}>
                 <Ionicons name="chatbubbles-outline" size={60} color="#fff" />
@@ -312,54 +330,38 @@ const ChatScreen = () => {
               <Text style={styles.noMatchesSubText}>
                 Start matching with people to begin conversations
               </Text>
-              
-              <TouchableOpacity
-                style={styles.botChatButton}
-                onPress={() => navigation.navigate("BotChatScreen")}
-              >
-                <BotIcon size={22} />
-                <Text style={styles.botChatButtonText}>Chat with Support Bot</Text>
-              </TouchableOpacity>
+  
+              {/* Enhanced Support Bot Card for empty state */}
+              <View style={styles.emptyStateBotCardContainer}>
+                <SupportBotCard />
+              </View>
             </ScrollView>
           ) : (
             <>
-              <TouchableOpacity
-                style={styles.botChatCard}
-                onPress={() => navigation.navigate("BotChatScreen")}
-              >
-                <View style={styles.profileContainer}>
-                  <LinearGradient
-                    colors={['#6C5CE7', '#45aaf2']}
-                    style={styles.botProfileBackground}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    borderRadius={30}
-                  >
-                    <BotIcon size={40} />
-                  </LinearGradient>
-                </View>
-                <View style={styles.textContainer}>
-                  <Text style={styles.botName}>Support Bot</Text>
-                  <Text style={styles.botMessage} numberOfLines={1}>
-                    Get help with any questions you have
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              
+              <SupportBotCard />
+  
               <SwipeListView
                 data={chats}
                 keyExtractor={(item) => item.chatId.toString()}
                 renderItem={({ item }) => {
-                  const isUnreadForCurrentUser = currentUserId
-                    ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-                    : false;
+                  const isUnreadForCurrentUser =
+                    currentUserId &&
+                    parseInt(item.unreadCount || '0') > 0 &&
+                    item.lastMessageSender !== currentUserId;
+  
                   return (
                     <TouchableOpacity
                       style={[
                         styles.chatCard,
                         isUnreadForCurrentUser && styles.unreadChatCard
                       ]}
-                      onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: item.fullName })}
+                      onPress={() =>
+                        navigation.navigate("MessageScreen", {
+                          chatId: item.chatId,
+                          otherUserId: item.otherUserId,
+                          name: item.fullName
+                        })
+                      }
                     >
                       <View style={styles.profileContainer}>
                         {item.profilePicUrl ? (
@@ -402,7 +404,14 @@ const ChatScreen = () => {
                 leftOpenValue={0}
                 rightOpenValue={-110}
                 disableRightSwipe={true}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#fff"]}
+                    tintColor="#fff"
+                  />
+                }
                 contentContainerStyle={styles.listContent}
               />
             </>
@@ -412,7 +421,7 @@ const ChatScreen = () => {
     </SafeAreaView>
   );
 };
-
+  
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -522,9 +531,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-      fontSize: 16,
-      color: colors.text.light,
-      marginTop: 8,
+    fontSize: 16,
+    color: colors.text.light,
+    marginTop: 8,
   },
   noMatchesContainer: {
     flex: 1,
@@ -560,31 +569,19 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
     textAlign: 'center',
     maxWidth: '80%',
+    marginBottom: 30,
   },
-  // Bot chat button on empty screen
-  botChatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: "rgba(108, 92, 231, 0.8)",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    marginTop: 30,
+  // New container for bot card in empty state
+  emptyStateBotCardContainer: {
+    width: '90%',
+    marginTop: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
-  botChatButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  // Bot chat card
+  // Consistent bot chat card for both states
   botChatCard: {
     width: "100%",
     backgroundColor: "rgba(108, 92, 231, 0.35)",

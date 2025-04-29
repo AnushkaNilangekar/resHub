@@ -54,55 +54,64 @@ public class BotpressController {
         // Read user profile data
         Profile profile = profileService.doGetProfile(userId);
         String userName = profile.getFullName();
+        String existingConversationId = profile.getBotConversationId();
 
-        // Create user
-        String userKey;
-        Map<String, Object> userInfo = new HashMap<>();
-        
-        Map<String, Object> userRequest = new HashMap<>();
-        userRequest.put("id", userId);
-        userRequest.put("name", userName);
-        
-        try
+        if (existingConversationId != null && !(existingConversationId.isBlank() || existingConversationId.isEmpty()))
         {
-            Map<String, Object> userResponse = createUser(userRequest);
-            userKey = (String) userResponse.get("key");
-        
-            @SuppressWarnings("unchecked")
-            Map<String, Object> user = (Map<String, Object>) userResponse.get("user");
-            userInfo = user;
 
-            // Create chat in chats table
-            String conversationId = userService.createBotChat(userId, botUserId, userKey);
-
-            // Store conversation id with user profile
-            profileService.doAddBotConversationId(userId, conversationId);
-
-            // Create conversation
-            Map<String, Object> conversationInfo;
-            Map<String, Object> conversationRequest = new HashMap<>();
-
-            conversationRequest.put("id", conversationId);
-
-            // Call botpress api to create conversation
-            Map<String, Object> conversationResponse = createConversation(userKey, conversationRequest);
+            // Create user
+            String userKey;
+            Map<String, Object> userInfo = new HashMap<>();
             
-            @SuppressWarnings("unchecked")
-            Map<String, Object> conversation = (Map<String, Object>) conversationResponse.get("conversation");
-            conversationInfo = conversation;
+            Map<String, Object> userRequest = new HashMap<>();
+            userRequest.put("id", userId);
+            userRequest.put("name", userName);
             
-            // Prepare response
-            Map<String, Object> response = new HashMap<>();
-            response.put("userKey", userKey);
-            response.put("user", userInfo);
-            response.put("conversation", conversationInfo);
-            response.put("conversationId", conversationId);
+            try
+            {
+                Map<String, Object> userResponse = createUser(userRequest);
+                userKey = (String) userResponse.get("key");
             
-            return ResponseEntity.ok(response);
-        } catch (Exception e)
+                @SuppressWarnings("unchecked")
+                Map<String, Object> user = (Map<String, Object>) userResponse.get("user");
+                userInfo = user;
+
+                // Create chat in chats table
+                String conversationId = userService.createBotChat(userId, botUserId, userKey);
+
+                // Store conversation id with user profile
+                profileService.doAddBotConversationId(userId, conversationId);
+
+                // Create conversation
+                Map<String, Object> conversationInfo;
+                Map<String, Object> conversationRequest = new HashMap<>();
+
+                conversationRequest.put("id", conversationId);
+
+                // Call botpress api to create conversation
+                Map<String, Object> conversationResponse = createConversation(userKey, conversationRequest);
+                
+                @SuppressWarnings("unchecked")
+                Map<String, Object> conversation = (Map<String, Object>) conversationResponse.get("conversation");
+                conversationInfo = conversation;
+                
+                // Prepare response
+                Map<String, Object> response = new HashMap<>();
+                response.put("userKey", userKey);
+                response.put("user", userInfo);
+                response.put("conversation", conversationInfo);
+                response.put("conversationId", conversationId);
+                
+                return ResponseEntity.ok(response);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+                return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
+            }
+        }
+        else
         {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Error: user already has a support bot chat."));
         }
     }
     

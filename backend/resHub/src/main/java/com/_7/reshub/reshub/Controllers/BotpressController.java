@@ -56,7 +56,7 @@ public class BotpressController {
         String userName = profile.getFullName();
         String existingConversationId = profile.getBotConversationId();
 
-        if (existingConversationId != null && !(existingConversationId.isBlank() || existingConversationId.isEmpty()))
+        if (existingConversationId == null || existingConversationId.isBlank() || existingConversationId.isEmpty())
         {
 
             // Create user
@@ -111,7 +111,7 @@ public class BotpressController {
         }
         else
         {
-            return ResponseEntity.status(500).body(Map.of("error", "Error: user already has a support bot chat."));
+            return ResponseEntity.status(500).body(Map.of("error", "user already has a support bot chat."));
         }
     }
     

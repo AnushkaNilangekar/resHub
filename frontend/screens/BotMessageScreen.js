@@ -9,7 +9,6 @@ import {
   Text, 
   StatusBar,
   Animated,
-  Alert,
   ActivityIndicator
 } from "react-native";
 import Chat from "@codsod/react-native-chat";
@@ -31,8 +30,8 @@ const BotChatScreen = ({ route }) => {
   const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const messagePollingInterval = useRef(null);
+  const lastCheckedTime = useRef(new Date());
 
-  // Error animation effect
   useEffect(() => {
     if (error) {
       Animated.sequence([
@@ -51,14 +50,59 @@ const BotChatScreen = ({ route }) => {
     }
   }, [error, fadeAnim]);
 
-  // Set the header title dynamically
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        setUserId(storedUserId);
+        const storedToken = await AsyncStorage.getItem("token");
+        setToken(storedToken);
+
+        const existingConversationId = await AsyncStorage.getItem("botConversationId");
+        const existingUserKey = await AsyncStorage.getItem("botUserKey");
+
+        if (existingConversationId && existingUserKey) {
+          setConversationId(existingConversationId);
+          setUserKey(existingUserKey);
+          await fetchMessages(existingUserKey, existingConversationId);
+        } else {
+          const response = await axios.post(
+            `${config.API_BASE_URL}/api/botpress/createChat`, 
+            {},
+            {
+              params: { userId: storedUserId },
+              headers: { 'Authorization': `Bearer ${storedToken}` }
+            }
+          );
+
+          if (response.status === 200) {
+            const { userKey, conversationId } = response.data;
+            setUserKey(userKey);
+            setConversationId(conversationId);
+            
+            await AsyncStorage.setItem("botConversationId", conversationId);
+            await AsyncStorage.setItem("botUserKey", userKey);
+            
+            setMessages([]);
+          }
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing bot chat:", error);
+        setError('Failed to connect to support bot. Please try again.');
+        setIsLoading(false);
+      }
+    };
+
+    initializeChat();
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerShown: false, // Hide the default header
+      headerShown: false,
     });
   }, [navigation]);
 
-  // Initialize or get existing chat
   const initializeChat = async () => {
     try {
       const storedUserId = await AsyncStorage.getItem("userId");
@@ -66,7 +110,6 @@ const BotChatScreen = ({ route }) => {
       const storedToken = await AsyncStorage.getItem("token");
       setToken(storedToken);
 
-      // Check if we already have a bot conversation
       const existingConversationId = await AsyncStorage.getItem("botConversationId");
       const existingUserKey = await AsyncStorage.getItem("botUserKey");
 
@@ -75,7 +118,6 @@ const BotChatScreen = ({ route }) => {
         setUserKey(existingUserKey);
         await fetchMessages(existingUserKey, existingConversationId);
       } else {
-        // Create a new chat with the bot
         const response = await axios.post(
           `${config.API_BASE_URL}/api/botpress/createChat`, 
           {},
@@ -90,7 +132,6 @@ const BotChatScreen = ({ route }) => {
           setUserKey(userKey);
           setConversationId(conversationId);
           
-          // Store for future sessions
           await AsyncStorage.setItem("botConversationId", conversationId);
           await AsyncStorage.setItem("botUserKey", userKey);
           
@@ -105,7 +146,6 @@ const BotChatScreen = ({ route }) => {
     }
   };
 
-  // Fetch messages from the bot conversation
   const fetchMessages = async (key, convId) => {
     try {
       const storedToken = await AsyncStorage.getItem("token");
@@ -116,11 +156,10 @@ const BotChatScreen = ({ route }) => {
           headers: { 'Authorization': `Bearer ${storedToken}` }
         }
       );
-
+  
       if (response.status === 200) {
-        // Format bot messages for the chat component
         const formattedMessages = response.data.messages.map((msg, index) => ({
-          _id: index + 1,
+          _id: `msg-${Date.now()}-${index}`, 
           text: msg.payload.text,
           createdAt: new Date(msg.createdAt),
           user: {
@@ -128,8 +167,14 @@ const BotChatScreen = ({ route }) => {
             name: msg.userId === userId ? 'You' : 'Support Bot',
           },
         }));
-
-        setMessages(formattedMessages.reverse()); // Most recent at the bottom
+  
+        const sortedMessages = formattedMessages.sort((a, b) => 
+          new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        
+        setMessages(sortedMessages.reverse());  
+        
+        lastCheckedTime.current = new Date();
       }
     } catch (error) {
       console.error("Error fetching bot messages:", error);
@@ -137,7 +182,8 @@ const BotChatScreen = ({ route }) => {
     }
   };
 
-  // Poll for new messages from the bot
+  
+    
   const pollNewMessages = async () => {
     if (!conversationId || !userId) return;
     
@@ -153,9 +199,8 @@ const BotChatScreen = ({ route }) => {
           headers: { 'Authorization': `Bearer ${storedToken}` }
         }
       );
-
+  
       if (response.status === 200 && response.data.length > 0) {
-        // Add any new messages from the bot
         const newBotMessages = response.data.map((msg, index) => ({
           _id: `bot-${Date.now()}-${index}`,
           text: msg.payload.text,
@@ -165,18 +210,22 @@ const BotChatScreen = ({ route }) => {
             name: 'Support Bot',
           },
         }));
-
-        setMessages(prevMessages => [...newBotMessages.reverse(), ...prevMessages]);
+  
+        const sortedNewMessages = newBotMessages.sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        setMessages(prevMessages => [...sortedNewMessages, ...prevMessages]);
       }
+      
+      lastCheckedTime.current = new Date();
     } catch (error) {
       console.error("Error polling new bot messages:", error);
     }
   };
 
-  // Handle sending a message to the bot
   const onSendMessage = async (text) => {
     if (text.trim()) {
-      // Add the user message to the chat immediately
       const newMessage = {
         _id: Date.now(),
         text: text,
@@ -205,30 +254,28 @@ const BotChatScreen = ({ route }) => {
           }
         );
         
-        // The polling will pick up the bot's response
       } catch (error) {
         console.error("Error sending message to bot:", error);
         setError('Unable to send message. Please try again.');
       }
     }
   };
-  const handleClearHistory = async () => {
-    if (!conversationId) return;
-    
-    try {
-      const storedToken = await AsyncStorage.getItem("token");
-      await axios.delete(`${config.API_BASE_URL}/api/botpress/clearBotChat`, {
-        params: { conversationId },
-        headers: { 'Authorization': `Bearer ${storedToken}` }
-      });
-  
-      setMessages([]); // Clear UI instantly
-      Alert.alert("Chat history cleared!");
-    } catch (error) {
-      console.error("Error clearing chat history:", error);
-      setError("Failed to clear chat history.");
-    }
-  };  
+
+  useEffect(() => {
+    initializeChat();
+
+    messagePollingInterval.current = setInterval(() => {
+      if (conversationId && userId) {
+        pollNewMessages();
+      }
+    }, 2000);
+
+    return () => {
+      if (messagePollingInterval.current) {
+        clearInterval(messagePollingInterval.current);
+      }
+    };
+  }, [conversationId, userId]);
 
   if (isLoading) {
     return (
@@ -260,26 +307,18 @@ const BotChatScreen = ({ route }) => {
         locations={[0, 0.4, 0.7, 1]}
       >
         <View style={styles.headerContainer}>
-        <TouchableOpacity 
+          <TouchableOpacity 
             style={styles.backButton} 
             onPress={() => navigation.goBack()}
-        >
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-            style={styles.clearButton} 
-            onPress={handleClearHistory}
-        >
-            <Ionicons name="trash-outline" size={22} color="#fff" />
-        </TouchableOpacity>
-
-        <View style={styles.headerContent}>
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
             <View style={styles.iconContainer}>
-            <Ionicons name="logo-android" size={24} color="#fff" />
+              <Ionicons name="logo-android" size={24} color="#fff" />
             </View>
             <Text style={styles.headerTitle}>Support Bot</Text>
-        </View>
+          </View>
         </View>
         
         {error ? (
@@ -374,13 +413,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -5,
     marginRight: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -439,14 +477,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingBottom: 20,
   },
-  clearButton: {
-    padding: 8,
-    marginRight: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },  
 });
 
 export default BotChatScreen;

@@ -151,8 +151,8 @@ public class ProfileService {
             ? Double.valueOf(item.get("notifVolume").n()) 
             : 1.0,
             item.containsKey("matchSoundEnabled") ? item.get("matchSoundEnabled").bool() : true,
-            item.containsKey("messageSoundEnabled") ? item.get("messageSoundEnabled").bool() : true
-
+            item.containsKey("messageSoundEnabled") ? item.get("messageSoundEnabled").bool() : true,
+            item.getOrDefault("botConversationId", AttributeValue.builder().s("").build()).s()
         );
     }
     
@@ -270,6 +270,26 @@ public class ProfileService {
                 .tableName(dynamoDbConfig.getUserProfilesTableName())
                 .key(key)
                 .updateExpression("SET blockedUsers = :newBlockedUsers")
+                .expressionAttributeValues(updateValues)
+                .build();
+
+        dynamoDbClient.updateItem(updateRequest);
+    }
+
+    /*
+    * Handles adding the bot conversation ID to the user's profile.
+    */
+    public void doAddBotConversationId(String userId, String conversationId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":newBotConversationId", AttributeValue.builder().s(conversationId).build()
+        );
+
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("SET botConversationId = :newBotConversationId")
                 .expressionAttributeValues(updateValues)
                 .build();
 

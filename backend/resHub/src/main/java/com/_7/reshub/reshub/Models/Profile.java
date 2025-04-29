@@ -49,6 +49,9 @@ public class Profile {
     private Boolean matchSoundEnabled;
     private Boolean messageSoundEnabled;
 
+    //Botpress
+    private String botConversationId;
+
     /**
      * Constructor for Profile including new traits and roommate preferences.
      */
@@ -84,7 +87,8 @@ public class Profile {
             String roommateDietaryPreference, 
             Double notifVolume,
             Boolean matchSoundEnabled,
-            Boolean messageSoundEnabled
+            Boolean messageSoundEnabled,
+            String botConversationId
         ) 
         {
         this.userId = userId;
@@ -119,6 +123,7 @@ public class Profile {
         this.notifVolume = notifVolume != null ? notifVolume : 1.0;
         this.matchSoundEnabled = matchSoundEnabled != null ? matchSoundEnabled : true; 
         this.messageSoundEnabled = messageSoundEnabled != null ? messageSoundEnabled : true; 
+        this.botConversationId = botConversationId;
     }
 
     // Getters for all fields
@@ -254,5 +259,9 @@ public class Profile {
     
     public Boolean getMessageSoundEnabled() {
         return messageSoundEnabled;
+    }
+
+    public String getBotConversationId() {
+        return botConversationId;
     }
 }

@@ -149,10 +149,12 @@ const BotChatScreen = ({ route }) => {
   const fetchMessages = async (key, convId) => {
     try {
       const storedToken = await AsyncStorage.getItem("token");
+      console.log("Using userKey:", key);
+      console.log("Using conversationId:", convId);
       const response = await axios.get(
         `${config.API_BASE_URL}/api/botpress/getAllMessages`,
         {
-          params: { conversationId: convId },
+          params: { conversationId: convId, userKey: key},
           headers: { 'Authorization': `Bearer ${storedToken}` }
         }
       );
@@ -185,7 +187,7 @@ const BotChatScreen = ({ route }) => {
   
     
   const pollNewMessages = async () => {
-    if (!conversationId || !userId) return;
+    if (!conversationId || !userId || !userKey) return;
     
     try {
       const storedToken = await AsyncStorage.getItem("token");
@@ -194,7 +196,8 @@ const BotChatScreen = ({ route }) => {
         {
           params: { 
             userId: userId,
-            conversationId: conversationId 
+            conversationId: conversationId,
+            userKey: userKey  // Add this parameter
           },
           headers: { 'Authorization': `Bearer ${storedToken}` }
         }
@@ -262,7 +265,6 @@ const BotChatScreen = ({ route }) => {
   };
 
   useEffect(() => {
-    initializeChat();
 
     messagePollingInterval.current = setInterval(() => {
       if (conversationId && userId) {

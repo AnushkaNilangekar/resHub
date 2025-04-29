@@ -146,10 +146,22 @@ public class BotpressController {
      * Gets all new messages from the bot
      */
     @GetMapping("/getNewMessages")
-    private ResponseEntity<List<BotpressMessage>> getNewBotMessages(@RequestParam String userId, String conversationId) {
-        String userKey = userService.getUserKey(conversationId);
+    private ResponseEntity<List<BotpressMessage>> getNewBotMessages(
+    @RequestParam String userId, 
+    @RequestParam String conversationId,
+    @RequestParam(required = false) String userKey) {
+    
+    String effectiveUserKey = userKey;
+    if (effectiveUserKey == null || effectiveUserKey.isEmpty()) {
+        effectiveUserKey = userService.getUserKey(conversationId);
+    }
+    
+    // Validate that we have a user key
+    if (effectiveUserKey == null || effectiveUserKey.isEmpty()) {
+        return ResponseEntity.badRequest().body(List.of());
+    }
 
-        List<BotpressMessage> allMessages = doGetAllMessages(userKey, conversationId, false);
+    List<BotpressMessage> allMessages = doGetAllMessages(effectiveUserKey, conversationId, false);
 
         // Filter messages newer than our last check
         List<BotpressMessage> newMessages = allMessages.stream()
@@ -167,24 +179,36 @@ public class BotpressController {
     }
 
     @GetMapping("/getAllMessages")
-    public ResponseEntity<Map<String, Object>> getAllMessages(@RequestParam String conversationId) {
-        String userKey = userService.getUserKey(conversationId);
-        
-        // Get all messages with automatic pagination
-        List<BotpressMessage> allMessages = doGetAllMessages(
-            userKey,
-            conversationId,
-            true
-        );
-        
-        // Prepare response
-        Map<String, Object> response = new HashMap<>();
-        response.put("userKey", userKey);
-        response.put("conversationId", conversationId);
-        response.put("messages", allMessages);
-        
-        return ResponseEntity.ok(response);
+public ResponseEntity<Map<String, Object>> getAllMessages(
+    @RequestParam String conversationId,
+    @RequestParam(required = false) String userKey) {
+    
+    // First try to get userKey from parameter, if not available, fall back to database
+    String effectiveUserKey = userKey;
+    if (effectiveUserKey == null || effectiveUserKey.isEmpty()) {
+        effectiveUserKey = userService.getUserKey(conversationId);
     }
+    
+    // Validate that we have a user key
+    if (effectiveUserKey == null || effectiveUserKey.isEmpty()) {
+        return ResponseEntity.badRequest().body(Map.of("error", "No valid user key found for this conversation"));
+    }
+    
+    // Get all messages with automatic pagination
+    List<BotpressMessage> allMessages = doGetAllMessages(
+        effectiveUserKey,
+        conversationId,
+        true
+    );
+    
+    // Prepare response
+    Map<String, Object> response = new HashMap<>();
+    response.put("userKey", effectiveUserKey);
+    response.put("conversationId", conversationId);
+    response.put("messages", allMessages);
+    
+    return ResponseEntity.ok(response);
+}
 
     @DeleteMapping("/clearBotChat")
     public ResponseEntity<Map<String, String>> clearBotChat(@RequestParam String conversationId) {

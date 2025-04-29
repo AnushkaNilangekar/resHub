@@ -207,6 +207,27 @@ const ChatScreen = () => {
       }, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+
+      const userId = await AsyncStorage.getItem("userId");
+
+      
+      const userParams = new URLSearchParams();
+      userParams.append('chatId', chatId);
+      userParams.append('createdAt', new Date().toISOString());
+      userParams.append('text', `${currentUserName} has left the chat`);
+      userParams.append('userId', userId);
+      userParams.append('name', currentUserName);
+
+      await axios.post(
+        `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
   
       setChats(prevChats => prevChats.filter(chat => chat.chatId !== chatId));
     } catch (error) {

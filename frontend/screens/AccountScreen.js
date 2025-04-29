@@ -362,24 +362,25 @@ const AccountScreen = () => {
           contentContainerStyle={styles.scrollContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FFFFFF"]} tintColor="#FFFFFF" />}
         >
-          {/* Header with Settings */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.settingsButton}
-              onPress={() => navigation.navigate('Settings')}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+          {/* Settings button on top left */}
+          <TouchableOpacity 
+            style={[styles.iconButton, { position: 'absolute', left: 20, top: 10 }]}
+            onPress={() => navigation.navigate('Settings')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.blockedReportedButton}
-              onPress={() => navigation.navigate('BlockedReported')}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="ban-outline" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          {/* Blocked/Reported button on top right */}
+          <TouchableOpacity 
+            style={[styles.iconButton, { position: 'absolute', right: 20, top: 10 }]}
+            onPress={() => navigation.navigate('BlockedReported')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="ban-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
 
           {/* Profile Picture */}
           <View style={styles.profileImageContainer}>
@@ -804,7 +805,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     opacity: 0.8,
     lineHeight: 20,
-  }
+  },
+  iconButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 30,
+  }, 
 });
 
 export default AccountScreen;

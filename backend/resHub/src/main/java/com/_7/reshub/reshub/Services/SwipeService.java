@@ -3,19 +3,26 @@ package com._7.reshub.reshub.Services;
 import com._7.reshub.reshub.Configs.DynamoDbConfig;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
+
+import jakarta.annotation.PostConstruct;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,12 +34,67 @@ public class SwipeService {
     @Autowired
     private DynamoDbClient dynamoDbClient;
 
-    long timeStart = 0;
+    // Queue just for swipe creation operations
+    private Queue<Map<String, Object>> swipeCreateQueue;
+    
+    private long timeStart = 0;
+
+    @PostConstruct
+    public void initialize() {
+        swipeCreateQueue = new ConcurrentLinkedQueue<>();
+    }
+
+    // Process the queue every 334ms (~3 operations per second)
+    @Scheduled(fixedRate = 334)
+    public void processQueue() {
+        Map<String, Object> swipeOperation = swipeCreateQueue.poll();
+        if (swipeOperation != null) {
+            try {
+                executeCreateSwipe(
+                    (String) swipeOperation.get("userId"),
+                    (String) swipeOperation.get("swipedOnUserId"),
+                    (String) swipeOperation.get("direction"),
+                    (Long) swipeOperation.get("timestamp"),
+                    (Long) swipeOperation.get("expirationTimestamp")
+                );
+            } catch (ProvisionedThroughputExceededException e) {
+                // If we hit throughput limits, put the operation back in the queue
+                System.out.println("Throughput exceeded, requeueing swipe creation operation");
+                swipeCreateQueue.offer(swipeOperation);
+                
+                // Simple backoff - sleep for 200ms before trying again
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+            } catch (Exception e) {
+                // Requeue on error
+                System.err.println("Error processing swipe creation: " + e.getMessage());
+                swipeCreateQueue.offer(swipeOperation);
+            }
+        }
+    }
 
     /*
      * Handles adding the new document to the swipe log table.
+     * Queues the operation instead of executing directly.
      */
     public void doCreateSwipe(String userId, String swipedOnUserId, String direction, long timestamp, long expirationTimestamp) {
+        Map<String, Object> swipeOperation = new HashMap<>();
+        swipeOperation.put("userId", userId);
+        swipeOperation.put("swipedOnUserId", swipedOnUserId);
+        swipeOperation.put("direction", direction);
+        swipeOperation.put("timestamp", timestamp);
+        swipeOperation.put("expirationTimestamp", expirationTimestamp);
+        
+        swipeCreateQueue.offer(swipeOperation);
+    }
+
+    /*
+     * Actual implementation of the swipe creation that works directly with DynamoDB
+     */
+    private void executeCreateSwipe(String userId, String swipedOnUserId, String direction, long timestamp, long expirationTimestamp) {
         Map<String, AttributeValue> item = Map.of(
                 "userId", AttributeValue.builder().s(userId).build(),
                 "swipedOnUserId", AttributeValue.builder().s(swipedOnUserId).build(),
@@ -172,63 +234,71 @@ public class SwipeService {
     }    
 
     /**
- * Delete all swipe logs associated with a user.
- * Deletes both swipes made by the user and swipes made on the user.
- * 
- * @param userId The ID of the user whose swipe logs should be deleted
- */
-public void deleteUserSwipes(String userId) {
-    try {
-        // Query swipes where userId is the swiping user
-        QueryRequest querySwipesBy = QueryRequest.builder()
-            .tableName("swipe_logs")
-            .keyConditionExpression("userId = :userId")
-            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
-            .build();
-        
-        QueryResponse swipesByResponse = dynamoDbClient.query(querySwipesBy);
-        
-        // Delete each swipe made by the user
-        for (Map<String, AttributeValue> item : swipesByResponse.items()) {
-            Map<String, AttributeValue> key = new HashMap<>();
-            key.put("userId", item.get("userId"));
-            key.put("swipedOnUserId", item.get("swipedOnUserId"));
-            
-            DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+     * Delete all swipe logs associated with a user.
+     * Deletes both swipes made by the user and swipes made on the user.
+     * 
+     * @param userId The ID of the user whose swipe logs should be deleted
+     */
+    public void deleteUserSwipes(String userId) {
+        try {
+            // Query swipes where userId is the swiping user
+            QueryRequest querySwipesBy = QueryRequest.builder()
                 .tableName("swipe_logs")
-                .key(key)
+                .keyConditionExpression("userId = :userId")
+                .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
                 .build();
             
-            dynamoDbClient.deleteItem(deleteRequest);
-        }
-        
-        // Query swipes where userId is the user being swiped on
-        // Note: You may need a GSI for this query to be efficient
-        // This example assumes there's a GSI on swipedOnUserId
-        QueryRequest querySwipesOn = QueryRequest.builder()
-            .tableName("swipe_logs")
-            .indexName("swipedOnUserId-index")
-            .keyConditionExpression("swipedOnUserId = :userId")
-            .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
-            .build();
-        
-        QueryResponse swipesOnResponse = dynamoDbClient.query(querySwipesOn);
-        
-        // Delete each swipe made on the user
-        for (Map<String, AttributeValue> item : swipesOnResponse.items()) {
-            Map<String, AttributeValue> key = new HashMap<>();
-            key.put("userId", item.get("userId"));
-            key.put("swipedOnUserId", item.get("swipedOnUserId"));
+            QueryResponse swipesByResponse = dynamoDbClient.query(querySwipesBy);
             
-            DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+            // Delete each swipe made by the user
+            for (Map<String, AttributeValue> item : swipesByResponse.items()) {
+                Map<String, AttributeValue> key = new HashMap<>();
+                key.put("userId", item.get("userId"));
+                key.put("swipedOnUserId", item.get("swipedOnUserId"));
+                
+                DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                    .tableName("swipe_logs")
+                    .key(key)
+                    .build();
+                
+                dynamoDbClient.deleteItem(deleteRequest);
+            }
+            
+            // Query swipes where userId is the user being swiped on
+            // Note: You may need a GSI for this query to be efficient
+            // This example assumes there's a GSI on swipedOnUserId
+            QueryRequest querySwipesOn = QueryRequest.builder()
                 .tableName("swipe_logs")
-                .key(key)
+                .indexName("swipedOnUserId-index")
+                .keyConditionExpression("swipedOnUserId = :userId")
+                .expressionAttributeValues(Map.of(":userId", AttributeValue.builder().s(userId).build()))
                 .build();
             
-            dynamoDbClient.deleteItem(deleteRequest);
+            QueryResponse swipesOnResponse = dynamoDbClient.query(querySwipesOn);
+            
+            // Delete each swipe made on the user
+            for (Map<String, AttributeValue> item : swipesOnResponse.items()) {
+                Map<String, AttributeValue> key = new HashMap<>();
+                key.put("userId", item.get("userId"));
+                key.put("swipedOnUserId", item.get("swipedOnUserId"));
+                
+                DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                    .tableName("swipe_logs")
+                    .key(key)
+                    .build();
+                
+                dynamoDbClient.deleteItem(deleteRequest);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user swipe logs: " + e.getMessage(), e);
         }
-    } catch (Exception e) {
-        throw new RuntimeException("Failed to delete user swipe logs: " + e.getMessage(), e);
     }
-}
+
+    /*
+     * Creates a hyper-precise timestamp down to the millisecond to prevent swipe logs having
+     * the same composite key (userid, timestamp)
+     */
+    public long doCreateMillisecondTimeStamp() {
+        return System.currentTimeMillis() * 1000 + (System.nanoTime() % 1000);
+    }
 }

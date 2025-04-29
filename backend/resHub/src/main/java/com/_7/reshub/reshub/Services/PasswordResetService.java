@@ -10,12 +10,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.util.Map;
 
 @Service
-public class DynamoDbService {
+public class PasswordResetService {
 
     private final DynamoDbClient dynamoDbClient;
     private String userTable;
 
-    public DynamoDbService(DynamoDbClient dynamoDbClient, DynamoDbConfig dynamoDbConfig) {
+    public PasswordResetService(DynamoDbClient dynamoDbClient, DynamoDbConfig dynamoDbConfig) {
         this.dynamoDbClient = dynamoDbClient;
         this.userTable = dynamoDbConfig.getUserAccountsTableName();
 

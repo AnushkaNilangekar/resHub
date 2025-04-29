@@ -9,7 +9,8 @@ import {
   Text, 
   StatusBar,
   Animated,
-  Alert
+  Alert,
+  ActionSheetIOS
 } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
@@ -30,7 +31,6 @@ const MessageScreen = ({ route }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
   const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
-
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -195,6 +195,21 @@ const MessageScreen = ({ route }) => {
       setIsBlocked(isBlocked);
   };
 
+  const confirmBlockUser = () => {
+    Alert.alert(
+      "Block User",
+      "Are you sure you want to block this user? You will no longer be able to send or receive messages.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: handleBlockUser
+        }
+      ]
+    );
+  };  
+
   const handleBlockUser = async () => {
     if (isBlocked) {
       Alert.alert('Already Blocked', 'You have already blocked this user.');
@@ -218,6 +233,37 @@ const MessageScreen = ({ route }) => {
     }
   };
 
+  const navigateToReportScreen = () => {
+    navigation.navigate('ReportScreen', {
+      chatId,
+      otherUserId,
+      name,
+      messageTimestamp: new Date().toISOString(),
+      onGoBack: () => {
+        // This will be called when returning from the report screen
+      }
+    });
+  };
+
+  const confirmReportChat = () => {
+    Alert.alert(
+      "Report Chat",
+      "Are you sure you want to report this chat to the ResHub team? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: handleReportChat
+        }
+      ]
+    );
+  };  
+
+  // Handle the report button press in the header
+  const handleReportChat = () => {
+    navigateToReportScreen();
+  };
 
   useEffect(() => {
     // Check if the other user exists
@@ -282,12 +328,20 @@ const MessageScreen = ({ route }) => {
             </View>
             <Text style={styles.headerTitle}>{otherName}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.blockButton}
-            onPress={handleBlockUser}
-          >
-            <Ionicons name="ban-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={confirmReportChat}
+            >
+              <Ionicons name="flag-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={confirmBlockUser}
+            >
+              <Ionicons name="ban-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
         
         {!otherUserExists && (
@@ -421,6 +475,22 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+  },
+  headerButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
   accountDeletedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -468,18 +538,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     paddingBottom: 20,
-  },
-  blockButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
 });
 

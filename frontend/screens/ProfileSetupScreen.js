@@ -98,6 +98,7 @@ const ProfileSetupScreen = ({ navigation }) => {
                 Alert.alert('Error', 'Failed to retrieve email.');
             }
         };
+
         const fetchUserId = async () => {
             try {
                 const storedUserId = await AsyncStorage.getItem('userId');
@@ -112,6 +113,7 @@ const ProfileSetupScreen = ({ navigation }) => {
                 Alert.alert('Error', 'Failed to retrieve userId.');
             }
         };
+
         fetchEmail();
         fetchUserId();
     }, []);
@@ -149,6 +151,32 @@ const ProfileSetupScreen = ({ navigation }) => {
             navigation.goBack();
         }
     };
+
+    // Is called in handle submit after profile is created - creates support bot chat
+    const createSupportBotChat = async () => {
+        token = await AsyncStorage.getItem('token');
+        id = await AsyncStorage.getItem('userId');
+
+        console.log('\n', token, '\n')
+        console.log('\n', id, '\n')
+
+        try
+        {
+            const response = await axios.post(`${config.API_BASE_URL}/api/botpress/createChat?userId=${id}`, {}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                console.log('Support bot chat created successfully');
+            }
+        } catch (error) {
+            console.error('Support bot chat creation error:', error.response || error);
+            Alert.alert('Error', error.response?.data || error.message);
+        }
+    }
 
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
@@ -198,6 +226,7 @@ const ProfileSetupScreen = ({ navigation }) => {
             });
             if (response.status === 200) {
 
+                createSupportBotChat();
                 profileSetup();
 
                 Alert.alert('Success', 'Profile created successfully');

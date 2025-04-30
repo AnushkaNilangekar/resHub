@@ -14,59 +14,126 @@ import {
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import config from "../config";
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BotMessagesScreen = () => {
+  const botId = config.BOT_ID;
+
+  const [userIdGlobal, setUserIdGlobal] = useState("");
   const [messages, setMessages] = useState([]);
-  const [userId, setUserId] = useState("");
-  const [token, setToken] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
+  // Runs on page initialization - loads message history
   useEffect(() => {
-    initializeBotChat();
-    const interval = setInterval(fetchBotMessages, 5000);
-    return () => clearInterval(interval);
+    const init = async () => {
+      setLoading(true);
+      setUserIdGlobal(await AsyncStorage.getItem('userId'));
+      await loadMessageHistory();
+      setLoading(false);
+    };
+  
+    init();
   }, []);
 
-  const initializeBotChat = async () => {
-    try {
-      const storedUserId = await AsyncStorage.getItem("userId");
-      const storedToken = await AsyncStorage.getItem("token");
-      setUserId(storedUserId);
-      setToken(storedToken);
+  // Runs every 2 seconds - fetches new chats
+  useEffect(() => {
+    const interval = setInterval(fetchNewMessages, 2000);
+    return () => clearInterval(interval);
+  }, [fetchNewMessages]);
 
-      const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
-        params: { userId: storedUserId },
-        headers: { 'Authorization': `Bearer ${storedToken}` },
+  const onSendMessage = async (text) => {
+    if (text.trim()) {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const userId = await AsyncStorage.getItem('userId');
+  
+        const tempMessage = {
+          _id: Date.now().toString(),
+          text: text,
+          createdAt: new Date(),
+          user: {
+            _id: userId,
+            name: "You",
+          },
+        };
+  
+        setMessages(prevMessages => {
+          const messagesMap = new Map();
+          prevMessages.forEach(msg => messagesMap.set(msg._id, msg));
+          messagesMap.set(tempMessage._id, tempMessage);
+  
+          return Array.from(messagesMap.values())
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        });
+  
+        // Send the message to the backend
+        await axios.post(
+          `${config.API_BASE_URL}/api/botpress/sendMessage?userId=${userId}&message=${text}`, {}, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+      } catch (error) {
+        console.error("Error sending bot message:", error);
+        Alert.alert("Error", "Failed to send message");
+      }
+    }
+  };  
+
+  const fetchNewMessages = async () => {
+    // Prevent fetching if a message is being sent
+    if (isFetching) return;
+    
+    setIsFetching(true);
+
+    const token = await AsyncStorage.getItem('token');
+    const userId = await AsyncStorage.getItem('userId');
+
+    try {
+      const response = await axios.get(`${config.API_BASE_URL}/api/botpress/getNewMessages?userId=${userId}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}` 
+        }
       });
 
-      if (!profileResponse.data.botConversationId) {
-        await axios.post(`${config.API_BASE_URL}/api/botpress/createChat`, null, {
-          params: { userId: storedUserId },
-          headers: { 'Authorization': `Bearer ${storedToken}` },
-        });
-      }
+      const formattedMessages = response.data.map((msg) => ({
+        _id: msg.id,
+        text: msg.payload?.text || '',
+        createdAt: msg.createdAt,
+        user: {
+          _id: botId,
+          name: 'Bot'
+        },
+      }));
 
-      fetchBotMessages();
+      setMessages(prevMessages => {
+        const messagesMap = new Map();
+        prevMessages.forEach(msg => messagesMap.set(msg._id, msg));
+        formattedMessages.forEach(msg => messagesMap.set(msg._id, msg));
+
+        return Array.from(messagesMap.values())
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      });
     } catch (error) {
-      console.error("Error initializing bot chat:", error);
-      Alert.alert("Error", "Unable to start or load support chat. Please try again.");
-      setLoading(false);
+      console.error("Error fetching bot messages:", error);
+    } finally {
+      setIsFetching(false); // Reset fetching flag
     }
   };
 
-  const fetchBotMessages = async () => {
+  const loadMessageHistory = async () => {
+    const token = await AsyncStorage.getItem('token');
+    const userId = await AsyncStorage.getItem('userId');
+
     try {
-      const response = await axios.get(`${config.API_BASE_URL}/api/botpress/getAllMessages`, {
-        params: { userId },
+      const response = await axios.get(`${config.API_BASE_URL}/api/botpress/getAllMessages?userId=${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -80,25 +147,9 @@ const BotMessagesScreen = () => {
         },
       }));
 
-      setMessages(formattedMessages.reverse());
-      setLoading(false);
+      setMessages(formattedMessages);
     } catch (error) {
       console.error("Error fetching bot messages:", error);
-      setLoading(false);
-    }
-  };
-
-  const onSendMessage = async (text) => {
-    if (text.trim()) {
-      try {
-        await axios.post(`${config.API_BASE_URL}/api/botpress/sendMessage`, null, {
-          params: { userId, message: text },
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        fetchBotMessages();
-      } catch (error) {
-        console.error("Error sending bot message:", error);
-      }
     }
   };
 
@@ -146,7 +197,7 @@ const BotMessagesScreen = () => {
             inputBackgroundColor="rgba(255, 255, 255, 0.2)"
             placeholder="Ask me anything!"
             user={{
-              _id: userId,
+              _id: userIdGlobal,
               name: "You",
             }}
             backgroundColor="transparent"

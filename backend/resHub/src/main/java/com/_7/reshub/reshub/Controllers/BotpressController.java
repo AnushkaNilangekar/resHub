@@ -126,11 +126,11 @@ public class BotpressController {
 
         // Validate required fields
         if (userKey == null || userKey.isEmpty()) {
-            throw new IllegalArgumentException("User key is required");
+            throw new IllegalArgumentException("User key not found - user may not have support bot chat initialized.");
         }
         
         if (conversationId == null || conversationId.isEmpty()) {
-            throw new IllegalArgumentException("Conversation ID is required");
+            throw new IllegalArgumentException("Conversation ID not found - user may not have support bot chat initialized.");
         }
 
         // Send message
@@ -164,6 +164,14 @@ public class BotpressController {
         String conversationId = profile.getBotConversationId();
         String userKey = userService.getUserKey(conversationId);
 
+        if (userKey == null || userKey.isEmpty()) {
+            throw new IllegalArgumentException("User key not found - user may not have support bot chat initialized.");
+        }
+        
+        if (conversationId == null || conversationId.isEmpty()) {
+            throw new IllegalArgumentException("Conversation ID not found - user may not have support bot chat initialized.");
+        }
+
         List<BotpressMessage> allMessages = doGetAllMessages(userKey, conversationId, false);
 
         // Filter messages newer than our last check
@@ -186,6 +194,14 @@ public class BotpressController {
         Profile profile = profileService.doGetProfile(userId);
         String conversationId = profile.getBotConversationId();
         String userKey = userService.getUserKey(conversationId);
+
+        if (userKey == null || userKey.isEmpty()) {
+            throw new IllegalArgumentException("User key not found - user may not have support bot chat initialized.");
+        }
+        
+        if (conversationId == null || conversationId.isEmpty()) {
+            throw new IllegalArgumentException("Conversation ID not found - user may not have support bot chat initialized.");
+        }
         
         // Get all messages with automatic pagination
         List<BotpressMessage> allMessages = doGetAllMessages(

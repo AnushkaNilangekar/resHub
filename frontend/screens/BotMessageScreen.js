@@ -26,6 +26,7 @@ const BotMessagesScreen = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
@@ -76,10 +77,9 @@ const BotMessagesScreen = () => {
         });
   
         // Send the message to the backend
-        await axios.post(
-          `${config.API_BASE_URL}/api/botpress/sendMessage?userId=${userId}&message=${text}`, {}, {
+        await axios.post(`${config.API_BASE_URL}/api/botpress/sendMessage?userId=${userId}&message=${text}`, {}, {
             headers: { 'Authorization': `Bearer ${token}` },
-          });
+        });
       } catch (error) {
         console.error("Error sending bot message:", error);
         Alert.alert("Error", "Failed to send message");

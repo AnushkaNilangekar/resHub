@@ -12,8 +12,13 @@ import MessageScreen from "../screens/MessageScreen";
 import ReportScreen from "../screens/ReportScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
+import NameGroupScreen from "../screens/NameGroupScreen";
+import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 import ChatScreen from "../screens/ChatScreen";
 import BlockedReportedScreen from "../screens/BlockedReportedScreen";
+
 
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +39,10 @@ const StackNavigator = () => {
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
+          <Stack.Screen name="GroupParticipantsScreen" component={GroupParticipantsScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          {/* <Stack.Screen name="ChatScreen" component={ChatScreen} /> */}
+          {/* <Stack.Screen name="MatchesScreen" component={MatchesScreen} /> */}
           <Stack.Screen 
             name="Settings" 
             component={SettingsScreen} 
@@ -46,7 +55,17 @@ const StackNavigator = () => {
             name="MessageScreen"
             component={MessageScreen}
             options={{ headerShown: true }}  
-            />
+          />
+          <Stack.Screen
+            name="CreateGroupScreen"
+            component={CreateGroupScreen}
+            // options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="NameGroupScreen"
+            component={NameGroupScreen}
+            // options={{ headerShown: true }}
+          />
             <Stack.Screen name="ReportScreen" component={ReportScreen} />
             <Stack.Screen name="ChatScreen" component={ChatScreen} />
             <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />

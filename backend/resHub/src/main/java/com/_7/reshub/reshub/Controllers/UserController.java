@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import com._7.reshub.reshub.Services.UserService;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import com._7.reshub.reshub.Models.Requests.CreateGroupRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -130,10 +131,33 @@ public class UserController {
         }
     }
 
+    @GetMapping("/findMatchingGroupChat")
+    public Boolean findMatchingGroupChat(@RequestParam List<String> userIds) {
+        try {
+            // Check if the user is part of the group chat
+            boolean isPartOfGroupChat = userService.findMatchingGroupChat(userIds);
+            return isPartOfGroupChat;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // or handle the error as needed
+        }
+    }
+
     @PostMapping("/createChat")
     public String createChat(@RequestParam String userId1, @RequestParam String userId2) {
         try {
             String chatId = userService.createChat(userId1, userId2);
+            return chatId;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/createGroupChat")
+    public String createGroupChat(@RequestBody CreateGroupRequest request) { 
+        try {
+            String chatId = userService.createGroupChat(request.getUserIds(), request.getGroupName());
             return chatId;
         } catch (Exception e) {
             e.printStackTrace();
@@ -182,6 +206,17 @@ public class UserController {
         }
     }
 
+    @GetMapping("/getParticipants")
+    public ResponseEntity<?> getParticipants(@RequestParam String chatId) {
+        try {
+            List<Map<String, String>> participants = userService.getParticipants(chatId);
+            return ResponseEntity.ok(participants);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/unMatch")
     public ResponseEntity<?> unMatch(@RequestBody Map<String, String> request) {
         try {
@@ -191,6 +226,20 @@ public class UserController {
 
             userService.unmatch(userId, matchUserId, chatId);
             return ResponseEntity.ok("Unmatched successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/leaveChat")
+    public ResponseEntity<?> leaveChat(@RequestBody Map<String, String> request) {
+        try {
+            String userId1 = request.get("userId");
+            String chatId = request.get("chatId");
+
+            userService.leaveChat(userId1, chatId);
+            return ResponseEntity.ok("left groupchat successfully");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());

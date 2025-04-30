@@ -66,6 +66,22 @@ const NameGroupScreen = () => {
               headers: { Authorization: `Bearer ${token}` },
             }
         );
+        const userParams = new URLSearchParams();
+        userParams.append('chatId', result.data);
+        userParams.append('createdAt', new Date().toISOString());
+        userParams.append('text', `"${groupName}" created`);
+        userParams.append('userId', currentUserId);
+        userParams.append('name', '');
+
+        await axios.post(
+          `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
+          {},
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          }
+        );
     
         console.log("Create group result:", result.data); // ✅ correct placement
         Alert.alert(

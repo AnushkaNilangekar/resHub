@@ -180,22 +180,6 @@ const ChatScreen = () => {
 
   }
 
-  const confirmUnmatch = (chatId, otherUserId) => {
-    // First confirmation alert
-    Alert.alert(
-      "Unmatch User",
-      "Are you sure you want to unmatch? This will remove your connection.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Unmatch",
-          style: "destructive",
-          onPress: () => handleUnmatch(chatId, otherUserId)
-        }
-      ]
-    );
-  };
-
   const handleUnmatch = async (chatId, otherUserId) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -224,15 +208,13 @@ const ChatScreen = () => {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
-      const userId = await AsyncStorage.getItem("userId");
-
       
       const userParams = new URLSearchParams();
       userParams.append('chatId', chatId);
       userParams.append('createdAt', new Date().toISOString());
-      userParams.append('text', `${currentUserName} has left the chat`);
-      userParams.append('userId', userId);
-      userParams.append('name', currentUserName);
+      userParams.append('text', cu);
+      userParams.append('userId', requestData.userId);
+      userParams.append('name', requestData.name);
 
       await axios.post(
         `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
@@ -403,7 +385,7 @@ const ChatScreen = () => {
                       styles.chatCard,
                       isUnreadForCurrentUser && styles.unreadChatCard
                     ]}
-                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: currentUserName, otherName: item.fullName })}
+                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: currentUserName, otherName: item.fullName, isGroupChat: item.isGroupChat })}
                   >
                     <View style={styles.profileContainer}>
                     {item.isGroupChat === "true" ? (

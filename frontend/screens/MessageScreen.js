@@ -21,7 +21,7 @@ import config from "../config";
 import { LinearGradient } from 'expo-linear-gradient';
 
 const MessageScreen = ({ route }) => {
-  const { chatId, otherUserId, name, otherName } = route.params;
+  const { chatId, otherUserId, name, otherName, isGroupChat } = route.params;
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [token, setToken] = useState("");
@@ -31,6 +31,7 @@ const MessageScreen = ({ route }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
   const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
+
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -324,24 +325,30 @@ const MessageScreen = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <View style={styles.iconContainer}>
-              <Ionicons name="person" size={24} color="#fff" />
+            <Ionicons 
+                name={isGroupChat === 'true' ? "people-outline" : "person"} 
+                size={24} 
+                color="#fff" 
+              />
             </View>
             <Text style={styles.headerTitle}>{otherName}</Text>
           </View>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={confirmReportChat}
-            >
-              <Ionicons name="flag-outline" size={22} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={confirmBlockUser}
-            >
-              <Ionicons name="ban-outline" size={22} color="#fff" />
-            </TouchableOpacity>
-          </View>
+          {isGroupChat === 'false' && (
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={confirmReportChat}
+              >
+                <Ionicons name="flag-outline" size={22} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={confirmBlockUser}
+              >
+                <Ionicons name="ban-outline" size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         
         {!otherUserExists && (

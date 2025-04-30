@@ -95,50 +95,46 @@ const ForumScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']}
-        style={styles.gradient}
+    <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <LinearGradient colors={['#4c6ef5', '#6C85FF', '#6BBFBC', '#2a47c3']} style={styles.gradient}>
+      
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Residence Hall Forum</Text>
+        {residenceHall ? <Text style={styles.subHeaderText}>{residenceHall}</Text> : null}
+      </View>
+  
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 60}
       >
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Residence Hall Forum</Text>
-                {residenceHall ? (
-                    <Text style={styles.subHeaderText}>{residenceHall}</Text>
-                ) : null}
-            </View>
-
-          {loading ? (
-            <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
-            ) : (
-            <FlatList
-                data={posts}
-                renderItem={renderPost}
-                keyExtractor={(item) => item.postId}
-                contentContainerStyle={[
-                styles.postsList, 
-                posts.length === 0 && { flex: 1 }
-                ]}
-                refreshControl={
-                <RefreshControl 
-                    refreshing={refreshing} 
-                    onRefresh={() => { setRefreshing(true); fetchPosts(); }} 
-                />
-                }
-                ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>
-                    No posts yet. Start the conversation!
-                    </Text>
-                </View>
-                }
-            />
-            )}
-
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={posts}
+            renderItem={renderPost}
+            keyExtractor={(item) => item.postId}
+            contentContainerStyle={[
+              styles.postsList,
+              posts.length === 0 && { flex: 1 },
+            ]}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  fetchPosts();
+                }}
+              />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No posts yet. Start the conversation!</Text>
+              </View>
+            }
+            keyboardShouldPersistTaps="handled"
+          />
+  
+          {/* ✅ Input inside KeyboardAvoidingView so it moves up with the keyboard */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -156,10 +152,11 @@ const ForumScreen = () => {
               )}
             </TouchableOpacity>
           </View>
-
-        </KeyboardAvoidingView>
-      </LinearGradient>
-    </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
+    </LinearGradient>
+  </SafeAreaView>
+  
   );
 };
 
@@ -173,7 +170,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingBottom: 60,
   },
   header: {
     marginTop: 15,
@@ -219,10 +215,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.25)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.3)',
-    margin: 10,
+    marginHorizontal: 10,
+    marginBottom: Platform.OS === 'ios' ? 60 : 10, // ✅ accounts for iOS tab bar height
     borderRadius: 10,
   },
-
+  
   input: {
     flex: 1,
     color: '#fff',

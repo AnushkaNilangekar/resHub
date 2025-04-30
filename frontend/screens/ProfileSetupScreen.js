@@ -150,6 +150,28 @@ const ProfileSetupScreen = ({ navigation }) => {
         }
     };
 
+    const fetchAndSaveProfileData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+            if (!token || !userId) return;
+    
+            const res = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const profile = res.data;
+            if (profile.residence) {
+                await AsyncStorage.setItem('residence', profile.residence);
+            }
+            if (profile.fullName) {
+                await AsyncStorage.setItem('fullName', profile.fullName);
+            }
+        } catch (error) {
+            console.error('Error fetching profile after submit:', error);
+        }
+    };
+    
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
         const profileData = {
@@ -199,7 +221,7 @@ const ProfileSetupScreen = ({ navigation }) => {
             if (response.status === 200) {
 
                 profileSetup();
-
+                await fetchAndSaveProfileData();
                 Alert.alert('Success', 'Profile created successfully');
             }
         } catch (error) {

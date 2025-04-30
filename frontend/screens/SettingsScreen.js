@@ -108,6 +108,29 @@ const SettingsScreen = ({ navigation }) => {
         "Reading", "Hiking", "Gaming", "Cooking", 
         "Traveling", "Sports", "Music", "Art", "Working Out"
     ];
+    const residenceOptions = [
+        "Harrison",
+        "Hillenbrand",
+        "Windsor",
+        "Honors",
+        "Earhart",
+        "Owen",
+        "First Street Towers",
+        "Meredith South",
+        "Meredith",
+        "Shreve",
+        "McCutcheon",
+        "Hawkins",
+        "Frieda Parker",
+        "Winifred Parker",
+        "Cary Quadrangle",
+        "Tarkington",
+        "Wiley",
+        "On-campus Apartments",
+        "Off-campus Apartments",
+        "Other Halls/Apartments",
+      ];
+      
     const toggleHobby = (hobby) => {
         if (hobbies.includes(hobby)) {
           setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
@@ -194,7 +217,7 @@ const SettingsScreen = ({ navigation }) => {
             setMajor(profile.major || '');
             setMinor(profile.minor || '');
             setGraduationYear(profile.graduationYear ? profile.graduationYear.toString() : '');
-            setResidence(profile.residence || '');
+            setResidence(profile.residence || 'Other Halls/Apartments');
             setBio(profile.bio || '');
             setHobbies(profile.hobbies || []); 
 
@@ -230,6 +253,31 @@ const SettingsScreen = ({ navigation }) => {
             Alert.alert('Error', 'Could not fetch profile details');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAndSaveProfileData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+            if (!token || !userId) return;
+    
+            const res = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const profile = res.data;
+            //console.log(profile)
+            if (profile.residence) {
+                await AsyncStorage.setItem('residence', profile.residence);
+            }
+            if (profile.fullName) {
+                //console.log(profile.fullName)
+                await AsyncStorage.setItem('fullName', profile.fullName);
+                //console.log('done')
+            }
+        } catch (error) {
+            console.error('Error fetching profile after submit:', error);
         }
     };
 
@@ -286,6 +334,7 @@ const SettingsScreen = ({ navigation }) => {
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            await fetchAndSaveProfileData();
             Alert.alert('Success', 'Profile updated successfully');
             navigation.goBack();
         } catch (error) {
@@ -430,29 +479,13 @@ const SettingsScreen = ({ navigation }) => {
                             options={['Female', 'Male', 'Non-Binary', 'Prefer Not to Say']}
                             icon="person-outline"
                         />
-                        <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Residence</Text>
-                        <View style={[
-                            styles.inputWrapper,
-                            focusedInput === 'residence' && styles.inputWrapperFocused
-                        ]}>
-                            <Ionicons 
-                                name="home-outline" 
-                                size={20} 
-                                color="rgba(255, 255, 255, 0.8)" 
-                                style={styles.inputIcon} 
-                            />
-                            <TextInput
-                                style={styles.input}
-                                value={residence}
-                                onChangeText={setResidence}
-                                placeholder="Enter your residence"
-                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                onFocus={() => setFocusedInput('residence')}
-                                onBlur={() => setFocusedInput(null)}
-                            />
-                        </View>
-                    </View>
+                        <CustomDropdown 
+                            label="Residence"
+                            selectedValue={residence}
+                            onValueChange={setResidence}
+                            options={residenceOptions}
+                            icon="home-outline"
+                        />
                     </View>
 
                     {/* Academic Details */}

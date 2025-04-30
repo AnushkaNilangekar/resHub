@@ -7,9 +7,11 @@ import {
     StyleSheet, 
     Platform,
     StatusBar,
-    ScrollView
+    Modal,
+    ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Step4ResHobbiesBio({
@@ -24,6 +26,125 @@ export default function Step4ResHobbiesBio({
     commonHobbies,
 }) {
     const [focusedInput, setFocusedInput] = useState(null);
+    const [showResidencePicker, setShowResidencePicker] = useState(false);
+
+    const renderResidencePicker = () => (
+        <View style={styles.inputContainer}>
+            <Text style={styles.label}>RESIDENCE</Text>
+            {Platform.OS === 'ios' ? (
+                <>
+                    <TouchableOpacity
+                        style={styles.pickerContainer}
+                        onPress={() => setShowResidencePicker(true)}
+                    >
+                        <Ionicons 
+                            name="home-outline" 
+                            size={20} 
+                            color="rgba(255, 255, 255, 0.8)" 
+                            style={styles.inputIcon} 
+                        />
+                        <Text style={[
+                            styles.pickerText,
+                            !residence && styles.placeholderText
+                        ]}>
+                            {residence || 'Select Residence'}
+                        </Text>
+                    </TouchableOpacity>
+    
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={showResidencePicker}
+                        onRequestClose={() => setShowResidencePicker(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.modalContainer}>
+                                <View style={styles.modalContent}>
+                                    <View style={styles.pickerHeader}>
+                                        <Text style={styles.pickerTitle}>Select Residence</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setShowResidencePicker(false)}
+                                            style={styles.pickerHeaderButton}
+                                        >
+                                            <Text style={styles.pickerHeaderButtonText}>Done</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <Picker
+                                        selectedValue={residence}
+                                        onValueChange={(itemValue) => {
+                                            setResidence(itemValue);
+                                            setShowResidencePicker(false);
+                                        }}
+                                    >
+                                        <Picker.Item label="Select Residence" value="" />
+                                        <Picker.Item label="Harrison" value="Harrison" />
+                                        <Picker.Item label="Hillenbrand" value="Hillenbrand" />
+                                        <Picker.Item label="Windsor" value="Windsor" />
+                                        <Picker.Item label="Honors" value="Honors" />
+                                        <Picker.Item label="Earhart" value="Earhart" />
+                                        <Picker.Item label="Owen" value="Owen" />
+                                        <Picker.Item label="First Street Towers" value="First Street Towers" />
+                                        <Picker.Item label="Meredith South" value="Meredith South" />
+                                        <Picker.Item label="Meredith" value="Meredith" />
+                                        <Picker.Item label="Shreve" value="Shreve" />
+                                        <Picker.Item label="McCutcheon" value="McCutcheon" />
+                                        <Picker.Item label="Hawkins" value="Hawkins" />
+                                        <Picker.Item label="Frieda Parker" value="Frieda Parker" />
+                                        <Picker.Item label="Winifred Parker" value="Winifred Parker" />
+                                        <Picker.Item label="Cary Quadrangle" value="Cary Quadrangle" />
+                                        <Picker.Item label="Tarkington" value="Tarkington" />
+                                        <Picker.Item label="Wiley" value="Wiley" />
+                                        <Picker.Item label="On-campus Apartments" value="On-campus Apartments" />
+                                        <Picker.Item label="Off-campus Apartments" value="Off-campus Apartments" />
+                                        <Picker.Item label="Other Halls/Apartments" value="Other Halls/Apartments" />
+                                    </Picker>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                </>
+            ) : (
+                <View style={styles.androidPickerWrapper}>
+                    <Ionicons 
+                        name="home-outline" 
+                        size={20} 
+                        color="rgba(255, 255, 255, 0.8)" 
+                        style={styles.inputIcon} 
+                    />
+                    <View style={styles.androidPickerContainer}>
+                        <Picker
+                            selectedValue={residence}
+                            onValueChange={(itemValue) => setResidence(itemValue)}
+                            style={styles.androidPicker}
+                            dropdownIconColor="rgba(255, 255, 255, 0.8)"
+                        >
+                            <Picker.Item label="Select Residence" value="" color="#333" />
+                            <Picker.Item label="Harrison" value="Harrison" color="#333" />
+                            <Picker.Item label="Hillenbrand" value="Hillenbrand" color="#333" />
+                            <Picker.Item label="Windsor" value="Windsor" color="#333" />
+                            <Picker.Item label="Honors" value="Honors" color="#333" />
+                            <Picker.Item label="Earhart" value="Earhart" color="#333" />
+                            <Picker.Item label="Owen" value="Owen" color="#333" />
+                            <Picker.Item label="First Street Towers" value="First Street Towers" color="#333" />
+                            <Picker.Item label="Meredith South" value="Meredith South" color="#333" />
+                            <Picker.Item label="Meredith" value="Meredith" color="#333" />
+                            <Picker.Item label="Shreve" value="Shreve" color="#333" />
+                            <Picker.Item label="McCutcheon" value="McCutcheon" color="#333" />
+                            <Picker.Item label="Hawkins" value="Hawkins" color="#333" />
+                            <Picker.Item label="Frieda Parker" value="Frieda Parker" color="#333" />
+                            <Picker.Item label="Winifred Parker" value="Winifred Parker" color="#333" />
+                            <Picker.Item label="Cary Quadrangle" value="Cary Quadrangle" color="#333" />
+                            <Picker.Item label="Tarkington" value="Tarkington" color="#333" />
+                            <Picker.Item label="Wiley" value="Wiley" color="#333" />
+                            <Picker.Item label="On-campus Apartments" value="On-campus Apartments" color="#333" />
+                            <Picker.Item label="Off-campus Apartments" value="Off-campus Apartments" color="#333" />
+                            <Picker.Item label="Other Halls/Apartments" value="Other Halls/Apartments" color="#333" />
+                        </Picker>
+                    </View>
+                </View>
+            )}
+        </View>
+    );
 
     return (
         <>
@@ -69,29 +190,7 @@ export default function Step4ResHobbiesBio({
                 </View>
 
                 <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>RESIDENCE</Text>
-                        <View style={[
-                            styles.inputWrapper,
-                            focusedInput === 'residence' && styles.inputWrapperFocused
-                        ]}>
-                            <Ionicons 
-                                name="home-outline" 
-                                size={20} 
-                                color="rgba(255, 255, 255, 0.8)" 
-                                style={styles.inputIcon} 
-                            />
-                            <TextInput
-                                style={styles.input}
-                                value={residence}
-                                onChangeText={setResidence}
-                                placeholder="Enter your residence details"
-                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                onFocus={() => setFocusedInput('residence')}
-                                onBlur={() => setFocusedInput(null)}
-                            />
-                        </View>
-                    </View>
+                    {renderResidencePicker()}
 
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>HOBBIES</Text>
@@ -177,7 +276,12 @@ export default function Step4ResHobbiesBio({
                     
                     <TouchableOpacity 
                         style={styles.nextButton}
-                        onPress={handleNext}
+                        onPress={() => {
+                            if (!residence) {
+                                setResidence('Other Halls/Apartments');
+                            }
+                            handleNext();
+                        }}
                         activeOpacity={0.8}
                     >
                         <Text style={styles.nextButtonText}>CONTINUE</Text>
@@ -204,6 +308,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         paddingBottom: 30,
         paddingTop: Platform.OS === 'ios' ? 50 : 70,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContainer: {
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 0,
     },
     headerContainer: {
         alignItems: 'center',
@@ -401,5 +519,67 @@ const styles = StyleSheet.create({
     buttonIcon: {
         marginLeft: 8,
         marginRight: 8,
-    }
+    },
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+        padding: 15,
+        height: 55,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+    },
+    pickerText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#fff',
+        paddingHorizontal: 15,
+    },
+    placeholderText: {
+        color: 'rgba(255, 255, 255, 0.6)',
+    },
+    pickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+    },
+    pickerTitle: {
+        fontSize: 17,
+        fontWeight: '600',
+        color: '#333',
+    },
+    pickerHeaderButton: { 
+        padding: 5 
+    },
+    pickerHeaderButtonText: {
+        color: '#4c6ef5',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    androidPickerWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        overflow: 'hidden',
+        height: 55,
+    },
+    androidPickerContainer: {
+        flex: 1,
+        height: 55,
+    },
+    androidPicker: {
+        flex: 1,
+        color: '#fff',
+        marginLeft: -3,
+    },
 });

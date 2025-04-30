@@ -66,7 +66,6 @@ const StackNavigator = () => {
             component={NameGroupScreen}
             // options={{ headerShown: true }}
           />
-            />
             <Stack.Screen name="ReportScreen" component={ReportScreen} />
             <Stack.Screen name="ChatScreen" component={ChatScreen} />
             <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />

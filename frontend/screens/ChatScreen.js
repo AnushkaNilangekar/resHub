@@ -28,6 +28,8 @@ import { colors } from '../styles/colors.js';
 * Chat Screen
 */
 const ChatScreen = () => {
+  const botUserId = config.BOT_USER_ID;
+
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -95,6 +97,11 @@ const ChatScreen = () => {
         });
 
         const { otherUserId, lastMessage, unreadCount, lastMessageSender } = response.data;
+
+        if (otherUserId == botUserId)
+        {
+          continue;
+        }
 
         // Get profile info for the other user
         const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {

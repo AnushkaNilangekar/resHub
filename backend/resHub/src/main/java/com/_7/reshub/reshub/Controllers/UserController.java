@@ -64,7 +64,6 @@ public class UserController {
      */
     @GetMapping("/getChats")
     public List<String> getUserChats(@RequestParam String userId) {
-
         try {
             List<String> chats = userService.retrieveUserChats(userId); // Assuming you have this service method
                                                                         // implemented

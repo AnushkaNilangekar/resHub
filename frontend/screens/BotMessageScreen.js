@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BotMessagesScreen = () => {
-  const botId = config.BOT_ID;
+  const botUserId = config.BOT_USER_ID;
 
   const [userIdGlobal, setUserIdGlobal] = useState("");
   const [messages, setMessages] = useState([]);
@@ -108,7 +108,7 @@ const BotMessagesScreen = () => {
         text: msg.payload?.text || '',
         createdAt: msg.createdAt,
         user: {
-          _id: botId,
+          _id: botUserId,
           name: 'Bot'
         },
       }));

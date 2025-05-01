@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
+import { preferenceOptions } from '../constants/preferences';
 
 export default function Step5UserTraits({
     smokingStatus, setSmokingStatus,
@@ -27,7 +27,26 @@ export default function Step5UserTraits({
 }) {
     const [focusedInput, setFocusedInput] = useState(null);
 
-    const CustomPicker = ({ label, value, onValueChange, options }) => {
+    const preferenceConfigs = [
+        { key: 'smoking', label: 'SMOKING STATUS', value: smokingStatus, setter: setSmokingStatus, placeholder: 'Enter smoking preference' },
+        { key: 'cleanliness', label: 'CLEANLINESS LEVEL', value: cleanlinessLevel, setter: setCleanlinessLevel, placeholder: 'Enter cleanliness preference' },
+        { key: 'sleep', label: 'SLEEP SCHEDULE', value: sleepSchedule, setter: setSleepSchedule, placeholder: 'Enter sleep preference' },
+        { key: 'guest', label: 'GUEST FREQUENCY', value: guestFrequency, setter: setGuestFrequency, placeholder: 'Enter guest preference' },
+        { key: 'pet', label: 'DO YOU OWN PETS', value: hasPets, setter: setHasPets, placeholder: 'Enter pet preference' },
+        { key: 'noise', label: 'NOISE LEVEL', value: noiseLevel, setter: setNoiseLevel, placeholder: 'Enter noise preference' },
+        { key: 'sharing', label: 'SHARING COMMON ITEMS', value: sharingCommonItems, setter: setSharingCommonItems, placeholder: 'Enter sharing items preference' },
+        { key: 'diet', label: 'DIETARY PREFERENCE', value: dietaryPreference, setter: setDietaryPreference, placeholder: 'Enter dietary preference' },
+    ];    
+    
+    const handlePreferenceChange = (key, setter) => (selectedLabel) => {
+        const options = preferenceOptions[key];
+        const index = options.indexOf(selectedLabel);
+        if (index !== -1) {
+            setter(index);
+        }
+    };       
+
+    const CustomPicker = ({ label, value, onValueChange, options, placeholder = "" }) => {
         const renderOptions = () => {
             return (
                 <View style={styles.optionsContainer}>
@@ -52,7 +71,7 @@ export default function Step5UserTraits({
                 </View>
             );
         };
-
+    
         return (
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>{label}</Text>
@@ -70,16 +89,16 @@ export default function Step5UserTraits({
                         style={styles.pickerTrigger}
                         onPress={() => setFocusedInput(label === focusedInput ? null : label)}
                     >
-                        <Text style={[styles.pickerText, !value || value === "Select an option" ? styles.placeholderText : null]}>
-                            {!value || value === "Select an option" ? "Select an option" : value}
+                        <Text style={[styles.pickerText, value === -1 || !value ? styles.placeholderText : null]}>
+                            {value === -1 || !value ? placeholder : value}
                         </Text>
                     </TouchableOpacity>
                 </View>
-                
+    
                 {focusedInput === label && renderOptions()}
             </View>
         );
-    };
+    };    
 
     return (
         <>
@@ -125,61 +144,17 @@ export default function Step5UserTraits({
                     </View>
 
                     <View style={styles.formContainer}>
-                        <CustomPicker 
-                            label="SMOKING STATUS"
-                            value={smokingStatus}
-                            onValueChange={setSmokingStatus}
-                            options={["Non-Smoker", "Smoker"]}
-                        />
+                        {preferenceConfigs.map(({ key, label, value, setter, placeholder }) => (
+                            <CustomPicker 
+                                key={key}
+                                label={label}
+                                value={preferenceOptions[key][value] || "Select an option"}
+                                onValueChange={handlePreferenceChange(key, setter)}
+                                options={preferenceOptions[key]}
+                                placeholder={placeholder}
+                            />
+                        ))}
 
-                        <CustomPicker 
-                            label="CLEANLINESS LEVEL"
-                            value={cleanlinessLevel}
-                            onValueChange={setCleanlinessLevel}
-                            options={["Very Clean", "Moderate", "Messy"]}
-                        />
-
-                        <CustomPicker 
-                            label="SLEEP SCHEDULE"
-                            value={sleepSchedule}
-                            onValueChange={setSleepSchedule}
-                            options={["Early Bird", "Night Owl", "Flexible"]}
-                        />
-
-                        <CustomPicker 
-                            label="GUEST FREQUENCY"
-                            value={guestFrequency}
-                            onValueChange={setGuestFrequency}
-                            options={["Rarely", "Occasionally", "Frequently"]}
-                        />
-
-                        <CustomPicker 
-                            label="DO YOU OWN PETS"
-                            value={hasPets}
-                            onValueChange={setHasPets}
-                            options={["Yes", "No", "Might"]}
-                        />
-
-                        <CustomPicker 
-                            label="NOISE LEVEL"
-                            value={noiseLevel}
-                            onValueChange={setNoiseLevel}
-                            options={["Quiet", "Moderate Noise", "Loud Environment"]}
-                        />
-
-                        <CustomPicker 
-                            label="SHARING COMMON ITEMS"
-                            value={sharingCommonItems}
-                            onValueChange={setSharingCommonItems}
-                            options={["Strictly Separate", "Willing to Share", "Flexible"]}
-                        />
-
-                        <CustomPicker 
-                            label="DIETARY PREFERENCE"
-                            value={dietaryPreference}
-                            onValueChange={setDietaryPreference}
-                            options={["Vegetarian", "Vegan", "Allergies", "No Restrictions", "Other"]}
-                        />
 
                         <View style={styles.inputContainer}>
                             <Text style={styles.label}>ALLERGIES</Text>

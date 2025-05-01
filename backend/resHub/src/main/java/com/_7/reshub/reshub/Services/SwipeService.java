@@ -121,24 +121,24 @@ public class SwipeService {
             .tableName(dynamoDbConfig.getSwipeLogTableName())
             .keyConditionExpression("userId = :userId AND #ts > :timeStart")
             .expressionAttributeNames(Map.of(
-                    "#ts", "timestamp" // timestamp is a 'reserved keyword' so it has to be aliased
+                "#ts", "timestamp" // timestamp is a 'reserved keyword' so it has to be aliased
             ))
             .expressionAttributeValues(Map.of(
-                    ":userId", AttributeValue.builder().s(userId).build(),
-                    ":timeStart", AttributeValue.builder().n(Long.toString(timeStart)).build()
+                ":userId", AttributeValue.builder().s(userId).build(),
+                ":timeStart", AttributeValue.builder().n(Long.toString(timeStart)).build()
             ))
             .build();
 
     
-                QueryResponse response = dynamoDbClient.query(queryRequest);
-    
-                if (response.hasItems()) {
-                    return response.items().stream()
-                            .map(item -> item.get("swipedOnUserId").s())
-                            .collect(Collectors.toList());
-                }
+        QueryResponse response = dynamoDbClient.query(queryRequest);
 
-                return Collections.emptyList();
+        if (response.hasItems()) {
+            return response.items().stream()
+                .map(item -> item.get("swipedOnUserId").s())
+                .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
     /*

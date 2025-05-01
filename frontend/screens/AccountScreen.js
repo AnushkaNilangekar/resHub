@@ -33,10 +33,6 @@ const AccountScreen = () => {
   const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   handleLogout();
-  // })
-
   const handleLogout = () => {
     Alert.alert(
       "Confirm Logout",

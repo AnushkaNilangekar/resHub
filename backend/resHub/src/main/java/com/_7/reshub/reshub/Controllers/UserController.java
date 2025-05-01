@@ -8,9 +8,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+
 import com._7.reshub.reshub.Services.UserService;
+
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com._7.reshub.reshub.Models.Requests.CreateGroupRequest;
 
@@ -64,7 +65,6 @@ public class UserController {
      */
     @GetMapping("/getChats")
     public List<String> getUserChats(@RequestParam String userId) {
-
         try {
             List<String> chats = userService.retrieveUserChats(userId); // Assuming you have this service method
                                                                         // implemented

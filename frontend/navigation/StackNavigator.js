@@ -18,7 +18,7 @@ import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ChatScreen from "../screens/ChatScreen";
 import BlockedReportedScreen from "../screens/BlockedReportedScreen";
-
+import BotChatScreen from "../screens/BotMessageScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -66,9 +66,22 @@ const StackNavigator = () => {
             component={NameGroupScreen}
             // options={{ headerShown: true }}
           />
-            <Stack.Screen name="ReportScreen" component={ReportScreen} />
-            <Stack.Screen name="ChatScreen" component={ChatScreen} />
-            <Stack.Screen name="BlockedReported" component={BlockedReportedScreen} />
+          <Stack.Screen
+            name="ReportScreen"
+            component={ReportScreen} />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
+          />
+          <Stack.Screen
+            name="BlockedReported"
+            component={BlockedReportedScreen}
+          />
+          <Stack.Screen
+            name="BotChatScreen"
+            component={BotChatScreen} 
+            options={{ headerShown: true, title: 'Bot Assistant' }}
+          />
         </>
       ) : (
         <>

@@ -12,8 +12,10 @@ import {
   Platform,
   Animated,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import axios from "axios";
 import config from "../config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +28,8 @@ import { colors } from '../styles/colors.js';
 * Chat Screen
 */
 const ChatScreen = () => {
+  const botUserId = config.BOT_USER_ID;
+
   const [chats, setChats] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,9 +59,6 @@ const ChatScreen = () => {
     }
   }, [error, fadeAnim]);
 
-  /*
-  * Gets a list of the chat ids for the current user
-  */
   async function getChats() {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -79,9 +80,6 @@ const ChatScreen = () => {
     }
   }
 
-  /*
-  * Gets the last message and other user details for each chat
-  */
   async function getChatDetails(chatIds) {
     const chatDetails = [];
 
@@ -101,11 +99,16 @@ const ChatScreen = () => {
 
         const { otherUserId, lastMessage, unreadCount, lastMessageSender, groupName, isGroupChat } = response.data;
 
+        if (otherUserId == botUserId)
+        {
+          continue;
+        }
+
         if (isGroupChat === "false") {
           // Get profile info for the other user
           const profileResponse = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
             params: {
-              userId: otherUserId, // Assuming email is used as the userId for the profile
+              userId: otherUserId,
             },
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -152,9 +155,6 @@ const ChatScreen = () => {
         });
 
         setCurrentUserName(profileResponseOne.data.fullName);
-
-
-       
       } catch (error) {
         console.error(`Error fetching chat details for ${chatId}:`, error);
         setError('Unable to load some chat details. Please try again.');
@@ -164,9 +164,6 @@ const ChatScreen = () => {
     return chatDetails;
   }
 
-  /*
-  * Fetches the chat details and populates the UI
-  */
   async function getChatInformation() {
     const chatIds = await getChats();
 
@@ -177,8 +174,22 @@ const ChatScreen = () => {
       setChats([{ isCreateGroup: true, chatId: 'create-group-chat' }]);
       console.log('No chats found.');
     }
-
   }
+
+  const confirmUnmatch = (chatId, otherUserId) => {
+    Alert.alert(
+      "Unmatch User",
+      "Are you sure you want to unmatch? This will remove your connection.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unmatch",
+          style: "destructive",
+          onPress: () => handleUnmatch(chatId, otherUserId)
+        }
+      ]
+    );
+  };
 
   const handleUnmatch = async (chatId, otherUserId) => {
     try {
@@ -292,6 +303,39 @@ const ChatScreen = () => {
     );
   };
 
+  // Bot icon component for consistent styling
+  const BotIcon = ({ size = 40 }) => (
+    <View style={styles.botIconContainer}>
+      <FontAwesome5 name="robot" size={size * 0.65} color="#fff" />
+    </View>
+  );
+
+  // Enhanced component for Support Bot Card
+  const SupportBotCard = () => (
+    <TouchableOpacity
+      style={styles.botChatCard}
+      onPress={() => navigation.navigate("BotChatScreen")}
+    >
+      <View style={styles.profileContainer}>
+        <LinearGradient
+          colors={['#6C5CE7', '#45aaf2']}
+          style={styles.botProfileBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          borderRadius={30}
+        >
+          <BotIcon size={40} />
+        </LinearGradient>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.botName}>Support Bot</Text>
+        <Text style={styles.botMessage} numberOfLines={1}>
+          Get help with any questions you have
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -302,12 +346,11 @@ const ChatScreen = () => {
           end={{ x: 0, y: 1 }}
           locations={[0, 0.4, 0.7, 1]}
         >
-          <LoadingItem itemLoading="Chat" />
+          <LoadingItem itemLoading="Chats" />
         </LinearGradient>
       </SafeAreaView>
     );
   }
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -326,25 +369,33 @@ const ChatScreen = () => {
             </View>
             <Text style={styles.headerTitle}>Chats</Text>
           </View>
-        </View>
-        
-        {error ? (
-          <Animated.View 
-            style={[
-              styles.errorContainer, 
-              { opacity: fadeAnim }
-            ]}
+          <TouchableOpacity
+            style={styles.supportButton}
+            onPress={() => navigation.navigate("BotChatScreen")}
           >
+            <BotIcon size={24} />
+          </TouchableOpacity>
+        </View>
+  
+        {error ? (
+          <Animated.View style={[styles.errorContainer, { opacity: fadeAnim }]}>
             <Ionicons name="alert-circle-outline" size={18} color="#FF6B6B" />
             <Text style={styles.error}>{error}</Text>
           </Animated.View>
         ) : null}
-
+  
         <View style={styles.contentContainer}>
           {chats.length === 0 ? (
-            <ScrollView 
-              contentContainerStyle={styles.noMatchesContainer} 
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+            <ScrollView
+              contentContainerStyle={styles.noMatchesContainer}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={["#fff"]}
+                  tintColor="#fff"
+                />
+              }
             >
               <View style={styles.emptyStateIconContainer}>
                 <Ionicons name="chatbubbles-outline" size={60} color="#fff" />
@@ -353,122 +404,130 @@ const ChatScreen = () => {
               <Text style={styles.noMatchesSubText}>
                 Start matching with people to begin conversations
               </Text>
+  
+              {/* Enhanced Support Bot Card for empty state */}
+              <View style={styles.emptyStateBotCardContainer}>
+                <SupportBotCard />
+              </View>
             </ScrollView>
           ) : (
-            <SwipeListView
-              data={chats}
-              keyExtractor={(item) => item.chatId.toString()}
-              renderItem={({ item }) => {
-                if (item.isCreateGroup) {
+            <>
+              <SupportBotCard />
+              <SwipeListView
+                data={chats}
+                keyExtractor={(item) => item.chatId.toString()}
+                renderItem={({ item }) => {
+                  if (item.isCreateGroup) {
+                    return (
+                      <TouchableOpacity
+                        style={styles.chatCard}
+                        onPress={() => navigation.navigate("CreateGroupScreen", { chatList: chats })}
+                      >
+                        <View style={styles.profileContainer}>
+                          <View style={styles.profilePlaceholder}>
+                            <Ionicons name="add" size={32} color="rgba(255, 255, 255, 0.9)" />
+                          </View>
+                        </View>
+                        <View style={styles.textContainer}>
+                          <Text style={styles.createGroupText}>Create Group Chat</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }
+                  const isUnreadForCurrentUser = currentUserId
+                    ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
+                    : false;
                   return (
                     <TouchableOpacity
-                      style={styles.chatCard}
-                      onPress={() => navigation.navigate("CreateGroupScreen", { chatList: chats })}
+                      style={[
+                        styles.chatCard,
+                        isUnreadForCurrentUser && styles.unreadChatCard
+                      ]}
+                      onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: currentUserName, otherName: item.fullName, isGroupChat: item.isGroupChat })}
                     >
                       <View style={styles.profileContainer}>
-                        <View style={styles.profilePlaceholder}>
-                          <Ionicons name="add" size={32} color="rgba(255, 255, 255, 0.9)" />
-                        </View>
+                      {item.isGroupChat === "true" ? (
+                        <TouchableOpacity
+                          onPress={() => navigation.navigate("GroupParticipantsScreen", { chatId: item.chatId })}
+                        >
+                          <View style={styles.profilePlaceholder}>
+                            <Ionicons name="people-outline" size={40} color="rgba(255, 255, 255, 0.8)" />
+                          </View>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => navigation.navigate("ProfileScreen", { userId: item.otherUserId })}
+                        >
+                          {item.profilePicUrl && item.profilePicUrl.trim() !== "" ? (
+                            <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+                          ) : (
+                            <View style={styles.profilePlaceholder}>
+                              <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      )}
+                        {isUnreadForCurrentUser && (
+                          <View style={styles.unreadBadge}>
+                            <Text style={styles.unreadBadgeText}>
+                              {parseInt(item.unreadCount)}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                       <View style={styles.textContainer}>
-                        <Text style={styles.createGroupText}>Create Group Chat</Text>
+                        <Text style={styles.fullName} numberOfLines={1}>
+                          {item.fullName}
+                        </Text>
+                        <Text style={styles.lastMessage} numberOfLines={1}>
+                          {truncateMessage(item.lastMessage)}
+                        </Text>
                       </View>
                     </TouchableOpacity>
                   );
-                }
-                const isUnreadForCurrentUser = currentUserId
-                  ? parseInt(item.unreadCount || '0') > 0 && item.lastMessageSender !== currentUserId
-                  : false;
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.chatCard,
-                      isUnreadForCurrentUser && styles.unreadChatCard
-                    ]}
-                    onPress={() => navigation.navigate("MessageScreen", { chatId: item.chatId, otherUserId: item.otherUserId, name: currentUserName, otherName: item.fullName, isGroupChat: item.isGroupChat })}
-                  >
-                    <View style={styles.profileContainer}>
-                    {item.isGroupChat === "true" ? (
-                      <TouchableOpacity
-                        onPress={() => navigation.navigate("GroupParticipantsScreen", { chatId: item.chatId })}
-                      >
-                        <View style={styles.profilePlaceholder}>
-                          <Ionicons name="people-outline" size={40} color="rgba(255, 255, 255, 0.8)" />
-                        </View>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => navigation.navigate("ProfileScreen", { userId: item.otherUserId })}
-                      >
-                        {item.profilePicUrl && item.profilePicUrl.trim() !== "" ? (
-                          <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
-                        ) : (
-                          <View style={styles.profilePlaceholder}>
-                            <Ionicons name="person" size={40} color="rgba(255, 255, 255, 0.8)" />
+                }}
+                renderHiddenItem={({ item }) => {
+                  if (item.isCreateGroup) return null;
+                  return (
+                    <View style={styles.hiddenItemContainer}>
+                      {item.isGroupChat === 'true' ? (
+                        <TouchableOpacity
+                          style={styles.unmatchButton}
+                          onPress={() => handleLeaveChat(item.chatId)}
+                        >
+                          <View style={styles.unmatchIconContainer}>
+                            <Ionicons name="exit-outline" size={24} color="#fff" />
                           </View>
-                        )}
-                      </TouchableOpacity>
-                    )}
-                      {isUnreadForCurrentUser && (
-                        <View style={styles.unreadBadge}>
-                          <Text style={styles.unreadBadgeText}>
-                            {parseInt(item.unreadCount)}
-                          </Text>
-                        </View>
+                          <Text style={styles.unmatchText}>Leave</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.unmatchButton}
+                          onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
+                        >
+                          <View style={styles.unmatchIconContainer}>
+                            <Ionicons name="trash-outline" size={24} color="#fff" />
+                          </View>
+                          <Text style={styles.unmatchText}>Unmatch</Text>
+                        </TouchableOpacity>
                       )}
                     </View>
-                    <View style={styles.textContainer}>
-                      <Text style={styles.fullName} numberOfLines={1}>
-                        {item.fullName}
-                      </Text>
-                      <Text style={styles.lastMessage} numberOfLines={1}>
-                        {truncateMessage(item.lastMessage)}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              }}
-              renderHiddenItem={({ item }) => {
-                if (item.isCreateGroup) return null;
-                return (
-                  <View style={styles.hiddenItemContainer}>
-                    {item.isGroupChat === 'true' ? (
-                      <TouchableOpacity
-                        style={styles.unmatchButton}
-                        onPress={() => handleLeaveChat(item.chatId)}
-                      >
-                        <View style={styles.unmatchIconContainer}>
-                          <Ionicons name="exit-outline" size={24} color="#fff" />
-                        </View>
-                        <Text style={styles.unmatchText}>Leave</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        style={styles.unmatchButton}
-                        onPress={() => handleUnmatch(item.chatId, item.otherUserId)}
-                      >
-                        <View style={styles.unmatchIconContainer}>
-                          <Ionicons name="trash-outline" size={24} color="#fff" />
-                        </View>
-                        <Text style={styles.unmatchText}>Unmatch</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                );
-              }}
-              leftOpenValue={0}
-              rightOpenValue={-110}
-              disableRightSwipe={true}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
-              contentContainerStyle={styles.listContent}
-            />
+                  );
+                }}
+                leftOpenValue={0}
+                rightOpenValue={-110}
+                disableRightSwipe={true}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#fff"]} tintColor="#fff" />}
+                contentContainerStyle={styles.listContent}
+              />
+            </>
           )}
         </View>
       </LinearGradient>
     </SafeAreaView>
   );
 };
-
+  
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -498,6 +557,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 30,
     marginTop: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   headerContent: {
     flexDirection: 'row',
@@ -524,6 +586,28 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
+  },
+  // Bot icon styles
+  botIconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  supportButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   errorContainer: {
     flexDirection: 'row',
@@ -560,9 +644,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-      fontSize: 16,
-      color: colors.text.light,
-      marginTop: 8,
+    fontSize: 16,
+    color: colors.text.light,
+    marginTop: 8,
   },
   noMatchesContainer: {
     flex: 1,
@@ -598,6 +682,63 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
     textAlign: 'center',
     maxWidth: '80%',
+    marginBottom: 30,
+  },
+  // New container for bot card in empty state
+  emptyStateBotCardContainer: {
+    width: '90%',
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  // Consistent bot chat card for both states
+  botChatCard: {
+    width: "100%",
+    backgroundColor: "rgba(108, 92, 231, 0.35)",
+    marginBottom: 15,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    height: 85,
+  },
+  botProfileBackground: {
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.7)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  botName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#fff",
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  botMessage: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontStyle: 'italic',
   },
   chatCard: {
     width: "100%",

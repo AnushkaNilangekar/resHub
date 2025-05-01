@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { 
-  View, 
-  StyleSheet, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  TouchableOpacity, 
-  Text, 
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Text,
   StatusBar,
   ActivityIndicator,
   Alert
@@ -26,6 +26,8 @@ const BotMessagesScreen = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [showTyping, setShowTyping] = useState(false);
+  const [dotCount, setDotCount] = useState(1);
 
   const navigation = useNavigation();
 
@@ -33,7 +35,6 @@ const BotMessagesScreen = () => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
-  // Runs on page initialization - loads message history
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -41,22 +42,32 @@ const BotMessagesScreen = () => {
       await loadMessageHistory();
       setLoading(false);
     };
-  
     init();
   }, []);
 
-  // Runs every 2 seconds - fetches new chats
   useEffect(() => {
     const interval = setInterval(fetchNewMessages, 2000);
     return () => clearInterval(interval);
-  }, [fetchNewMessages]);
+  }, []);
+
+  useEffect(() => {
+    let interval;
+    if (showTyping) {
+      interval = setInterval(() => {
+        setDotCount(prev => (prev % 3) + 1);
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [showTyping]);
+
+  const typingText = '.'.repeat(dotCount);
 
   const onSendMessage = async (text) => {
     if (text.trim()) {
       try {
         const token = await AsyncStorage.getItem('token');
         const userId = await AsyncStorage.getItem('userId');
-  
+
         const tempMessage = {
           _id: Date.now().toString(),
           text: text,
@@ -66,41 +77,35 @@ const BotMessagesScreen = () => {
             name: "You",
           },
         };
-  
+
         setMessages(prevMessages => {
           const messagesMap = new Map();
           prevMessages.forEach(msg => messagesMap.set(msg._id, msg));
           messagesMap.set(tempMessage._id, tempMessage);
-  
           return Array.from(messagesMap.values())
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         });
-  
-        // Send the message to the backend
+
+        setShowTyping(true);
+
         await axios.post(`${config.API_BASE_URL}/api/botpress/sendMessage?userId=${userId}&message=${text}`, {}, {
-            headers: { 'Authorization': `Bearer ${token}` },
+          headers: { 'Authorization': `Bearer ${token}` },
         });
       } catch (error) {
         console.error("Error sending bot message:", error);
         Alert.alert("Error", "Failed to send message");
       }
     }
-  };  
+  };
 
   const fetchNewMessages = async () => {
-    // Prevent fetching if a message is being sent
     if (isFetching) return;
-    
     setIsFetching(true);
-
     const token = await AsyncStorage.getItem('token');
     const userId = await AsyncStorage.getItem('userId');
-
     try {
       const response = await axios.get(`${config.API_BASE_URL}/api/botpress/getNewMessages?userId=${userId}`, {
-        headers: { 
-          'Authorization': `Bearer ${token}` 
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const formattedMessages = response.data.map((msg) => ({
@@ -113,25 +118,26 @@ const BotMessagesScreen = () => {
         },
       }));
 
-      setMessages(prevMessages => {
-        const messagesMap = new Map();
-        prevMessages.forEach(msg => messagesMap.set(msg._id, msg));
-        formattedMessages.forEach(msg => messagesMap.set(msg._id, msg));
-
-        return Array.from(messagesMap.values())
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      });
+      if (formattedMessages.length > 0) {
+        setMessages(prevMessages => {
+          const messagesMap = new Map();
+          prevMessages.forEach(msg => messagesMap.set(msg._id, msg));
+          formattedMessages.forEach(msg => messagesMap.set(msg._id, msg));
+          return Array.from(messagesMap.values())
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        });
+        setShowTyping(false);
+      }
     } catch (error) {
       console.error("Error fetching bot messages:", error);
     } finally {
-      setIsFetching(false); // Reset fetching flag
+      setIsFetching(false);
     }
   };
 
   const loadMessageHistory = async () => {
     const token = await AsyncStorage.getItem('token');
     const userId = await AsyncStorage.getItem('userId');
-
     try {
       const response = await axios.get(`${config.API_BASE_URL}/api/botpress/getAllMessages?userId=${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -219,6 +225,11 @@ const BotMessagesScreen = () => {
             sendButtonBackgroundColor="rgba(255, 255, 255, 0.3)"
             sendButtonIconColor="white"
           />
+          {showTyping && (
+            <View style={styles.typingWrapper}>
+              <Text style={styles.typingIndicator}>{typingText}</Text>
+            </View>
+          )}
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>
@@ -226,19 +237,14 @@ const BotMessagesScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#4c6ef5',
-  },
+  container: { flex: 1, backgroundColor: '#4c6ef5' },
   loadingContainer: {
     flex: 1,
     backgroundColor: '#4c6ef5',
     justifyContent: "center",
     alignItems: "center",
   },
-  gradient: {
-    flex: 1,
-  },
+  gradient: { flex: 1 },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -254,15 +260,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
+  headerTitle: { fontSize: 22, fontWeight: "bold", color: "#fff" },
+  chatContainer: { flex: 1, paddingHorizontal: 15, paddingBottom: 20 },
+  typingWrapper: {
+    alignItems: 'flex-start',
+    paddingLeft: 15,
+    paddingVertical: 5,
   },
-  chatContainer: {
-    flex: 1,
-    paddingHorizontal: 15,
-    paddingBottom: 20,
+  typingIndicator: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
+    fontStyle: 'italic',
   },
 });
 

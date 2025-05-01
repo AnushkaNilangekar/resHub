@@ -92,28 +92,30 @@ export default function Step3AcademicInfo({
         }
         // Android standard picker
         return (
-            <View style={styles.pickerContainer}>
+            <View style={styles.androidPickerWrapper}>
                 <Ionicons 
                     name="calendar-outline" 
                     size={20} 
                     color="rgba(255, 255, 255, 0.8)" 
-                    style={styles.inputIcon} 
+                    style={styles.androidPickerIcon} 
                 />
-                <Picker
-                    selectedValue={graduationYear}
-                    onValueChange={(itemValue) => setGraduationYear(itemValue)}
-                    style={styles.androidPicker}
-                    dropdownIconColor="rgba(255, 255, 255, 0.8)"
-                >
-                    <Picker.Item label="Select Graduation Year" value="" color="rgba(255, 255, 255, 0.6)" />
-                    <Picker.Item label="2025" value="2025" color="#fff" />
-                    <Picker.Item label="2026" value="2026" color="#fff" />
-                    <Picker.Item label="2027" value="2027" color="#fff" />
-                    <Picker.Item label="2028" value="2028" color="#fff" />
-                    <Picker.Item label="2029" value="2029" color="#fff" />
-                    <Picker.Item label="2030" value="2030" color="#fff" />
-                    <Picker.Item label="n/a" value="n/a" color="#fff" />
-                </Picker>
+                <View style={styles.androidPickerContainer}>
+                    <Picker
+                        selectedValue={graduationYear}
+                        onValueChange={(itemValue) => setGraduationYear(itemValue)}
+                        style={styles.androidPicker}
+                        dropdownIconColor="rgba(255, 255, 255, 0.8)"
+                    >
+                        <Picker.Item label="Select Graduation Year" value="" color="#333" />
+                        <Picker.Item label="2025" value="2025" color="#333" />
+                        <Picker.Item label="2026" value="2026" color="#333" />
+                        <Picker.Item label="2027" value="2027" color="#333" />
+                        <Picker.Item label="2028" value="2028" color="#333" />
+                        <Picker.Item label="2029" value="2029" color="#333" />
+                        <Picker.Item label="2030" value="2030" color="#333" />
+                        <Picker.Item label="n/a" value="n/a" color="#333" />
+                    </Picker>
+                </View>
             </View>
         );
     };
@@ -364,10 +366,28 @@ const styles = StyleSheet.create({
     placeholderText: {
         color: 'rgba(255, 255, 255, 0.6)',
     },
+    androidPickerWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        overflow: 'hidden',
+        height: 55,
+    },
+    androidPickerIcon: {
+        marginLeft: 15,
+        zIndex: 2,
+    },
+    androidPickerContainer: {
+        flex: 1,
+        height: 55,
+    },
     androidPicker: {
         flex: 1,
         color: '#fff',
-        marginLeft: 10,
+        marginLeft: -3,
     },
     modalOverlay: {
         flex: 1,

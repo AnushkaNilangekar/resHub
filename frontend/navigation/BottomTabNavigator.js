@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import SwipeScreen from "../screens/SwipeScreen";
 import AccountScreen from '../screens/AccountScreen';
 import ChatScreen from '../screens/ChatScreen';
+import ForumScreen from '../screens/ForumScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -23,6 +24,8 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Chats') {
             iconName = focused ? 'chatbubble' : 'chatbubble-outline';
+          } else if (route.name === 'Forum') {
+            iconName = focused ? 'people' : 'people-outline';
           } else if (route.name === 'Account') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -60,6 +63,14 @@ const BottomTabNavigator = () => {
         component={ChatScreen}
         options={{
           tabBarLabel: 'Chats',
+          tabBarBadge: null, 
+        }}
+      />
+      <Tab.Screen
+        name="Forum"
+        component={ForumScreen}
+        options={{
+          tabBarLabel: 'Forum',
           tabBarBadge: null, 
         }}
       />

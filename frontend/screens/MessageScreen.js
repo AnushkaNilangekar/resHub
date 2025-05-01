@@ -9,7 +9,8 @@ import {
   Text, 
   StatusBar,
   Animated,
-  Alert
+  Alert,
+  ActionSheetIOS
 } from "react-native";
 import Chat from "@codsod/react-native-chat";
 import { useNavigation } from "@react-navigation/native";
@@ -20,7 +21,7 @@ import config from "../config";
 import { LinearGradient } from 'expo-linear-gradient';
 
 const MessageScreen = ({ route }) => {
-  const { chatId, otherUserId, name } = route.params;
+  const { chatId, otherUserId, name, otherName, isGroupChat } = route.params;
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [token, setToken] = useState("");
@@ -30,6 +31,7 @@ const MessageScreen = ({ route }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [isBlocked, setIsBlocked] = useState(false);
   const [isCurrentUserBlocked, setisCurrentUserBlocked] = useState(false);
+
   // Error animation effect
   useEffect(() => {
     if (error) {
@@ -98,6 +100,7 @@ const MessageScreen = ({ route }) => {
             name: msg.name,
           },
         }));
+        
 
         setMessages(formattedMessages);
       } else {
@@ -193,6 +196,21 @@ const MessageScreen = ({ route }) => {
       setIsBlocked(isBlocked);
   };
 
+  const confirmBlockUser = () => {
+    Alert.alert(
+      "Block User",
+      "Are you sure you want to block this user? You will no longer be able to send or receive messages.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: handleBlockUser
+        }
+      ]
+    );
+  };  
+
   const handleBlockUser = async () => {
     if (isBlocked) {
       Alert.alert('Already Blocked', 'You have already blocked this user.');
@@ -216,6 +234,37 @@ const MessageScreen = ({ route }) => {
     }
   };
 
+  const navigateToReportScreen = () => {
+    navigation.navigate('ReportScreen', {
+      chatId,
+      otherUserId,
+      name,
+      messageTimestamp: new Date().toISOString(),
+      onGoBack: () => {
+        // This will be called when returning from the report screen
+      }
+    });
+  };
+
+  const confirmReportChat = () => {
+    Alert.alert(
+      "Report Chat",
+      "Are you sure you want to report this chat to the ResHub team? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: handleReportChat
+        }
+      ]
+    );
+  };  
+
+  // Handle the report button press in the header
+  const handleReportChat = () => {
+    navigateToReportScreen();
+  };
 
   useEffect(() => {
     // Check if the other user exists
@@ -244,6 +293,7 @@ const MessageScreen = ({ route }) => {
 
     const interval = setInterval(() => {
       fetchMessages(); // Fetch messages every 5 seconds
+      markMessagesRead(); // Mark messages as read every 5 seconds
     }, 5000);
 
     return () => {
@@ -253,6 +303,8 @@ const MessageScreen = ({ route }) => {
       }
     };
   }, [chatId, checkUserExists, otherUserId]);
+
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -273,16 +325,30 @@ const MessageScreen = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <View style={styles.iconContainer}>
-              <Ionicons name="person" size={24} color="#fff" />
+            <Ionicons 
+                name={isGroupChat === 'true' ? "people-outline" : "person"} 
+                size={24} 
+                color="#fff" 
+              />
             </View>
-            <Text style={styles.headerTitle}>{name}</Text>
+            <Text style={styles.headerTitle}>{otherName}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.blockButton}
-            onPress={handleBlockUser}
-          >
-            <Ionicons name="ban-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          {isGroupChat === 'false' && (
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={confirmReportChat}
+              >
+                <Ionicons name="flag-outline" size={22} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={confirmBlockUser}
+              >
+                <Ionicons name="ban-outline" size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         
         {!otherUserExists && (
@@ -318,7 +384,7 @@ const MessageScreen = ({ route }) => {
               themeColor="#4c6ef5"
               themeTextColor="white"
               showSenderAvatar={false}
-              showReceiverAvatar={false}
+              showReceiverAvatar={true}
               inputBorderColor="rgba(255, 255, 255, 0.3)"
               disabled={!otherUserExists || isBlocked || isCurrentUserBlocked}
               inputBackgroundColor={otherUserExists && !isBlocked && !isCurrentUserBlocked ? "rgba(255, 255, 255, 0.2)" : "rgba(100, 100, 100, 0.2)"}
@@ -416,6 +482,22 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+  },
+  headerButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
   accountDeletedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -463,18 +545,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     paddingBottom: 20,
-  },
-  blockButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
 });
 

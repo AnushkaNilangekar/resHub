@@ -41,6 +41,11 @@ public class ProfileRequest {
     private String roommateSharingCommonItems;
     private String roommateDietaryPreference;
 
+    //Notifs
+    private Double notifVolume;
+    private Boolean matchSoundEnabled;
+    private Boolean messageSoundEnabled;
+
     // Getters for all fields
 
     public String getUserId() {
@@ -159,6 +164,10 @@ public class ProfileRequest {
         return roommateDietaryPreference;
     }
 
+    public Double getNotifVolume() {
+        return notifVolume;
+    }    
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -273,5 +282,25 @@ public class ProfileRequest {
 
     public void setRoommateDietaryPreference(String roommateDietaryPreference) {
         this.roommateDietaryPreference = roommateDietaryPreference;
+    }
+
+    public void setNotifVolume(Double notifVolume) {
+        this.notifVolume = notifVolume;
+    }
+
+    public Boolean getMatchSoundEnabled() {
+        return matchSoundEnabled;
+    }
+
+    public void setMatchSoundEnabled(Boolean matchSoundEnabled) {
+        this.matchSoundEnabled = matchSoundEnabled;
+    }
+
+    public Boolean getMessageSoundEnabled() {
+        return messageSoundEnabled;
+    }
+
+    public void setMessageSoundEnabled(Boolean messageSoundEnabled) {
+        this.messageSoundEnabled = messageSoundEnabled;
     }
 }

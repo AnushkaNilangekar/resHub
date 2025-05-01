@@ -220,6 +220,7 @@ public class ProfileService {
         return new Profile(
             item.getOrDefault("userId", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("fullName", AttributeValue.builder().s("").build()).s(),
+            item.getOrDefault("email", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("gender", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("major", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("minor", AttributeValue.builder().s("").build()).s(),
@@ -250,7 +251,13 @@ public class ProfileService {
             item.getOrDefault("roommatePetPreference", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateNoiseTolerance", AttributeValue.builder().s("").build()).s(),
             item.getOrDefault("roommateSharingCommonItems", AttributeValue.builder().s("").build()).s(),
-            item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s()
+            item.getOrDefault("roommateDietaryPreference", AttributeValue.builder().s("").build()).s(),
+            item.containsKey("notifVolume") 
+            ? Double.valueOf(item.get("notifVolume").n()) 
+            : 1.0,
+            item.containsKey("matchSoundEnabled") ? item.get("matchSoundEnabled").bool() : true,
+            item.containsKey("messageSoundEnabled") ? item.get("messageSoundEnabled").bool() : true,
+            item.getOrDefault("botConversationId", AttributeValue.builder().s("").build()).s()
         );
     }
     
@@ -329,7 +336,7 @@ public class ProfileService {
     }
 
     // Helper method to fetch the full name for a given user ID
-    private String getFullNameForUserId(String userId) {
+    public String getFullNameForUserId(String userId) {
         Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
 
         GetItemRequest getItemRequest = GetItemRequest.builder()
@@ -440,5 +447,25 @@ public class ProfileService {
         }
         
         return userProfiles;
+    }
+
+    /*
+    * Handles adding the bot conversation ID to the user's profile.
+    */
+    public void doAddBotConversationId(String userId, String conversationId) {
+        Map<String, AttributeValue> key = Map.of("userId", AttributeValue.builder().s(userId).build());
+
+        Map<String, AttributeValue> updateValues = Map.of(
+                ":newBotConversationId", AttributeValue.builder().s(conversationId).build()
+        );
+
+        UpdateItemRequest updateRequest = UpdateItemRequest.builder()
+                .tableName(dynamoDbConfig.getUserProfilesTableName())
+                .key(key)
+                .updateExpression("SET botConversationId = :newBotConversationId")
+                .expressionAttributeValues(updateValues)
+                .build();
+
+        dynamoDbClient.updateItem(updateRequest);
     }
 }

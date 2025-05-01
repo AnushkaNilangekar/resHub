@@ -9,15 +9,22 @@ import ForgotPassword from "../screens/ForgotPasswordScreen";
 import ResetPassword from "../screens/ResetPassword";
 import SwipeScreen from "../screens/SwipeScreen";
 import MessageScreen from "../screens/MessageScreen";
+import ReportScreen from "../screens/ReportScreen";
 import SettingsScreen from  "../screens/SettingsScreen";
 import SplashScreen from  "../screens/SplashScreen";
-//import ChatsScreen from "../screens/ChatScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
+import NameGroupScreen from "../screens/NameGroupScreen";
+import GroupParticipantsScreen from "../screens/GroupParticipantsScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import ChatScreen from "../screens/ChatScreen";
+import BlockedReportedScreen from "../screens/BlockedReportedScreen";
+import BotChatScreen from "../screens/BotMessageScreen";
 
 
 const Stack = createNativeStackNavigator();
 
 const StackNavigator = () => {
-  const { isAuthenticated } = useContext(AuthContext); // Get authentication status
+  const { isAuthenticated, profileComplete } = useContext(AuthContext); // Get authentication status
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isAuthenticated ? (
@@ -28,24 +35,57 @@ const StackNavigator = () => {
           <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
           <Stack.Screen name="ResetPassword" component={ResetPassword} />
         </>
-      ) : (
+      ) : profileComplete ? (
         <>
           <Stack.Screen name="Main" component={BottomTabNavigator} />
-          <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
           <Stack.Screen name="SwipeScreen" component={SwipeScreen} />
+          <Stack.Screen name="GroupParticipantsScreen" component={GroupParticipantsScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          {/* <Stack.Screen name="ChatScreen" component={ChatScreen} /> */}
+          {/* <Stack.Screen name="MatchesScreen" component={MatchesScreen} /> */}
           <Stack.Screen 
-                name="Settings" 
-                component={SettingsScreen} 
-                options={{
-                    title: 'Profile Settings',
-                    headerBackTitle: 'Back'
-                }}
-            />
-            <Stack.Screen
+            name="Settings" 
+            component={SettingsScreen} 
+            options={{
+              title: 'Profile Settings',
+              headerBackTitle: 'Back'
+            }}
+          />
+          <Stack.Screen
             name="MessageScreen"
             component={MessageScreen}
             options={{ headerShown: true }}  
           />
+          <Stack.Screen
+            name="CreateGroupScreen"
+            component={CreateGroupScreen}
+            // options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="NameGroupScreen"
+            component={NameGroupScreen}
+            // options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="ReportScreen"
+            component={ReportScreen} />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
+          />
+          <Stack.Screen
+            name="BlockedReported"
+            component={BlockedReportedScreen}
+          />
+          <Stack.Screen
+            name="BotChatScreen"
+            component={BotChatScreen} 
+            options={{ headerShown: true, title: 'Bot Assistant' }}
+          />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="ProfileSetupScreen" component={ProfileSetupScreen} />
         </>
       )}
     </Stack.Navigator>

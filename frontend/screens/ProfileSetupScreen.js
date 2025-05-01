@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { ScrollView, Alert, StyleSheet } from 'react-native';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2Demographics from './Step2Demographics';
@@ -10,8 +10,10 @@ import UploadProfilePic from './UploadProfilePic';
 import config from '../config';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from '../context/AuthContext';
 
-const ProfileSetupScreen = ({ navigation, route }) => {
+const ProfileSetupScreen = ({ navigation }) => {
+    const {profileSetup, logout} = useContext(AuthContext);  
     // Step state (1-4)
     const [step, setStep] = useState(1);
 
@@ -96,6 +98,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 Alert.alert('Error', 'Failed to retrieve email.');
             }
         };
+
         const fetchUserId = async () => {
             try {
                 const storedUserId = await AsyncStorage.getItem('userId');
@@ -110,6 +113,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 Alert.alert('Error', 'Failed to retrieve userId.');
             }
         };
+
         fetchEmail();
         fetchUserId();
     }, []);
@@ -147,7 +151,55 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             navigation.goBack();
         }
     };
+    
+    // Is called in handle submit after profile is created - creates support bot chat
+    const createSupportBotChat = async () => {
+        token = await AsyncStorage.getItem('token');
+        id = await AsyncStorage.getItem('userId');
 
+        console.log('\n', token, '\n')
+        console.log('\n', id, '\n')
+
+        try
+        {
+            const response = await axios.post(`${config.API_BASE_URL}/api/botpress/createChat?userId=${id}`, {}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                console.log('Support bot chat created successfully');
+            }
+        } catch (error) {
+            console.error('Support bot chat creation error:', error.response || error);
+            Alert.alert('Error', error.response?.data || error.message);
+        }
+    }
+
+    const fetchAndSaveProfileData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+            if (!token || !userId) return;
+    
+            const res = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const profile = res.data;
+            if (profile.residence) {
+                await AsyncStorage.setItem('residence', profile.residence);
+            }
+            if (profile.fullName) {
+                await AsyncStorage.setItem('fullName', profile.fullName);
+            }
+        } catch (error) {
+            console.error('Error fetching profile after submit:', error);
+        }
+    };
+    
     // handleSubmit: Final submission of profile data.
     const handleSubmit = async () => {
         const profileData = {
@@ -196,8 +248,10 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             });
             if (response.status === 200) {
 
+                createSupportBotChat();
+                profileSetup();
+                await fetchAndSaveProfileData();
                 Alert.alert('Success', 'Profile created successfully');
-                navigation.navigate('Main', { screen: 'Home' });
             }
         } catch (error) {
             console.error('Profile creation error:', error.response || error);

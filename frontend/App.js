@@ -3,12 +3,19 @@ import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from "./navigation/StackNavigator";
 import { AuthProvider } from './context/AuthContext';
-import { AppState, View, Text } from 'react-native';
+import { AppState, View, Text, LogBox } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import config from "./config";
 import * as SplashScreen from 'expo-splash-screen';
 import NotificationBanner from './notifications/NotificationBanner';
+
+// TODO:
+// Disabled/ignored error log for demo only, needs to be fixed after
+
+LogBox.ignoreLogs([
+  'Text strings must be rendered within a <Text> component.'
+]);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,7 +31,9 @@ export default function App() {
     },
   };
   const [notification, setNotification] = useState(null); // State for notification
-
+  const [notifVolume, setNotifVolume] = useState(1);
+  const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
+  const [messageSoundEnabled, setMessageSoundEnabled] = useState(true);
   useEffect(() => {
     // Prepare the app
     async function prepareApp() {
@@ -88,6 +97,22 @@ export default function App() {
           const userId = await AsyncStorage.getItem('userId');
           if (!userId) return;
 
+          try {
+            const profileRes = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+              params: { userId },
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const volume = profileRes.data.notifVolume ?? 1;
+            const matchEnabled = profileRes.data.matchSoundEnabled ?? true;
+            const messageEnabled = profileRes.data.messageSoundEnabled ?? true;
+
+            setNotifVolume(volume);
+            setMatchSoundEnabled(matchEnabled);
+            setMessageSoundEnabled(messageEnabled);
+          } catch (err) {
+            console.error('Failed to fetch match volume:', err);
+          }
+
           const response =  await axios.post(
             `${config.API_BASE_URL}/api/users/notification`,
             { userId },
@@ -123,7 +148,7 @@ export default function App() {
 
   if (!appIsReady) {
     return null;
-  }
+  } 
 
   return (
     <AuthProvider> {/* Wrap with AuthProvider */}
@@ -134,6 +159,9 @@ export default function App() {
                 message={notification.message}
                 visible={!!notification}
                 onClose={() => setNotification(null)}
+                notifVolume={notifVolume}
+                matchSoundEnabled={matchSoundEnabled}
+                messageSoundEnabled={messageSoundEnabled}
             />
         )}
       </NavigationContainer>

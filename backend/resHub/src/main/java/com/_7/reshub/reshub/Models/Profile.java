@@ -44,12 +44,21 @@ public class Profile {
     private String roommateSharingCommonItems;
     private String roommateDietaryPreference;
 
+    //Notifs
+    private Double notifVolume;
+    private Boolean matchSoundEnabled;
+    private Boolean messageSoundEnabled;
+
+    //Botpress
+    private String botConversationId;
+
     /**
      * Constructor for Profile including new traits and roommate preferences.
      */
     public Profile(
             String userId,
             String fullName,
+            String email,
             String gender,
             String major,
             String minor,
@@ -76,9 +85,16 @@ public class Profile {
             String roommatePetPreference,
             String roommateNoiseTolerance,
             String roommateSharingCommonItems,
-            String roommateDietaryPreference) {
+            String roommateDietaryPreference, 
+            Double notifVolume,
+            Boolean matchSoundEnabled,
+            Boolean messageSoundEnabled,
+            String botConversationId
+        ) 
+        {
         this.userId = userId;
         this.fullName = fullName;
+        this.email = email;
         this.gender = gender;
         this.major = major;
         this.minor = minor;
@@ -106,6 +122,10 @@ public class Profile {
         this.roommateNoiseTolerance = roommateNoiseTolerance;
         this.roommateSharingCommonItems = roommateSharingCommonItems;
         this.roommateDietaryPreference = roommateDietaryPreference;
+        this.notifVolume = notifVolume != null ? notifVolume : 1.0;
+        this.matchSoundEnabled = matchSoundEnabled != null ? matchSoundEnabled : true; 
+        this.messageSoundEnabled = messageSoundEnabled != null ? messageSoundEnabled : true; 
+        this.botConversationId = botConversationId;
     }
 
     // Getters for all fields
@@ -230,5 +250,20 @@ public class Profile {
 
     public String getRoommateDietaryPreference() {
         return roommateDietaryPreference;
+    }
+
+    public Double getNotifVolume() {
+        return notifVolume;
+    }
+    public Boolean getMatchSoundEnabled() {
+        return matchSoundEnabled;
+    }
+    
+    public Boolean getMessageSoundEnabled() {
+        return messageSoundEnabled;
+    }
+
+    public String getBotConversationId() {
+        return botConversationId;
     }
 }

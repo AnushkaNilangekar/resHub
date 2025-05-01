@@ -64,9 +64,10 @@ const LoginScreen = () => {
     });
     if (response.data === "exists") {
       profileSetup();
-    } else {
-      navigation.navigate("ProfileSetupScreen");
-    }
+    } 
+    // else {
+    //   navigation.navigate("ProfileSetupScreen");
+    // }
     setIsChecking(false);
   };
   

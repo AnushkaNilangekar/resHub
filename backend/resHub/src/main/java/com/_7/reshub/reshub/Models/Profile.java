@@ -58,6 +58,7 @@ public class Profile {
     public Profile(
             String userId,
             String fullName,
+            String email,
             String gender,
             String major,
             String minor,
@@ -93,6 +94,7 @@ public class Profile {
         {
         this.userId = userId;
         this.fullName = fullName;
+        this.email = email;
         this.gender = gender;
         this.major = major;
         this.minor = minor;

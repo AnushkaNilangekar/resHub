@@ -108,6 +108,29 @@ const SettingsScreen = ({ navigation }) => {
         "Reading", "Hiking", "Gaming", "Cooking", 
         "Traveling", "Sports", "Music", "Art", "Working Out"
     ];
+    const residenceOptions = [
+        "Harrison",
+        "Hillenbrand",
+        "Windsor",
+        "Honors",
+        "Earhart",
+        "Owen",
+        "First Street Towers",
+        "Meredith South",
+        "Meredith",
+        "Shreve",
+        "McCutcheon",
+        "Hawkins",
+        "Frieda Parker",
+        "Winifred Parker",
+        "Cary Quadrangle",
+        "Tarkington",
+        "Wiley",
+        "On-campus Apartments",
+        "Off-campus Apartments",
+        "Other Halls/Apartments",
+      ];
+      
     const toggleHobby = (hobby) => {
         if (hobbies.includes(hobby)) {
           setHobbies(hobbies.filter((currentHobby) => currentHobby !== hobby));
@@ -137,10 +160,6 @@ const SettingsScreen = ({ navigation }) => {
     const [roommateSharingCommonItems, setRoommateSharingCommonItems] = useState('');
     const [roommateDietaryPreference, setRoommateDietaryPreference] = useState('');
 
-    // Blocked Users and Reported Chats States
-    const [blockedUsers, setBlockedUsers] = useState([]);
-    const [reportedChats, setReportedChats] = useState([]);
-
     //Notification Volume States
     const [notifVolume, setNotifVolume] = useState(1);
     const [matchSoundEnabled, setMatchSoundEnabled] = useState(true);
@@ -158,8 +177,6 @@ const SettingsScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchUserProfile();
-        fetchBlockedUsers();
-        //fetchReportedChats();
     }, []);
 
     const ProfileInput = ({ label, value, onChangeText, keyboardType = 'default', multiline = false, icon }) => (
@@ -200,7 +217,7 @@ const SettingsScreen = ({ navigation }) => {
             setMajor(profile.major || '');
             setMinor(profile.minor || '');
             setGraduationYear(profile.graduationYear ? profile.graduationYear.toString() : '');
-            setResidence(profile.residence || '');
+            setResidence(profile.residence || 'Other Halls/Apartments');
             setBio(profile.bio || '');
             setHobbies(profile.hobbies || []); 
 
@@ -236,6 +253,31 @@ const SettingsScreen = ({ navigation }) => {
             Alert.alert('Error', 'Could not fetch profile details');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAndSaveProfileData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+            if (!token || !userId) return;
+    
+            const res = await axios.get(`${config.API_BASE_URL}/api/getProfile`, {
+                params: { userId: userId },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const profile = res.data;
+            //console.log(profile)
+            if (profile.residence) {
+                await AsyncStorage.setItem('residence', profile.residence);
+            }
+            if (profile.fullName) {
+                //console.log(profile.fullName)
+                await AsyncStorage.setItem('fullName', profile.fullName);
+                //console.log('done')
+            }
+        } catch (error) {
+            console.error('Error fetching profile after submit:', error);
         }
     };
 
@@ -292,6 +334,7 @@ const SettingsScreen = ({ navigation }) => {
             await axios.put(`${config.API_BASE_URL}/api/updateProfile`, updateData, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            await fetchAndSaveProfileData();
             Alert.alert('Success', 'Profile updated successfully');
             navigation.goBack();
         } catch (error) {
@@ -331,42 +374,6 @@ const SettingsScreen = ({ navigation }) => {
           Alert.alert('Error', error.response?.data?.error || 'Failed to update credentials');
         }
       };      
-
-    const fetchBlockedUsers = async () => {
-        try {
-            const userId = await AsyncStorage.getItem('userId');
-            const token = await AsyncStorage.getItem('token');
-    
-            const response = await axios.get(`${config.API_BASE_URL}/api/getBlockedUsers`, {
-                params: { userId: userId },
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-    
-            if (response.data.error) {
-                console.error('Error fetching blocked users:', response.data.error);
-                return;
-            }
-    
-            setBlockedUsers(response.data);
-        } catch (error) {
-            console.error('Error fetching blocked users:', error);
-        }
-    };
-    
-    
-    /*const fetchReportedChats = async () => {
-        try {
-            const userId = await AsyncStorage.getItem('userId');
-            const token = await AsyncStorage.getItem('token');
-            const response = await axios.get(`${config.API_BASE_URL}/api/users/reportedChats`, {
-                params: { userId: userId },
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setReportedChats(response.data);
-        } catch (error) {
-            console.error('Error fetching reported chats:', error);
-        }
-    };*/
 
     if (loading) {
         return (
@@ -472,29 +479,13 @@ const SettingsScreen = ({ navigation }) => {
                             options={['Female', 'Male', 'Non-Binary', 'Prefer Not to Say']}
                             icon="person-outline"
                         />
-                        <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Residence</Text>
-                        <View style={[
-                            styles.inputWrapper,
-                            focusedInput === 'residence' && styles.inputWrapperFocused
-                        ]}>
-                            <Ionicons 
-                                name="home-outline" 
-                                size={20} 
-                                color="rgba(255, 255, 255, 0.8)" 
-                                style={styles.inputIcon} 
-                            />
-                            <TextInput
-                                style={styles.input}
-                                value={residence}
-                                onChangeText={setResidence}
-                                placeholder="Enter your residence"
-                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                onFocus={() => setFocusedInput('residence')}
-                                onBlur={() => setFocusedInput(null)}
-                            />
-                        </View>
-                    </View>
+                        <CustomDropdown 
+                            label="Residence"
+                            selectedValue={residence}
+                            onValueChange={setResidence}
+                            options={residenceOptions}
+                            icon="home-outline"
+                        />
                     </View>
 
                     {/* Academic Details */}
@@ -926,56 +917,6 @@ const SettingsScreen = ({ navigation }) => {
                         </TouchableOpacity>
                         </View>
 
-                    {/* Blocked Users Section */}
-                    <View style={styles.sectionContainer}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="ban" size={22} color="#FFFFFF" />
-                            <Text style={styles.sectionTitle}>Blocked Users</Text>
-                        </View>
-                        {blockedUsers.length > 0 ? (
-                            <FlatList
-                                data={blockedUsers}
-                                renderItem={({ item }) => (
-                                    <View style={styles.blockedUserItem}>
-                                        <Text style={styles.blockedUserText}>{item}</Text>
-                                    </View>
-                                )}
-                                keyExtractor={(item) => item}
-                                scrollEnabled={false}
-                                nestedScrollEnabled={true}
-                            />
-                        ) : (
-                            <View style={styles.noDataContainer}>
-                                <Text style={styles.noDataText}>No users blocked.</Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Reported Chats Section */}
-                    <View style={styles.sectionContainer}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="alert-circle" size={22} color="#FFFFFF" />
-                            <Text style={styles.sectionTitle}>Reported Chats</Text>
-                        </View>
-                        {reportedChats.length > 0 ? (
-                            <FlatList
-                                data={reportedChats}
-                                renderItem={({ item }) => (
-                                    <View style={styles.reportedChatItem}>
-                                        <Text style={styles.reportedChatText}>{item.chatId}</Text>
-                                    </View>
-                                )}
-                                keyExtractor={(item) => item.chatId}
-                                scrollEnabled={false}
-                                nestedScrollEnabled={true}
-                            />
-                        ) : (
-                            <View style={styles.noDataContainer}>
-                                <Text style={styles.noDataText}>No reported chats.</Text>
-                            </View>
-                        )}
-                    </View>
-
                     {/* Save Button */}
                     <TouchableOpacity 
                         style={styles.saveButton} 
@@ -1239,24 +1180,6 @@ const styles = StyleSheet.create({
     },
     saveButtonIcon: {
         marginRight: 10,
-    },
-    blockedUserItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-     },
-    blockedUserText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-    },
-    reportedChatItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    reportedChatText: {
-        color: '#FFFFFF',
-        fontSize: 16,
     },
     noDataText: {
         color: '#FFFFFF',

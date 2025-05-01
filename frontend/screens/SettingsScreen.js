@@ -645,95 +645,27 @@ const SettingsScreen = ({ navigation }) => {
 
                         <View style={styles.inputContainer}>
                             <Text style={styles.inputLabel}>Allergies</Text>
-                        <View style={[
-                            styles.inputWrapper,
-                            focusedInput === 'allergies' && styles.inputWrapperFocused
-                        ]}>
-                            <Ionicons 
-                                name="alert-circle-outline" 
-                                size={20} 
-                                color="rgba(255, 255, 255, 0.8)" 
-                                style={styles.inputIcon} 
-                            />
-                            <TextInput
-                                style={styles.input}
-                                value={allergies}
-                                onChangeText={setAllergies}
-                                placeholder="Enter allergies if any"
-                                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                                onFocus={() => setFocusedInput('allergies')}
-                                onBlur={() => setFocusedInput(null)}
-                            />
+                            <View style={[
+                                styles.inputWrapper,
+                                focusedInput === 'allergies' && styles.inputWrapperFocused
+                            ]}>
+                                <Ionicons 
+                                    name="alert-circle-outline" 
+                                    size={20} 
+                                    color="rgba(255, 255, 255, 0.8)" 
+                                    style={styles.inputIcon} 
+                                />
+                                <TextInput
+                                    style={styles.input}
+                                    value={allergies}
+                                    onChangeText={setAllergies}
+                                    placeholder="Enter allergies if any"
+                                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                                    onFocus={() => setFocusedInput('allergies')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                            </View>
                         </View>
-                    </View>
-                    </View>
-
-                    {/* Roommate Preferences Section */}
-                    <View style={styles.sectionContainer}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="people" size={22} color="#FFFFFF" />
-                            <Text style={styles.sectionTitle}>Roommate Preferences</Text>
-                        </View>
-                        <CustomDropdown 
-                            label="Roommate Smoking Preference"
-                            selectedValue={roommateSmokingPreference}
-                            onValueChange={setRoommateSmokingPreference}
-                            options={[
-                                'Non-Smoker', 
-                                'Smoker', 
-                                'Only when I\'m not around'
-                            ]}
-                            icon="flame-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Cleanliness Level"
-                            selectedValue={roommateCleanlinessLevel}
-                            onValueChange={setRoommateCleanlinessLevel}
-                            options={['Very Clean', 'Moderate', 'Messy']}
-                            icon="sparkles-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Sleep Schedule"
-                            selectedValue={roommateSleepSchedule}
-                            onValueChange={setRoommateSleepSchedule}
-                            options={['Early Bird', 'Night Owl', 'Flexible']}
-                            icon="moon-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Guest Frequency"
-                            selectedValue={roommateGuestFrequency}
-                            onValueChange={setRoommateGuestFrequency}
-                            options={['Rarely', 'Occasionally', 'Frequently']}
-                            icon="people-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Pet Preference"
-                            selectedValue={roommatePetPreference}
-                            onValueChange={setRoommatePetPreference}
-                            options={['No Pets', 'Okay with Pets']}
-                            icon="paw-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Noise Tolerance"
-                            selectedValue={roommateNoiseTolerance}
-                            onValueChange={setRoommateNoiseTolerance}
-                            options={['Quiet', 'Moderate', 'Loud Environment']}
-                            icon="volume-high-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Sharing Common Items"
-                            selectedValue={roommateSharingCommonItems}
-                            onValueChange={setRoommateSharingCommonItems}
-                            options={['Strictly Separate', 'Willing to Share', 'Flexible']}
-                            icon="share-outline"
-                        />
-                        <CustomDropdown 
-                            label="Roommate Dietary Preference"
-                            selectedValue={roommateDietaryPreference}
-                            onValueChange={setRoommateDietaryPreference}
-                            options={['Vegetarian', 'Vegan', 'No Restrictions']}
-                            icon="restaurant-outline"
-                        />
                     </View>
 
                     { /* Notif Section */ }

@@ -321,20 +321,6 @@ const ProfileSetupScreen = ({ navigation }) => {
                 />
             )}
             {step === 6 && (
-                <Step6RoommatePreferences
-                    roommateSmokingPreference={roommateSmokingPreference} setRoommateSmokingPreference={setRoommateSmokingPreference}
-                    roommateCleanlinessLevel={roommateCleanlinessLevel} setRoommateCleanlinessLevel={setRoommateCleanlinessLevel}
-                    roommateSleepSchedule={roommateSleepSchedule} setRoommateSleepSchedule={setRoommateSleepSchedule}
-                    roommateGuestFrequency={roommateGuestFrequency} setRoommateGuestFrequency={setRoommateGuestFrequency}
-                    roommatePetPreference={roommatePetPreference} setRoommatePetPreference={setRoommatePetPreference}
-                    roommateNoiseTolerance={roommateNoiseTolerance} setRoommateNoiseTolerance={setRoommateNoiseTolerance}
-                    roommateSharingCommonItems={roommateSharingCommonItems} setRoommateSharingCommonItems={setRoommateSharingCommonItems}
-                    roommateDietaryPreference={roommateDietaryPreference} setRoommateDietaryPreference={setRoommateDietaryPreference}
-                    handleNext={handleNext}
-                    handleBack={handleBack}
-                />
-            )}
-            {step === 7 && (
                 <UploadProfilePic onPictureUploaded={(uri) => setImageUri(uri)}
                     handleSubmit={handleSubmit}
                     handleBack={handleBack}

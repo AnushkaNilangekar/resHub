@@ -223,9 +223,9 @@ const ChatScreen = () => {
       const userParams = new URLSearchParams();
       userParams.append('chatId', chatId);
       userParams.append('createdAt', new Date().toISOString());
-      userParams.append('text', cu);
-      userParams.append('userId', requestData.userId);
-      userParams.append('name', requestData.name);
+      userParams.append('text', `${currentUserName} left the group`);
+      userParams.append('userId', currentUserId);
+      userParams.append('name', "");
 
       await axios.post(
         `${config.API_BASE_URL}/api/users/createMessage?${userParams.toString()}`,
